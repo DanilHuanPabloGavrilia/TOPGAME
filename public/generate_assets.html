@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Генератор ассетов Dealer's Gambit (Яндекс Игры & VK Games)</title>
+  <style>
+    body {
+      background-color: #0b0c14;
+      color: #e0e6ed;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+      gap: 30px;
+    }
+    h1 { color: #05d9e8; text-shadow: 0 0 10px rgba(5,217,232,0.5); text-align: center; }
+    .assets-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      justify-content: center;
+      max-width: 1200px;
+    }
+    .asset-card {
+      background: rgba(16, 18, 27, 0.9);
+      border: 1px solid #ff2a6d;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 0 30px rgba(255, 42, 109, 0.2);
+    }
+    canvas {
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      max-width: 100%;
+    }
+    .btn-download {
+      background: linear-gradient(135deg, #ff2a6d, #b0003a);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 42, 109, 0.4);
+      transition: transform 0.2s ease;
+    }
+    .btn-download:hover { transform: scale(1.05); }
+    .btn-vk { background: linear-gradient(135deg, #0077ff, #0055cc); box-shadow: 0 0 15px rgba(0, 119, 255, 0.4); }
+    .btn-ya { background: linear-gradient(135deg, #05d9e8, #0077b6); box-shadow: 0 0 15px rgba(5, 217, 232, 0.4); }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ Полный Генератор Графики для Яндекс Игр и VK Games</h1>
+  <p>Все графические ассеты сгенерированы ниже в точных пиксельных размерах. Нажмите нужные кнопки для скачивания!</p>
+
+  <div class="assets-grid">
+    <!-- ICON 512x512 (Ya & VK Catalog) -->
+    <div class="asset-card">
+      <h3>🖼️ Иконка Каталога (512 × 512 px)</h3>
+      <p style="font-size: 0.8rem; color: #888; margin-top: -10px;">Для Яндекс Игр и VK Games</p>
+      <canvas id="canvas-icon512" width="512" height="512" style="width: 200px; height: 200px;"></canvas>
+      <button id="btn-dl-icon512" class="btn-download btn-ya">📥 Скачать 512x512 (PNG)</button>
+    </div>
+
+    <!-- ICON 200x200 (VK App Icon) -->
+    <div class="asset-card">
+      <h3>🖼️ Иконка VK Приложения (200 × 200 px)</h3>
+      <p style="font-size: 0.8rem; color: #888; margin-top: -10px;">Для VK Direct Games</p>
+      <canvas id="canvas-icon200" width="200" height="200"></canvas>
+      <button id="btn-dl-icon200" class="btn-download btn-vk">📥 Скачать 200x200 (PNG)</button>
+    </div>
+
+    <!-- BANNER VK 1120x630 -->
+    <div class="asset-card">
+      <h3>🖼️ Главный Баннер VK (1120 × 630 px)</h3>
+      <p style="font-size: 0.8rem; color: #888; margin-top: -10px;">Обложка для каталога VK Games</p>
+      <canvas id="canvas-vkbanner" width="1120" height="630" style="max-width: 420px;"></canvas>
+      <button id="btn-dl-vkbanner" class="btn-download btn-vk">📥 Скачать Баннер VK 1120x630 (PNG)</button>
+    </div>
+
+    <!-- COVER YA 1920x1080 -->
+    <div class="asset-card">
+      <h3>🖼️ Главная Обложка Яндекса (1920 × 1080 px)</h3>
+      <p style="font-size: 0.8rem; color: #888; margin-top: -10px;">Баннер для Яндекс Игр</p>
+      <canvas id="canvas-yacover" width="1920" height="1080" style="max-width: 420px;"></canvas>
+      <button id="btn-dl-yacover" class="btn-download btn-ya">📥 Скачать Обложку 1920x1080 (PNG)</button>
+    </div>
+  </div>
+
+  <script>
+    // --- DRAW ICON FUNCTION ---
+    function drawIcon(canvasId, size) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const center = size / 2;
+
+      // Background
+      const bgGrad = ctx.createRadialGradient(center, center, size * 0.05, center, center, size * 0.7);
+      bgGrad.addColorStop(0, '#1c132b');
+      bgGrad.addColorStop(0.6, '#0b0814');
+      bgGrad.addColorStop(1, '#040308');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, size, size);
+
+      // Neon Glow Rings
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(center, center, size * 0.41, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ff2a6d';
+      ctx.lineWidth = Math.max(2, size * 0.012);
+      ctx.shadowColor = '#ff2a6d';
+      ctx.shadowBlur = size * 0.05;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(center, center, size * 0.38, 0, Math.PI * 2);
+      ctx.strokeStyle = '#05d9e8';
+      ctx.lineWidth = Math.max(1.5, size * 0.007);
+      ctx.shadowColor = '#05d9e8';
+      ctx.shadowBlur = size * 0.03;
+      ctx.stroke();
+      ctx.restore();
+
+      // Revolver Drum Center
+      ctx.save();
+      ctx.translate(center, center);
+
+      const drumGrad = ctx.createRadialGradient(0, 0, size * 0.05, 0, 0, size * 0.28);
+      drumGrad.addColorStop(0, '#2d323f');
+      drumGrad.addColorStop(0.7, '#151821');
+      drumGrad.addColorStop(1, '#0a0b10');
+
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
+      ctx.fillStyle = drumGrad;
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = size * 0.04;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.lineWidth = Math.max(1.5, size * 0.008);
+      ctx.stroke();
+
+      // Spindle Center
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.07, 0, Math.PI * 2);
+      ctx.fillStyle = '#090a0f';
+      ctx.fill();
+      ctx.strokeStyle = '#ffb703';
+      ctx.lineWidth = Math.max(1, size * 0.006);
+      ctx.shadowColor = '#ffb703';
+      ctx.shadowBlur = size * 0.02;
+      ctx.stroke();
+
+      // 6 Chambers
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2;
+        const cx = Math.cos(angle) * (size * 0.16);
+        const cy = Math.sin(angle) * (size * 0.16);
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, size * 0.05, 0, Math.PI * 2);
+        ctx.fillStyle = '#06070a';
+        ctx.fill();
+        ctx.strokeStyle = i % 2 === 0 ? '#ff2a6d' : '#05d9e8';
+        ctx.lineWidth = Math.max(1, size * 0.006);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, size * 0.028, 0, Math.PI * 2);
+        if (i % 2 === 0) {
+          ctx.fillStyle = '#ff2a6d';
+          ctx.shadowColor = '#ff2a6d';
+        } else {
+          ctx.fillStyle = '#05d9e8';
+          ctx.shadowColor = '#05d9e8';
+        }
+        ctx.shadowBlur = size * 0.03;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    drawIcon('canvas-icon512', 512);
+    drawIcon('canvas-icon200', 200);
+
+    // --- DRAW BANNER/COVER FUNCTION ---
+    function drawBanner(canvasId, width, height, isVk) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+
+      // Radial Cyber Background
+      const bgGrad = ctx.createRadialGradient(width / 2, height / 2, width * 0.05, width / 2, height / 2, width * 0.6);
+      bgGrad.addColorStop(0, '#1c112b');
+      bgGrad.addColorStop(0.5, '#0c0716');
+      bgGrad.addColorStop(1, '#030206');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Perspective Grid Lines
+      ctx.strokeStyle = isVk ? 'rgba(0, 119, 255, 0.15)' : 'rgba(5, 217, 232, 0.12)';
+      ctx.lineWidth = 1.5;
+      const step = width / 24;
+      for (let x = 0; x <= width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0); ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= height; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y); ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Ambient Orbs
+      const drawOrb = (x, y, r, color) => {
+        ctx.save();
+        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, color);
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      };
+
+      drawOrb(width * 0.2, height / 2, width * 0.25, 'rgba(255, 42, 109, 0.25)');
+      drawOrb(width * 0.8, height / 2, width * 0.25, 'rgba(5, 217, 232, 0.25)');
+
+      // Center Revolver Drum
+      ctx.save();
+      ctx.translate(width / 2, height * 0.42);
+
+      const rDrum = height * 0.22;
+      ctx.beginPath();
+      ctx.arc(0, 0, rDrum, 0, Math.PI * 2);
+      ctx.fillStyle = '#10131d';
+      ctx.shadowColor = '#05d9e8';
+      ctx.shadowBlur = 30;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(5, 217, 232, 0.6)';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2;
+        const cx = Math.cos(angle) * (rDrum * 0.6);
+        const cy = Math.sin(angle) * (rDrum * 0.6);
+
+        ctx.beginPath(); ctx.arc(cx, cy, rDrum * 0.18, 0, Math.PI * 2);
+        if (i % 2 === 0) { ctx.fillStyle = '#ff2a6d'; ctx.shadowColor = '#ff2a6d'; }
+        else { ctx.fillStyle = '#05d9e8'; ctx.shadowColor = '#05d9e8'; }
+        ctx.shadowBlur = 15;
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Title Text: DEALER'S GAMBIT
+      ctx.save();
+      ctx.textAlign = 'center';
+      const fontTitleSize = Math.round(height * 0.1);
+      ctx.font = `900 ${fontTitleSize}px sans-serif`;
+
+      ctx.shadowColor = '#ff2a6d';
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText("DEALER'S GAMBIT", width / 2, height * 0.78);
+
+      ctx.shadowColor = '#05d9e8';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = '#05d9e8';
+      ctx.fillText("DEALER'S GAMBIT", width / 2, height * 0.78);
+
+      // Subtitle
+      const fontSubSize = Math.round(height * 0.038);
+      ctx.font = `800 ${fontSubSize}px sans-serif`;
+      ctx.shadowColor = '#ffb703';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ffb703';
+      ctx.fillText("⚡ КИБЕР-ОККУЛЬТНЫЙ РОГАЛИК ⚡", width / 2, height * 0.86);
+
+      ctx.font = `600 ${Math.round(height * 0.026)}px sans-serif`;
+      ctx.fillStyle = '#e0e6ed';
+      ctx.shadowBlur = 0;
+      ctx.fillText("🎰 5 ЛОКАЦИЙ  •  🤖 15 БОССОВ  •  🎴 12 КАРТ ПРЕДМЕТОВ", width / 2, height * 0.92);
+      ctx.restore();
+    }
+
+    drawBanner('canvas-vkbanner', 1120, 630, true);
+    drawBanner('canvas-yacover', 1920, 1080, false);
+
+    // DOWNLOAD HANDLERS
+    const bindDownload = (btnId, canvasId, filename) => {
+      document.getElementById(btnId).addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = document.getElementById(canvasId).toDataURL('image/png');
+        link.click();
+      });
+    };
+
+    bindDownload('btn-dl-icon512', 'canvas-icon512', 'icon_512x512.png');
+    bindDownload('btn-dl-icon200', 'canvas-icon200', 'icon_200x200.png');
+    bindDownload('btn-dl-vkbanner', 'canvas-vkbanner', 'vk_banner_1120x630.png');
+    bindDownload('btn-dl-yacover', 'canvas-yacover', 'yandex_cover_1920x1080.png');
+  </script>
+
+</body>
+</html>
