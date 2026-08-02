@@ -62,21 +62,22 @@
     <div id="screen-world-map" class="screen-panel">
       <div class="map-box">
         <h2 class="modal-title">🗺️ КАРТА МИРА (5 ЛОКАЦИЙ & 15 БОССОВ)</h2>
-        <p style="color: var(--text-dim); margin-bottom: 20px;">
+        <p style="color: var(--text-dim); margin-bottom: 16px;">
           Выбирайте любую открытую локацию для прохождения или фарма неоновых фишек!
         </p>
 
-        <div id="locations-list" class="locations-grid">
-          <!-- Dynamically injected locations -->
-        </div>
-
-        <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
-          <button id="btn-map-back-menu" class="btn-secondary">
-            ⬅️ В Главное Меню
-          </button>
-          <button id="btn-map-meta-shop" class="btn-primary">
+        <!-- Top Action Buttons -->
+        <div style="display: flex; gap: 14px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap;">
+          <button id="btn-map-meta-shop" class="btn-primary" style="padding: 12px 26px; font-size: 1.05rem; box-shadow: 0 0 20px rgba(5, 217, 232, 0.4);">
             🦾 Прокачка Характеристик
           </button>
+          <button id="btn-map-back-menu" class="btn-secondary" style="padding: 12px 20px;">
+            ⬅️ В Главное Меню
+          </button>
+        </div>
+
+        <div id="locations-list" class="locations-grid">
+          <!-- Dynamically injected locations -->
         </div>
       </div>
     </div>
@@ -190,11 +191,11 @@
       </main>
     </div>
 
-    <!-- Modal Overlay for Shop / Intermission Hub / Victory / Defeat -->
+    <!-- Modal Overlay for Intermission Hub / Victory / Defeat -->
     <div id="modal-overlay" class="modal-overlay">
       <div class="modal-box">
-        <h2 id="modal-title" class="modal-title">ЧЕРНЫЙ МАРКЕТ</h2>
-        <p id="modal-desc" style="color: var(--text-dim);">Потратьте фишки на карты предметов и постоянные реликвии.</p>
+        <h2 id="modal-title" class="modal-title">ПРОМЕЖУТОЧНЫЙ ЦЕНТР</h2>
+        <p id="modal-desc" style="color: var(--text-dim);">Зайдите в Мета-Прокачку характеристик или продолжайте путь к следующему боссу.</p>
         
         <div id="shop-grid" class="shop-grid">
           <!-- Shop items injected dynamically -->

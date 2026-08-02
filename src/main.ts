@@ -1,7 +1,6 @@
 import './style.css';
 import { GameState } from './game/GameState';
 import { ParticleSystem } from './engine/ParticleSystem';
-import { ALL_ITEMS } from './game/ItemCatalog';
 import { LOCATIONS } from './game/BossCatalog';
 import { sound } from './engine/AudioSynthesizer';
 import { platformSDK } from './engine/PlatformSDK';
@@ -283,7 +282,7 @@ function renderBattleUI() {
           🏦 ТЕКУЩИЙ ОБЩИЙ БАЛАНС: <strong style="color: var(--neon-green); font-size: 1.1rem;">${gameState.player.chips} $</strong>
         </div>
       </div>
-      <div style="color: var(--text-dim); font-size: 0.9rem;">Купите карты предметов или зайдите в Мета-Прокачку!</div>
+      <div style="color: var(--text-dim); font-size: 0.9rem;">Зайдите в Мета-Прокачку характеристик или продолжайте путь!</div>
     `;
 
     if (btnAdDoubleChips) {
@@ -310,7 +309,7 @@ function renderBattleUI() {
       modalOverlay.classList.remove('active');
       showBossIntroModal(gameState.currentLocationIndex, gameState.currentBossIndex);
     };
-    renderShopGrid();
+    shopGrid.innerHTML = '';
     modalOverlay.classList.add('active');
     platformSDK.showInterstitialAd();
   } else if (gameState.phase === 'GAMEOVER') {
@@ -628,24 +627,6 @@ function renderMetaShop() {
       showBossIntroModal(gameState.currentLocationIndex, gameState.currentBossIndex);
     };
   }
-}
-
-// Render Shop Items (Standard Between Battles)
-function renderShopGrid() {
-  shopGrid.innerHTML = '';
-
-  Object.values(ALL_ITEMS).slice(0, 4).forEach(item => {
-    const card = document.createElement('div');
-    card.className = 'shop-item-card';
-    card.innerHTML = `
-      <div style="font-size: 2rem;">${item.icon}</div>
-      <strong style="color: var(--neon-cyan);">${item.name}</strong>
-      <small style="color: var(--text-dim); text-align: center;">${item.description}</small>
-      <div style="color: var(--gold); font-weight: 800; margin-top: 6px;">${item.cost} $</div>
-    `;
-    card.onclick = () => gameState.buyShopItem(item);
-    shopGrid.appendChild(card);
-  });
 }
 
 // Global Event Listeners & Navigation
