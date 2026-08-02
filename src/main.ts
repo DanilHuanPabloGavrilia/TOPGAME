@@ -265,7 +265,22 @@ function renderBattleUI() {
     const nextBossNum = gameState.currentBossIndex + 1;
     const currentLoc = gameState.currentLocationIndex;
     const currentBoss = gameState.currentBossIndex;
-    const baseReward = 100 + (currentLoc + 1) * 50 + (currentBoss + 1) * 25;
+
+    // Progressive Option 1 Rewards Matrix: [locIdx][bossIdx]
+    const rewardsMatrix = [
+      [35, 60, 120],     // Loc 1
+      [75, 120, 250],    // Loc 2
+      [160, 260, 550],   // Loc 3
+      [350, 580, 1200],  // Loc 4
+      [800, 1400, 3000]  // Loc 5
+    ];
+    let prevLoc = currentLoc;
+    let prevBoss = currentBoss - 1;
+    if (prevBoss < 0) {
+      prevLoc = Math.max(0, currentLoc - 1);
+      prevBoss = 2;
+    }
+    const baseReward = rewardsMatrix[prevLoc]?.[prevBoss] || 35;
     const totalReward = Math.round(baseReward * gameState.getChipsMultiplier());
     lastEncounterReward = totalReward;
 
@@ -314,7 +329,9 @@ function renderBattleUI() {
     platformSDK.showInterstitialAd();
   } else if (gameState.phase === 'GAMEOVER') {
     const prevBossNum = gameState.currentBossIndex + 1;
-    const defeatReward = Math.round(70 * gameState.getChipsMultiplier());
+    const defeatRewards = [15, 35, 80, 180, 450];
+    const baseDefeat = defeatRewards[gameState.currentLocationIndex] || 15;
+    const defeatReward = Math.round(baseDefeat * gameState.getChipsMultiplier());
     lastEncounterReward = defeatReward;
 
     modalTitle.innerText = '💀 ПОРАЖЕНИЕ В ДУЭЛИ';

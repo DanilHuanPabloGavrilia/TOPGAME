@@ -496,8 +496,16 @@ export class GameState {
     // Mark current boss as completed!
     this.completedBosses[currentLoc][currentBoss] = true;
 
-    // Reward Chips (with Capital Bonus Multiplier)
-    const baseReward = 100 + (currentLoc + 1) * 50 + (currentBoss + 1) * 25;
+    // Progressive Option 1 Rewards Matrix: [locIdx][bossIdx]
+    const rewardsMatrix = [
+      [35, 60, 120],     // Loc 1
+      [75, 120, 250],    // Loc 2
+      [160, 260, 550],   // Loc 3
+      [350, 580, 1200],  // Loc 4
+      [800, 1400, 3000]  // Loc 5
+    ];
+
+    const baseReward = rewardsMatrix[currentLoc]?.[currentBoss] || 35;
     const reward = Math.round(baseReward * this.getChipsMultiplier());
     this.player.chips += reward;
 
@@ -505,7 +513,7 @@ export class GameState {
       // Advance to next boss in same location!
       this.currentBossIndex = currentBoss + 1;
       this.phase = 'SHOP';
-      this.dealer.dialogue = `🎉 ПОБЕДА! Босс ${currentBoss + 1} повержен! Заработано ${reward}$. Подготовьтесь к Боссу ${this.currentBossIndex + 1}.`;
+      this.dealer.dialogue = `🎉 ПОБЕДА! Босс ${currentBoss + 1} повержен! Заработано +${reward}$. Подготовьтесь к Боссу ${this.currentBossIndex + 1}.`;
     } else {
       // Completed Location 3/3 Bosses!
       if (currentLoc < 4) {
@@ -525,8 +533,10 @@ export class GameState {
   handlePlayerDefeatRewind() {
     sound.playBlankClick();
 
-    // Consolation reward on defeat (with Capital Bonus Multiplier)
-    const defeatReward = Math.round(70 * this.getChipsMultiplier());
+    // Consolation reward on defeat scaling with location (Option 1)
+    const defeatRewards = [15, 35, 80, 180, 450];
+    const baseDefeat = defeatRewards[this.currentLocationIndex] || 15;
+    const defeatReward = Math.round(baseDefeat * this.getChipsMultiplier());
     this.player.chips += defeatReward;
 
     this.phase = 'GAMEOVER';
