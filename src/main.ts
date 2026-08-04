@@ -4,9 +4,11 @@ import { ParticleSystem } from './engine/ParticleSystem';
 import { LOCATIONS } from './game/BossCatalog';
 import { sound } from './engine/AudioSynthesizer';
 import { platformSDK } from './engine/PlatformSDK';
+import { imagePreloader } from './engine/ImagePreloader';
 
-// Init Platform SDK (Yandex Games / VK Direct Games / Local)
+// Init Platform SDK (Yandex Games / VK Direct Games / Local) & Asset Preloader
 platformSDK.init();
+imagePreloader.preloadAll();
 
 // Initialize Canvas Particles
 const canvas = document.getElementById('fx-canvas') as HTMLCanvasElement;
@@ -212,8 +214,9 @@ function renderBattleUI() {
     const cardEl = document.createElement('div');
     cardEl.className = 'item-card';
 
+    const imgSrc = imagePreloader.getItemImage(item.id, item.iconUrl || '');
     const iconHTML = item.iconUrl
-      ? `<img src="${item.iconUrl}" class="item-card-icon-img" alt="${item.name}" />`
+      ? `<img src="${imgSrc}" class="item-card-icon-img" alt="${item.name}" loading="eager" decoding="async" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" /><div class="card-icon" style="display:none;">${item.icon}</div>`
       : `<div class="card-icon">${item.icon}</div>`;
 
     cardEl.innerHTML = `

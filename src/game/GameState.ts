@@ -381,11 +381,16 @@ export class GameState {
 
       case 'CIGARETTE':
         if (user === 'PLAYER') {
-          this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
+          const heal = Math.max(1, Math.round(this.player.maxHp * 0.1));
+          this.player.hp = Math.min(this.player.maxHp, this.player.hp + heal);
+          if (this.onFloatingText) this.onFloatingText(`+${heal} HP (10%) 🚬`, 'PLAYER', '#00ff66');
+          this.dealer.dialogue = `Вы выкурили сигарету (+${heal} HP / 10%).`;
         } else {
-          this.dealer.hp = Math.min(this.dealer.maxHp, this.dealer.hp + 1);
+          const heal = Math.max(1, Math.round(this.dealer.maxHp * 0.1));
+          this.dealer.hp = Math.min(this.dealer.maxHp, this.dealer.hp + heal);
+          if (this.onFloatingText) this.onFloatingText(`+${heal} HP (10%) 🚬`, 'DEALER', '#00ff66');
+          this.dealer.dialogue = `Босс выкурил сигарету (+${heal} HP / 10%).`;
         }
-        this.dealer.dialogue = `${user === 'PLAYER' ? 'Вы выкурили' : 'Босс выкурил'} сигарету (+1 HP).`;
         break;
 
       case 'HACK_CHIP':

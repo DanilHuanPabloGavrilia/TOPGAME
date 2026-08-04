@@ -30,7 +30,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     name: 'Сигарета',
     icon: '🚬',
     iconUrl: '/images/items/cigarette.jpg',
-    description: 'Восстанавливает 1 единицу здоровья.',
+    description: 'Восстанавливает 10% от максимального здоровья.',
     cost: 50
   },
   HACK_CHIP: {
