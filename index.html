@@ -135,7 +135,28 @@
         </section>
 
         <!-- Center Chamber Display & Controls -->
-        <section class="table-center">
+        <section class="table-center" style="position: relative;">
+          <!-- Dealer Action & Targeting Intent Banner -->
+          <div id="dealer-intent-banner" class="dealer-intent-banner" style="display: none;">
+            <span id="dealer-intent-text">🎯 ДИЛЛЕР ЦЕЛИТСЯ В ВАС...</span>
+          </div>
+
+          <!-- Dealer Item Card Showcase Overlay -->
+          <div id="dealer-card-showcase" class="dealer-card-showcase" style="display: none;">
+            <div class="showcase-badge">🎴 ДИЛЛЕР ИСПОЛЬЗУЕТ ПРЕДМЕТ</div>
+            <div id="showcase-card-icon" class="showcase-icon">🔍</div>
+            <div id="showcase-card-name" class="showcase-name">ЛУПА</div>
+            <div id="showcase-card-desc" class="showcase-desc">Показывает текущий патрон в стволе</div>
+          </div>
+
+          <!-- Avatar Target Reticle Overlay -->
+          <div id="target-reticle" class="target-reticle" style="display: none;">
+            <div class="reticle-ring"></div>
+            <div class="reticle-crosshair-h"></div>
+            <div class="reticle-crosshair-v"></div>
+            <div class="reticle-center-dot"></div>
+          </div>
+
           <div id="multiplier-badge" class="multiplier-badge" style="display: none;">
             МУЛЬТИПЛИКАТОР УРОНА: x2
           </div>
@@ -169,7 +190,7 @@
         <section class="player-zone">
           <div class="player-header">
             <div class="char-info">
-              <div class="avatar-box" style="border-color: var(--neon-cyan);">👤</div>
+              <div id="player-avatar" class="avatar-box" style="border-color: var(--neon-cyan);">👤</div>
               <div class="char-details">
                 <h3 style="color: var(--neon-cyan);">ИГРОК (ВЫ)</h3>
                 <div class="hp-bar-container">

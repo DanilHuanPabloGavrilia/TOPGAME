@@ -718,3 +718,180 @@ body {
   color: var(--text-main);
   line-height: 1.25;
 }
+
+/* ==========================================================================
+   DEALER CLARITY: CARD SHOWCASE, INTENT BANNER & LASER TARGETING
+   ========================================================================== */
+
+/* Intent Banner Overlay */
+.dealer-intent-banner {
+  position: absolute;
+  top: -65px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(20, 10, 30, 0.95), rgba(40, 5, 25, 0.95));
+  border: 2px solid var(--neon-red);
+  border-radius: 24px;
+  padding: 10px 26px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--neon-red);
+  box-shadow: 0 0 30px rgba(255, 42, 109, 0.6);
+  white-space: nowrap;
+  z-index: 190;
+  animation: bannerPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dealer-intent-banner.self-target {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  background: linear-gradient(135deg, rgba(10, 25, 45, 0.95), rgba(5, 40, 50, 0.95));
+  box-shadow: 0 0 30px rgba(5, 217, 232, 0.6);
+}
+
+/* Dealer Card Showcase Overlay */
+.dealer-card-showcase {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  background: linear-gradient(145deg, rgba(20, 24, 45, 0.98), rgba(10, 12, 24, 0.98));
+  border: 2px solid var(--gold);
+  border-radius: 16px;
+  padding: 20px 28px;
+  width: 280px;
+  text-align: center;
+  box-shadow: 0 0 45px rgba(255, 183, 3, 0.6), inset 0 0 20px rgba(255, 183, 3, 0.2);
+  backdrop-filter: blur(10px);
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: popCardShowcase 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popCardShowcase {
+  0% { opacity: 0; transform: translate(-50%, -40%) scale(0.7); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.showcase-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 1.5px;
+}
+
+.showcase-icon {
+  font-size: 3.2rem;
+  filter: drop-shadow(0 0 12px var(--gold));
+  margin: 4px 0;
+}
+
+.showcase-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px rgba(246, 201, 14, 0.6);
+}
+
+.showcase-desc {
+  font-size: 0.82rem;
+  color: var(--text-main);
+  line-height: 1.35;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+  width: 100%;
+}
+
+/* Avatar Target Reticle Overlay */
+.target-reticle {
+  position: absolute;
+  width: 76px;
+  height: 76px;
+  pointer-events: none;
+  z-index: 220;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: translate(-50%, -50%);
+  animation: reticlePop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes reticlePop {
+  0% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.reticle-ring {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border: 2.5px dashed var(--neon-red);
+  border-radius: 50%;
+  box-shadow: 0 0 25px var(--neon-red), inset 0 0 12px var(--neon-red);
+  animation: reticleSpin 3s linear infinite;
+}
+
+.target-reticle.self-target .reticle-ring {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 25px var(--neon-cyan), inset 0 0 12px var(--neon-cyan);
+}
+
+.reticle-crosshair-h {
+  position: absolute;
+  width: 88px;
+  height: 2px;
+  background: var(--neon-red);
+  box-shadow: 0 0 12px var(--neon-red);
+}
+
+.target-reticle.self-target .reticle-crosshair-h {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 12px var(--neon-cyan);
+}
+
+.reticle-crosshair-v {
+  position: absolute;
+  width: 2px;
+  height: 88px;
+  background: var(--neon-red);
+  box-shadow: 0 0 12px var(--neon-red);
+}
+
+.target-reticle.self-target .reticle-crosshair-v {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 12px var(--neon-cyan);
+}
+
+.reticle-center-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--neon-red);
+  border-radius: 50%;
+  box-shadow: 0 0 14px var(--neon-red);
+  animation: reticlePulse 0.5s ease-in-out infinite alternate;
+}
+
+.target-reticle.self-target .reticle-center-dot {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 14px var(--neon-cyan);
+}
+
+@keyframes reticleSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes reticlePulse {
+  from { transform: scale(0.85); opacity: 0.7; }
+  to { transform: scale(1.35); opacity: 1; }
+}
+

@@ -1,18 +1,41 @@
-// Web Audio & File-based Sound Engine for Dealer's Gambit
-// Plays real MP3/WAV audio files from /public/sounds/ with synthesized fallbacks
+// Web Audio & File-based High-Performance Sound Engine for Dealer's Gambit
+// Pre-decodes MP3 files into Web Audio API AudioBuffers for 0ms latency synchronous playback
 
 class AudioSynthesizer {
   private ctx: AudioContext | null = null;
-  private audioCache: Record<string, HTMLAudioElement> = {};
+  private audioBuffers: Record<string, AudioBuffer> = {};
+  private audioPool: Record<string, HTMLAudioElement[]> = {};
+  private activeReloadSources: (AudioBufferSourceNode | HTMLAudioElement)[] = [];
   public isMuted: boolean = false;
 
+  private soundFiles: Record<string, string> = {
+    shot: '/sounds/shot.mp3',
+    blank: '/sounds/blank.mp3',
+    reload: '/sounds/reload.mp3',
+    card_deal: '/sounds/card_deal.mp3',
+    card_use: '/sounds/card_use.mp3'
+  };
+
   constructor() {
-    // Preload audio files if present
-    this.preloadFile('shot', '/sounds/shot.mp3');
-    this.preloadFile('blank', '/sounds/blank.mp3');
-    this.preloadFile('reload', '/sounds/reload.mp3');
-    this.preloadFile('card_deal', '/sounds/card_deal.mp3');
-    this.preloadFile('card_use', '/sounds/card_use.mp3');
+    // Unlock AudioContext on first user interaction
+    const unlock = () => {
+      this.init();
+      window.removeEventListener('click', unlock);
+      window.removeEventListener('keydown', unlock);
+      window.removeEventListener('touchstart', unlock);
+    };
+    window.addEventListener('click', unlock);
+    window.addEventListener('keydown', unlock);
+    window.addEventListener('touchstart', unlock);
+
+    // Preload HTML5 Audio fallback pool
+    Object.entries(this.soundFiles).forEach(([key, url]) => {
+      this.audioPool[key] = Array.from({ length: 4 }, () => {
+        const a = new Audio(url);
+        a.preload = 'auto';
+        return a;
+      });
+    });
   }
 
   public toggleMute(): boolean {
@@ -21,55 +44,109 @@ class AudioSynthesizer {
   }
 
   private init() {
-    if (this.isMuted) return;
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new AudioCtx();
+      this.loadAudioBuffers();
     }
-    if (this.ctx.state === 'suspended') {
+    if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
   }
 
-  private preloadFile(key: string, url: string) {
-    const audio = new Audio();
-    audio.src = url;
-    audio.preload = 'auto';
-    this.audioCache[key] = audio;
+  private async loadAudioBuffers() {
+    if (!this.ctx) return;
+    for (const [key, url] of Object.entries(this.soundFiles)) {
+      try {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        if (this.ctx) {
+          const decoded = await this.ctx.decodeAudioData(arrayBuffer);
+          this.audioBuffers[key] = decoded;
+        }
+      } catch (e) {
+        console.warn(`Failed to decode audio buffer for ${key}`, e);
+      }
+    }
   }
 
-  private playCustomFile(key: string): boolean {
+  public stopReload() {
+    this.activeReloadSources.forEach(src => {
+      try {
+        if ('stop' in src) {
+          (src as AudioBufferSourceNode).stop();
+        } else if ('pause' in src) {
+          (src as HTMLAudioElement).pause();
+          (src as HTMLAudioElement).currentTime = 0;
+        }
+      } catch (e) {}
+    });
+    this.activeReloadSources = [];
+  }
+
+  private playBufferOrFallback(key: string, volume: number = 0.85): boolean {
     if (this.isMuted) return true;
-    const audio = this.audioCache[key];
-    if (audio && audio.readyState >= 2) {
-      const clone = audio.cloneNode() as HTMLAudioElement;
-      clone.currentTime = 0;
-      clone.volume = 0.85;
-      clone.play().catch(() => {});
-      return true;
+    this.init();
+
+    // 1. Instant 0ms latency Web Audio API AudioBuffer playback
+    if (this.ctx && this.audioBuffers[key]) {
+      try {
+        const source = this.ctx.createBufferSource();
+        const gainNode = this.ctx.createGain();
+        source.buffer = this.audioBuffers[key];
+        gainNode.gain.setValueAtTime(volume, this.ctx.currentTime);
+        source.connect(gainNode);
+        gainNode.connect(this.ctx.destination);
+        source.start(0);
+
+        if (key === 'reload') {
+          this.activeReloadSources.push(source);
+        }
+        return true;
+      } catch (e) {
+        console.warn('Web Audio buffer playback error:', e);
+      }
     }
+
+    // 2. Pre-allocated HTMLAudioElement Pool fallback
+    const pool = this.audioPool[key];
+    if (pool && pool.length > 0) {
+      const available = pool.find(a => a.paused || a.ended) || pool[0];
+      if (available) {
+        available.currentTime = 0;
+        available.volume = volume;
+        available.play().catch(() => {});
+        if (key === 'reload') {
+          this.activeReloadSources.push(available);
+        }
+        return true;
+      }
+    }
+
     return false;
   }
 
   // Play Revolver Cylinder Reload / Spin Sound
   playReload() {
-    if (this.playCustomFile('reload')) return;
+    this.stopReload();
+    if (this.playBufferOrFallback('reload', 0.8)) return;
     this.playClick();
   }
 
   // Play Revolver Click / Spin
   playClick() {
+    if (this.isMuted) return;
     this.init();
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-    
+
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(1400, now);
     osc.frequency.exponentialRampToValueAtTime(250, now + 0.035);
 
-    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.setValueAtTime(0.25, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
 
     osc.connect(gain);
@@ -79,14 +156,14 @@ class AudioSynthesizer {
     osc.stop(now + 0.035);
   }
 
-  // Play Card Slide / Deal
+  // Play Card Slide / Deal Sound
   playCardSlide() {
-    if (this.playCustomFile('card_deal')) return;
+    if (this.playBufferOrFallback('card_deal', 0.9)) return;
 
     this.init();
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
-    const bufferSize = this.ctx.sampleRate * 0.09;
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.09);
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
@@ -103,7 +180,7 @@ class AudioSynthesizer {
     filter.Q.value = 2.5;
 
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.setValueAtTime(0.3, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
     noise.connect(filter);
@@ -113,16 +190,17 @@ class AudioSynthesizer {
     noise.start(now);
   }
 
-  // Play Gunshot (Live Round)
+  // Play Gunshot (Live Round) — Instantly stops any playing cylinder spin sound!
   playLiveShot() {
-    if (this.playCustomFile('shot')) return;
+    this.stopReload();
+
+    if (this.playBufferOrFallback('shot', 0.95)) return;
 
     this.init();
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
 
-    // Transient Crack
-    const noiseLen = this.ctx.sampleRate * 0.28;
+    const noiseLen = Math.floor(this.ctx.sampleRate * 0.28);
     const buffer = this.ctx.createBuffer(1, noiseLen, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < noiseLen; i++) {
@@ -138,21 +216,20 @@ class AudioSynthesizer {
     noiseFilter.frequency.exponentialRampToValueAtTime(150, now + 0.28);
 
     const noiseGain = this.ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.8, now);
+    noiseGain.gain.setValueAtTime(0.85, now);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
 
     noise.connect(noiseFilter);
     noiseFilter.connect(noiseGain);
     noiseGain.connect(this.ctx.destination);
 
-    // Sub-Bass Thud
     const subOsc = this.ctx.createOscillator();
     const subGain = this.ctx.createGain();
     subOsc.type = 'triangle';
     subOsc.frequency.setValueAtTime(220, now);
     subOsc.frequency.exponentialRampToValueAtTime(28, now + 0.35);
 
-    subGain.gain.setValueAtTime(0.7, now);
+    subGain.gain.setValueAtTime(0.75, now);
     subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
     subOsc.connect(subGain);
@@ -163,9 +240,11 @@ class AudioSynthesizer {
     subOsc.stop(now + 0.35);
   }
 
-  // Play Blank Click (Misfire)
+  // Play Blank Click (Misfire) — Instantly stops any playing cylinder spin sound!
   playBlankClick() {
-    if (this.playCustomFile('blank')) return;
+    this.stopReload();
+
+    if (this.playBufferOrFallback('blank', 0.85)) return;
 
     this.init();
     if (!this.ctx) return;
@@ -203,13 +282,13 @@ class AudioSynthesizer {
 
   // Play Card Item Use Sound
   playItemPowerup() {
-    if (this.playCustomFile('card_use')) return;
+    if (this.playBufferOrFallback('card_use', 0.9)) return;
 
     this.init();
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
 
-    const bufferSize = this.ctx.sampleRate * 0.06;
+    const bufferSize = Math.floor(this.ctx.sampleRate * 0.06);
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {

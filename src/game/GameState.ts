@@ -85,6 +85,9 @@ export class GameState {
   onUpdateUI?: () => void;
   onFloatingText?: (text: string, target: 'DEALER' | 'PLAYER' | 'CHIPS', color: string) => void;
   onScreenFlash?: (type: 'live' | 'blank') => void;
+  onDealerShowcaseCard?: (card: ItemCard) => void;
+  onDealerTargeting?: (target: 'PLAYER' | 'DEALER') => void;
+  onClearDealerFX?: () => void;
 
   addLog(entry: string) {
     this.combatLog.unshift(`• ${entry}`);
@@ -93,7 +96,7 @@ export class GameState {
     }
   }
 
-  scheduleDealerTurn(delayMs: number = 300) {
+  scheduleDealerTurn(delayMs: number = 1000) {
     if (this.dealerTurnTimeout) {
       clearTimeout(this.dealerTurnTimeout);
       this.dealerTurnTimeout = null;
@@ -134,6 +137,7 @@ export class GameState {
     // Hands
     this.player.hand = getRandomItems(3);
     this.dealer.hand = getRandomItems(3);
+    sound.playCardSlide();
 
     this.reloadChamber();
     this.phase = 'BATTLE';
@@ -167,7 +171,6 @@ export class GameState {
 
     this.damageMultiplier = 1;
     this.mirrorShieldActive = { player: false, dealer: false };
-    sound.playClick();
   }
 
   shootTarget(target: 'DEALER' | 'PLAYER') {
@@ -447,7 +450,7 @@ export class GameState {
     this.notifyUpdate();
   }
 
-  processDealerTurn() {
+  async processDealerTurn() {
     if (this.phase !== 'BATTLE' || this.turn !== 'DEALER') {
       this.isDealerProcessing = false;
       return;
@@ -456,7 +459,17 @@ export class GameState {
     if (this.isDealerProcessing) return;
     this.isDealerProcessing = true;
 
+    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
     try {
+      // 1. Initial thinking pause (1.0 seconds)
+      await sleep(1000);
+
+      if (this.phase !== 'BATTLE' || this.turn !== 'DEALER') {
+        this.isDealerProcessing = false;
+        return;
+      }
+
       const decision = DealerAI.decideTurn(
         this.chamber,
         this.dealer.hand,
@@ -471,18 +484,39 @@ export class GameState {
         decision.itemIndex >= 0 &&
         decision.itemIndex < this.dealer.hand.length
       ) {
+        const cardToUse = this.dealer.hand[decision.itemIndex];
+        
+        // Trigger visual card showcase in center of table
+        if (this.onDealerShowcaseCard) {
+          this.onDealerShowcaseCard(cardToUse);
+        }
+
+        // Hold showcase card on screen for 1.25 seconds
+        await sleep(1250);
+
+        if (this.onClearDealerFX) this.onClearDealerFX();
+
         this.useItem(decision.itemIndex, 'DEALER');
         this.isDealerProcessing = false;
-        this.scheduleDealerTurn(400);
-      } else if (decision.action === 'SHOOT_PLAYER') {
-        this.isDealerProcessing = false;
-        this.shootTarget('PLAYER');
+        this.scheduleDealerTurn(1200);
       } else {
+        const target = decision.action === 'SHOOT_PLAYER' ? 'PLAYER' : 'DEALER';
+
+        // 1-second laser targeting phase before firing
+        if (this.onDealerTargeting) {
+          this.onDealerTargeting(target);
+        }
+
+        await sleep(1000);
+
+        if (this.onClearDealerFX) this.onClearDealerFX();
+
         this.isDealerProcessing = false;
-        this.shootTarget('DEALER');
+        this.shootTarget(target);
       }
     } catch (err) {
       console.error('Dealer AI turn error:', err);
+      if (this.onClearDealerFX) this.onClearDealerFX();
       this.isDealerProcessing = false;
       this.shootTarget('PLAYER');
     }

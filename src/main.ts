@@ -783,6 +783,64 @@ gameState.onScreenFlash = (type: 'live' | 'blank') => {
   }, 300);
 };
 
+// DOM Elements for Dealer Turn Clarity
+const dealerCardShowcase = document.getElementById('dealer-card-showcase')!;
+const showcaseCardIcon = document.getElementById('showcase-card-icon')!;
+const showcaseCardName = document.getElementById('showcase-card-name')!;
+const showcaseCardDesc = document.getElementById('showcase-card-desc')!;
+
+const dealerIntentBanner = document.getElementById('dealer-intent-banner')!;
+const dealerIntentText = document.getElementById('dealer-intent-text')!;
+const targetReticle = document.getElementById('target-reticle')!;
+const playerAvatar = document.getElementById('player-avatar')!;
+
+// Bind GameState Dealer Showcase Card Callback
+gameState.onDealerShowcaseCard = (card) => {
+  if (showcaseCardIcon) showcaseCardIcon.innerText = card.icon;
+  if (showcaseCardName) showcaseCardName.innerText = card.name;
+  if (showcaseCardDesc) showcaseCardDesc.innerText = card.description;
+
+  dealerCardShowcase.style.display = 'flex';
+};
+
+// Bind GameState Dealer Target Reticle Phase Callback
+gameState.onDealerTargeting = (target) => {
+  dealerIntentBanner.style.display = 'block';
+
+  const targetAvatarElement = target === 'PLAYER' ? playerAvatar : dealerAvatar;
+
+  if (target === 'PLAYER') {
+    dealerIntentText.innerText = '🎯 ДИЛЛЕР ЦЕЛИТСЯ В ВАС...';
+    dealerIntentBanner.className = 'dealer-intent-banner';
+    targetReticle.className = 'target-reticle';
+  } else {
+    dealerIntentText.innerText = '🛡️ ДИЛЛЕР ЦЕЛИТСЯ В СЕБЯ...';
+    dealerIntentBanner.className = 'dealer-intent-banner self-target';
+    targetReticle.className = 'target-reticle self-target';
+  }
+
+  // Position reticle centered directly over target avatar
+  const avatarRect = targetAvatarElement.getBoundingClientRect();
+  const centerSection = document.querySelector('.table-center') as HTMLElement;
+  const centerRect = centerSection ? centerSection.getBoundingClientRect() : { left: 0, top: 0 };
+
+  const x = avatarRect.left + avatarRect.width / 2 - centerRect.left;
+  const y = avatarRect.top + avatarRect.height / 2 - centerRect.top;
+
+  targetReticle.style.left = `${x}px`;
+  targetReticle.style.top = `${y}px`;
+  targetReticle.style.display = 'flex';
+
+  sound.playReload();
+};
+
+// Clear Dealer Visual FX
+gameState.onClearDealerFX = () => {
+  dealerCardShowcase.style.display = 'none';
+  dealerIntentBanner.style.display = 'none';
+  targetReticle.style.display = 'none';
+};
+
 // Bind GameState Update Callback
 gameState.onUpdateUI = renderUI;
 
