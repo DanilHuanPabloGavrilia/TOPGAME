@@ -116,7 +116,7 @@ function renderBattleUI() {
   dealerName.innerText = gameState.dealer.name;
   const dealerHpPct = Math.max(0, (gameState.dealer.hp / gameState.dealer.maxHp) * 100);
   dealerHpFill.style.width = `${dealerHpPct}%`;
-  dealerHpText.innerText = `HP: ${formatHp(gameState.dealer.hp)} / ${formatHp(gameState.dealer.maxHp)}${gameState.dealer.armor > 0 ? ` | 🛡️ БРОНЯ: ${formatHp(gameState.dealer.armor)}` : ''}`;
+  dealerHpText.innerText = `HP: ${formatHp(gameState.dealer.hp)} / ${formatHp(gameState.dealer.maxHp)} | 🛡️ БРОНЯ: ${formatHp(gameState.dealer.armor)}`;
   dealerDialogue.innerText = `"${gameState.dealer.dialogue}"`;
 
   // Render Combat Log
