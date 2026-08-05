@@ -3,7 +3,10 @@ export type BulletType = 'LIVE' | 'BLANK';
 export interface ChamberState {
   bullets: BulletType[];
   currentIndex: number;
+  /** What the player has learned. Drives the drum display — never write dealer recon here. */
   knownBullets: (BulletType | null)[];
+  /** What the dealer has learned. Feeds DealerAI and is never shown on screen. */
+  dealerKnownBullets: (BulletType | null)[];
 }
 
 export type ItemId =
@@ -13,7 +16,6 @@ export type ItemId =
   | 'CIGARETTE'
   | 'HACK_CHIP'
   | 'MIRROR_SHIELD'
-  | 'CURSED_COIN'
   | 'OVERDRIVE'
   | 'MAGNET'
   | 'XRAY'
@@ -42,7 +44,6 @@ export interface MetaUpgrades {
   baseMaxHp: number;       // +1 Base Max HP permanently
   baseArmor: number;       // Base armor shield at start of combat
   baseDamageBonus: number; // Permanent bonus damage to live rounds
-  capitalBonus: number;    // +0.1% bonus chips earned per level
 }
 
 export interface BossDefinition {

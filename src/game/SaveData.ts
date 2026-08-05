@@ -1,6 +1,10 @@
 import type { MetaUpgrades } from './Types';
 
-export const SAVE_VERSION = 1;
+/**
+ * 1 — original scale (8 base HP, 1 base damage).
+ * 2 — every HP/damage/armor quantity multiplied by 10 so nothing renders with decimals.
+ */
+export const SAVE_VERSION = 2;
 
 /**
  * The persisted slice of the game. Deliberately excludes anything mid-battle
@@ -17,4 +21,6 @@ export interface SaveData {
   currentLocationIndex: number;
   currentBossIndex: number;
   muted: boolean;
+  /** Epoch times of granted chip ads, so a reload cannot reset the rolling limit. */
+  adChipsGrants: number[];
 }

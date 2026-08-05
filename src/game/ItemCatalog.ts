@@ -2,7 +2,6 @@ import type { ItemCard, ItemId, Relic } from './Types';
 
 // Imported rather than referenced by absolute path so Vite rewrites them against `base`.
 import cigaretteIcon from '../assets/images/items/cigarette.webp';
-import coinIcon from '../assets/images/items/coin.webp';
 import energyIcon from '../assets/images/items/energy.webp';
 import hackchipIcon from '../assets/images/items/hackchip.webp';
 import magnetIcon from '../assets/images/items/magnet.webp';
@@ -62,14 +61,6 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     iconUrl: shieldIcon,
     description: 'Отражает 1 урон обратно в противника.',
     cost: 55
-  },
-  CURSED_COIN: {
-    id: 'CURSED_COIN',
-    name: 'Проклятая монета',
-    icon: '🎴',
-    iconUrl: coinIcon,
-    description: 'Принудительно передает ход противоположному игроку.',
-    cost: 40
   },
   OVERDRIVE: {
     id: 'OVERDRIVE',

@@ -1,13 +1,40 @@
 import type { BulletType, ChamberState, DealerStats, GamePhase, GameTurn, ItemCard, MetaUpgrades, PlayerStats, ScreenState } from './Types';
 import { getRandomItems } from './ItemCatalog';
 import { LOCATIONS } from './BossCatalog';
-import { DealerAI } from './DealerAI';
+import { DealerAI, mostDangerousCardIndex } from './DealerAI';
 import { sound } from '../engine/AudioSynthesizer';
 import { saveManager } from '../engine/SaveManager';
 import { SAVE_VERSION, type SaveData } from './SaveData';
 
 const LOCATION_COUNT = 5;
 const BOSSES_PER_LOCATION = 3;
+
+// Payout for calling your own bluff: a blank fired into your own head.
+const BLANK_SELF_SHOT_CHIPS = 25;
+
+/**
+ * Chips paid for beating [location][boss]. Single source of truth — the victory modal,
+ * the defeat screen and the rewarded-ad payout all read from here.
+ */
+export const BOSS_REWARDS: number[][] = [
+  [35, 60, 120],     // Loc 1
+  [75, 120, 250],    // Loc 2
+  [160, 260, 550],   // Loc 3
+  [350, 580, 1200],  // Loc 4
+  [800, 1400, 3000]  // Loc 5
+];
+
+/** Consolation paid for losing, by location. */
+export const DEFEAT_REWARDS: number[] = [15, 35, 80, 180, 450];
+
+// Rewarded ad for chips: a rolling window, because the platform cannot cap this for us.
+// The reward is granted by our own onRewarded handler, so the limit has to live here.
+export const AD_CHIPS_WINDOW_MS = 5 * 60 * 1000;
+export const AD_CHIPS_MAX_IN_WINDOW = 3;
+
+// The dealer can chain cards inside one turn, but each play costs the player ~2.5s of
+// animation. Cap the combo so a fat hand can never stall the table.
+const MAX_DEALER_CARDS_PER_TURN = 3;
 
 function emptyBossMatrix(): boolean[][] {
   return Array.from({ length: LOCATION_COUNT }, () => Array(BOSSES_PER_LOCATION).fill(false));
@@ -33,28 +60,26 @@ export class GameState {
 
   private saveCounter = 0;
 
-  metaUpgrades: MetaUpgrades = {
-    baseMaxHp: 8,
-    baseArmor: 0,
-    baseDamageBonus: 0,
-    capitalBonus: 0
-  };
+  /** Timestamps of granted chip ads, kept inside the rolling window. */
+  private adChipsGrants: number[] = [];
 
-  getChipsMultiplier(): number {
-    return 1 + (this.metaUpgrades.capitalBonus * 0.1);
-  }
+  metaUpgrades: MetaUpgrades = {
+    baseMaxHp: 80,
+    baseArmor: 0,
+    baseDamageBonus: 0
+  };
 
   getEnemyBaseDamage(): number {
     const loc = this.currentLocationIndex; // 0 to 4
     const isBoss = this.currentBossIndex === 2; // 3rd boss (index 2) of location
 
-    let baseDmg = 1.0;
+    let baseDmg = 10;
     if (isBoss) {
-      // Boss Base Damage: 1.0 (Loc 1) -> 2.5 (Loc 5)
-      baseDmg = 1.0 + (loc * 0.375);
+      // Boss Base Damage: 10 (Loc 1) -> 25 (Loc 5)
+      baseDmg = 10 + (loc * 3.75);
     } else {
-      // Regular Minions Base Damage: 1.0 (Loc 1) -> 1.5 (Loc 5)
-      baseDmg = 1.0 + (loc * 0.125);
+      // Regular Minions Base Damage: 10 (Loc 1) -> 15 (Loc 5)
+      baseDmg = 10 + (loc * 1.25);
     }
 
     // 1.5x damage boost for bosses and minions from Location 2+
@@ -62,12 +87,14 @@ export class GameState {
       baseDmg *= 1.5;
     }
 
-    return baseDmg;
+    // The 3.75/1.25 steps crossed with x1.5 land on halves and eighths (16.875, 20.625…).
+    // Round here so nothing downstream can surface a decimal.
+    return Math.round(baseDmg);
   }
 
   player: PlayerStats = {
-    hp: 8,
-    maxHp: 8,
+    hp: 80,
+    maxHp: 80,
     hand: [],
     chips: 100,
     relics: [],
@@ -77,8 +104,8 @@ export class GameState {
   dealer: DealerStats = {
     name: 'ИИ-Диллер "Вектор"',
     avatar: '🤖',
-    hp: 4,
-    maxHp: 4,
+    hp: 40,
+    maxHp: 40,
     armor: 0,
     hand: [],
     dialogue: DealerAI.getDialogue('START')
@@ -87,7 +114,8 @@ export class GameState {
   chamber: ChamberState = {
     bullets: [],
     currentIndex: 0,
-    knownBullets: []
+    knownBullets: [],
+    dealerKnownBullets: []
   };
 
   damageMultiplier = 1;
@@ -97,6 +125,7 @@ export class GameState {
 
   private dealerTurnTimeout: any = null;
   private isDealerProcessing = false;
+  private dealerCardsThisTurn = 0;
 
   onUpdateUI?: () => void;
   onFloatingText?: (text: string, target: 'DEALER' | 'PLAYER' | 'CHIPS', color: string) => void;
@@ -156,6 +185,7 @@ export class GameState {
     sound.playCardSlide();
 
     this.reloadChamber();
+    this.dealerCardsThisTurn = 0;
     this.phase = 'BATTLE';
     this.turn = 'PLAYER';
     this.screenState = 'BATTLE';
@@ -182,7 +212,8 @@ export class GameState {
     this.chamber = {
       bullets,
       currentIndex: 0,
-      knownBullets: Array(count).fill(null)
+      knownBullets: Array(count).fill(null),
+      dealerKnownBullets: Array(count).fill(null)
     };
 
     this.damageMultiplier = 1;
@@ -242,13 +273,13 @@ export class GameState {
       sound.playLiveShot();
 
       const baseDmg = shooter === 'PLAYER'
-        ? (1 + this.metaUpgrades.baseDamageBonus * 0.5)
+        ? (10 + this.metaUpgrades.baseDamageBonus * 5)
         : this.getEnemyBaseDamage();
       let dmg = baseDmg * this.damageMultiplier;
       this.damageMultiplier = 1;
 
       // Cap only the round the player puts into his own head, so one bullet can't end a run.
-      if (isSelfShot && victim === 'PLAYER') dmg = Math.min(3, dmg);
+      if (isSelfShot && victim === 'PLAYER') dmg = Math.min(30, dmg);
 
       const victimShielded = victim === 'PLAYER'
         ? this.mirrorShieldActive.player
@@ -287,7 +318,7 @@ export class GameState {
 
       let bonusChips = 0;
       if (isSelfShot && shooter === 'PLAYER') {
-        bonusChips = Math.round(25 * this.getChipsMultiplier());
+        bonusChips = BLANK_SELF_SHOT_CHIPS;
         this.player.chips += bonusChips;
         sound.playCoinChime();
         if (this.onFloatingText) {
@@ -383,11 +414,12 @@ export class GameState {
       case 'MAGNIFIER':
         if (currIdx < this.chamber.bullets.length) {
           const bullet = this.chamber.bullets[currIdx];
-          this.chamber.knownBullets[currIdx] = bullet;
           if (user === 'PLAYER') {
+            this.chamber.knownBullets[currIdx] = bullet;
             this.dealer.dialogue = `Вы посмотрели в лупу: текущий патрон — ${bullet === 'LIVE' ? 'БОЕВОЙ 🔴' : 'ХОЛОСТОЙ 🔵'}.`;
           } else {
-            this.dealer.dialogue = `🔍 Диллер посмотрел в лупу и узнал секретный патрон!`;
+            this.chamber.dealerKnownBullets[currIdx] = bullet;
+            this.dealer.dialogue = `🔍 Диллер посмотрел в лупу. Что он там увидел — знает только он.`;
           }
         }
         break;
@@ -410,12 +442,12 @@ export class GameState {
 
       case 'CIGARETTE':
         if (user === 'PLAYER') {
-          const heal = Math.max(1, Math.round(this.player.maxHp * 0.1));
+          const heal = Math.max(10, Math.round(this.player.maxHp * 0.1));
           this.player.hp = Math.min(this.player.maxHp, this.player.hp + heal);
           if (this.onFloatingText) this.onFloatingText(`+${heal} HP (10%) 🚬`, 'PLAYER', '#00ff66');
           this.dealer.dialogue = `Вы выкурили сигарету (+${heal} HP / 10%).`;
         } else {
-          const heal = Math.max(1, Math.round(this.dealer.maxHp * 0.1));
+          const heal = Math.max(10, Math.round(this.dealer.maxHp * 0.1));
           this.dealer.hp = Math.min(this.dealer.maxHp, this.dealer.hp + heal);
           if (this.onFloatingText) this.onFloatingText(`+${heal} HP (10%) 🚬`, 'DEALER', '#00ff66');
           this.dealer.dialogue = `Диллер выкурил сигарету (+${heal} HP / 10%).`;
@@ -427,8 +459,18 @@ export class GameState {
           const orig = this.chamber.bullets[currIdx];
           const flipped = orig === 'LIVE' ? 'BLANK' : 'LIVE';
           this.chamber.bullets[currIdx] = flipped;
-          this.chamber.knownBullets[currIdx] = flipped;
-          this.dealer.dialogue = `Хак-чип инвертировал патрон на ${flipped === 'LIVE' ? 'БОЕВОЙ 🔴' : 'ХОЛОСТОЙ 🔵'}!`;
+
+          // Whoever flips it knows the result; the other side's note is now stale, so it
+          // is cleared rather than left lying. They saw the card played — they know it moved.
+          if (user === 'PLAYER') {
+            this.chamber.knownBullets[currIdx] = flipped;
+            this.chamber.dealerKnownBullets[currIdx] = null;
+            this.dealer.dialogue = `Хак-чип инвертировал патрон на ${flipped === 'LIVE' ? 'БОЕВОЙ 🔴' : 'ХОЛОСТОЙ 🔵'}!`;
+          } else {
+            this.chamber.dealerKnownBullets[currIdx] = flipped;
+            this.chamber.knownBullets[currIdx] = null;
+            this.dealer.dialogue = `⚡ Диллер перепрошил текущий патрон хак-чипом!`;
+          }
         }
         break;
 
@@ -438,47 +480,56 @@ export class GameState {
         this.dealer.dialogue = `${user === 'PLAYER' ? 'Вы активировали' : 'Диллер активировал'} Зеркальный Щит!`;
         break;
 
-      case 'CURSED_COIN':
-        this.turn = this.turn === 'PLAYER' ? 'DEALER' : 'PLAYER';
-        this.dealer.dialogue = `Проклятая монета передала ход!`;
-        if (this.turn === 'DEALER') {
-          this.scheduleDealerTurn(1000);
-        }
-        break;
-
       case 'OVERDRIVE':
         this.damageMultiplier = 3;
         this.dealer.dialogue = `Включен ОВЕРДРАЙВ (x3 урон)!`;
         break;
 
-      case 'MAGNET':
-        if (user === 'PLAYER' && this.dealer.hand.length > 0) {
-          const stolenIdx = Math.floor(Math.random() * this.dealer.hand.length);
-          const stolenCard = this.dealer.hand.splice(stolenIdx, 1)[0];
-          this.player.hand.push(stolenCard);
-          this.dealer.dialogue = `🧲 Магнит притянул карту "${stolenCard.name}" из руки босса!`;
+      case 'MAGNET': {
+        const victimHand = user === 'PLAYER' ? this.dealer.hand : this.player.hand;
+        const thiefHand = user === 'PLAYER' ? this.player.hand : this.dealer.hand;
+        if (victimHand.length > 0) {
+          const stolenIdx = Math.floor(Math.random() * victimHand.length);
+          const stolenCard = victimHand.splice(stolenIdx, 1)[0];
+          thiefHand.push(stolenCard);
+          this.dealer.dialogue = user === 'PLAYER'
+            ? `🧲 Магнит притянул карту «${stolenCard.name}» из руки Диллера!`
+            : `🧲 Диллер магнитом вытянул у вас карту «${stolenCard.name}»!`;
         }
         break;
+      }
 
-      case 'XRAY':
+      case 'XRAY': {
+        const target = user === 'PLAYER' ? this.chamber.knownBullets : this.chamber.dealerKnownBullets;
         for (let i = 0; i < this.chamber.bullets.length; i++) {
-          this.chamber.knownBullets[i] = this.chamber.bullets[i];
+          target[i] = this.chamber.bullets[i];
         }
-        this.dealer.dialogue = `🩺 Рентген-Сканер раскрыл ВСЕ патроны в барабане!`;
+        this.dealer.dialogue = user === 'PLAYER'
+          ? `🩺 Рентген-Сканер раскрыл ВСЕ патроны в барабане!`
+          : `🩺 Диллер просветил барабан сканером. Теперь он видит весь расклад.`;
         break;
+      }
 
       case 'OVERDRIVE_2':
         this.damageMultiplier = 4;
         this.dealer.dialogue = `⚡ ОВЕРДРАЙВ 2.0 (х4 урон) активирован!`;
         break;
 
-      case 'NULLIFIER':
+      case 'NULLIFIER': {
         this.damageMultiplier = 1;
-        if (user === 'PLAYER' && this.dealer.hand.length > 0) {
-          this.dealer.hand.pop();
+        const victimHand = user === 'PLAYER' ? this.dealer.hand : this.player.hand;
+        if (victimHand.length > 0) {
+          // Burn the most dangerous card rather than whatever sits last in the array.
+          const burnIdx = mostDangerousCardIndex(victimHand);
+          const burned = victimHand.splice(burnIdx, 1)[0];
+          this.dealer.dialogue = user === 'PLAYER'
+            ? `🚫 Нуллификатор сбросил множитель и сжёг карту Диллера «${burned.name}»!`
+            : `🚫 Диллер обнулил множитель и сжёг вашу карту «${burned.name}»!`;
+        } else {
+          this.dealer.dialogue = `🚫 Нуллификатор сбросил множитель урона!`;
         }
-        this.dealer.dialogue = `🚫 Нуллификатор сбросил умножители и удалил карту босса!`;
         break;
+      }
     }
 
     this.notifyUpdate();
@@ -504,19 +555,24 @@ export class GameState {
         return;
       }
 
-      const decision = DealerAI.decideTurn(
-        this.chamber,
-        this.dealer.hand,
-        this.dealer.hp,
-        this.player.hp,
-        this.dealer.maxHp
-      );
+      const decision = DealerAI.decideTurn({
+        chamber: this.chamber,
+        dealerHand: this.dealer.hand,
+        playerHand: this.player.hand,
+        dealerHp: this.dealer.hp,
+        dealerMaxHp: this.dealer.maxHp,
+        playerHp: this.player.hp,
+        playerArmor: this.player.armor,
+        damageMultiplier: this.damageMultiplier,
+        dealerShieldUp: this.mirrorShieldActive.dealer
+      });
 
       if (
         decision.action === 'USE_ITEM' &&
         decision.itemIndex !== undefined &&
         decision.itemIndex >= 0 &&
-        decision.itemIndex < this.dealer.hand.length
+        decision.itemIndex < this.dealer.hand.length &&
+        this.dealerCardsThisTurn < MAX_DEALER_CARDS_PER_TURN
       ) {
         const cardToUse = this.dealer.hand[decision.itemIndex];
         
@@ -530,10 +586,13 @@ export class GameState {
 
         if (this.onClearDealerFX) this.onClearDealerFX();
 
+        this.dealerCardsThisTurn++;
         this.useItem(decision.itemIndex, 'DEALER');
         this.isDealerProcessing = false;
         this.scheduleDealerTurn(1200);
       } else {
+        // Committing to a shot ends the combo; the budget resets for the next turn.
+        this.dealerCardsThisTurn = 0;
         const target = decision.action === 'SHOOT_PLAYER' ? 'PLAYER' : 'DEALER';
 
         // 1-second laser targeting phase before firing
@@ -552,6 +611,7 @@ export class GameState {
       console.error('Dealer AI turn error:', err);
       if (this.onClearDealerFX) this.onClearDealerFX();
       this.isDealerProcessing = false;
+      this.dealerCardsThisTurn = 0;
       this.shootTarget('PLAYER');
     }
   }
@@ -564,17 +624,8 @@ export class GameState {
     // Mark current boss as completed!
     this.completedBosses[currentLoc][currentBoss] = true;
 
-    // Progressive Option 1 Rewards Matrix: [locIdx][bossIdx]
-    const rewardsMatrix = [
-      [35, 60, 120],     // Loc 1
-      [75, 120, 250],    // Loc 2
-      [160, 260, 550],   // Loc 3
-      [350, 580, 1200],  // Loc 4
-      [800, 1400, 3000]  // Loc 5
-    ];
-
-    const baseReward = rewardsMatrix[currentLoc]?.[currentBoss] || 35;
-    const reward = Math.round(baseReward * this.getChipsMultiplier());
+    const baseReward = BOSS_REWARDS[currentLoc]?.[currentBoss] || 35;
+    const reward = baseReward;
     this.player.chips += reward;
 
     if (currentBoss < 2) {
@@ -603,9 +654,8 @@ export class GameState {
     sound.playBlankClick();
 
     // Consolation reward on defeat scaling with location (Option 1)
-    const defeatRewards = [15, 35, 80, 180, 450];
-    const baseDefeat = defeatRewards[this.currentLocationIndex] || 15;
-    const defeatReward = Math.round(baseDefeat * this.getChipsMultiplier());
+    const baseDefeat = DEFEAT_REWARDS[this.currentLocationIndex] || 15;
+    const defeatReward = baseDefeat;
     this.player.chips += defeatReward;
 
     this.phase = 'GAMEOVER';
@@ -627,7 +677,7 @@ export class GameState {
 
   revivePlayerWith20PercentHp() {
     this.hasUsedReviveThisBattle = true;
-    const restoredHp = Math.max(2, Math.ceil(this.player.maxHp * 0.2));
+    const restoredHp = Math.max(20, Math.ceil(this.player.maxHp * 0.2));
     this.player.hp = restoredHp;
     this.phase = 'BATTLE';
     this.screenState = 'BATTLE';
@@ -647,20 +697,56 @@ export class GameState {
     }
   }
 
+  /** Drops grants that fell out of the window, and any left in the future by a clock change. */
+  private pruneAdChipsGrants(now: number = Date.now()) {
+    this.adChipsGrants = this.adChipsGrants
+      .filter(t => Number.isFinite(t) && t <= now && t > now - AD_CHIPS_WINDOW_MS)
+      .sort((a, b) => a - b);
+  }
+
+  /** How many chip ads are left, and how long until the next one frees up. */
+  getAdChipsStatus(): { remaining: number; nextAvailableInMs: number } {
+    this.pruneAdChipsGrants();
+    const remaining = Math.max(0, AD_CHIPS_MAX_IN_WINDOW - this.adChipsGrants.length);
+    const nextAvailableInMs = remaining > 0
+      ? 0
+      : Math.max(0, this.adChipsGrants[0] + AD_CHIPS_WINDOW_MS - Date.now());
+    return { remaining, nextAvailableInMs };
+  }
+
+  /**
+   * Payout for one chip ad: half of what the boss in front of you is worth. A flat figure
+   * would dwarf the whole first location and mean nothing by the fifth.
+   */
+  getAdChipsReward(): number {
+    const base = BOSS_REWARDS[this.currentLocationIndex]?.[this.currentBossIndex]
+      ?? BOSS_REWARDS[0][0];
+    return Math.max(1, Math.round(base / 2));
+  }
+
+  /** Books a granted ad and pays out. Returns 0 when the window is already spent. */
+  grantAdChips(): number {
+    if (this.getAdChipsStatus().remaining <= 0) return 0;
+
+    const amount = this.getAdChipsReward();
+    this.adChipsGrants.push(Date.now());
+    this.player.chips += amount;
+    this.requestSave();
+    return amount;
+  }
+
   buyMetaUpgrade(type: keyof MetaUpgrades, cost: number) {
     if (this.player.chips >= cost) {
       this.player.chips -= cost;
       if (type === 'baseMaxHp') {
-        this.metaUpgrades.baseMaxHp += 2;
-        this.player.maxHp += 2;
-        this.player.hp += 2;
+        this.metaUpgrades.baseMaxHp += 20;
+        this.player.maxHp += 20;
+        this.player.hp += 20;
       } else if (type === 'baseArmor') {
-        this.metaUpgrades.baseArmor += 1;
-        this.player.armor += 1;
+        this.metaUpgrades.baseArmor += 10;
+        this.player.armor += 10;
       } else if (type === 'baseDamageBonus') {
         this.metaUpgrades.baseDamageBonus += 1;
-      } else if (type === 'capitalBonus') {
-        this.metaUpgrades.capitalBonus += 1;
       }
 
       sound.playCoinChime();
@@ -681,7 +767,8 @@ export class GameState {
       unlockedLocationIndex: this.unlockedLocationIndex,
       currentLocationIndex: this.currentLocationIndex,
       currentBossIndex: this.currentBossIndex,
-      muted: sound.isMuted
+      muted: sound.isMuted,
+      adChipsGrants: [...this.adChipsGrants]
     };
   }
 
@@ -706,11 +793,14 @@ export class GameState {
 
     const meta = data.metaUpgrades;
     if (meta && typeof meta === 'object') {
+      // v1 stored HP and armor on the old x1 scale. They are absolute values, not level
+      // counters, so they need converting — 8 + 2·lvl becomes 80 + 20·lvl exactly.
+      // baseDamageBonus is a level counter and carries over untouched.
+      const scale = (data.version ?? 1) < 2 ? 10 : 1;
       this.metaUpgrades = {
-        baseMaxHp: num(meta.baseMaxHp, 8, 8, 9999),
-        baseArmor: num(meta.baseArmor, 0, 0, 9999),
-        baseDamageBonus: num(meta.baseDamageBonus, 0, 0, 9999),
-        capitalBonus: num(meta.capitalBonus, 0, 0, 9999)
+        baseMaxHp: num(meta.baseMaxHp * scale, 80, 80, 99999),
+        baseArmor: num(meta.baseArmor * scale, 0, 0, 99999),
+        baseDamageBonus: num(meta.baseDamageBonus, 0, 0, 9999)
       };
     }
 
@@ -731,6 +821,12 @@ export class GameState {
     this.unlockedLocationIndex = num(data.unlockedLocationIndex, 0, 0, LOCATION_COUNT - 1);
     this.currentLocationIndex = num(data.currentLocationIndex, 0, 0, LOCATION_COUNT - 1);
     this.currentBossIndex = num(data.currentBossIndex, 0, 0, BOSSES_PER_LOCATION - 1);
+
+    // Reloading must not hand back a fresh set of ad views.
+    this.adChipsGrants = Array.isArray(data.adChipsGrants)
+      ? data.adChipsGrants.filter((t: unknown): t is number => typeof t === 'number' && Number.isFinite(t))
+      : [];
+    this.pruneAdChipsGrants();
 
     if (typeof data.muted === 'boolean') sound.setMuted(data.muted);
   }

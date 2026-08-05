@@ -10,7 +10,7 @@ import '@fontsource/orbitron/latin-800.css';
 import '@fontsource/orbitron/latin-900.css';
 
 import './style.css';
-import { GameState, formatHp } from './game/GameState';
+import { GameState, formatHp, BOSS_REWARDS, DEFEAT_REWARDS, AD_CHIPS_MAX_IN_WINDOW } from './game/GameState';
 import { ParticleSystem } from './engine/ParticleSystem';
 import { LOCATIONS } from './game/BossCatalog';
 import { sound } from './engine/AudioSynthesizer';
@@ -26,6 +26,12 @@ const particles = new ParticleSystem(canvas);
 
 // Initialize Game State
 const gameState = new GameState();
+
+// Dev-only handle for poking at a duel from the console. Vite strips this from the
+// production build, so nothing is exposed to players.
+if (import.meta.env.DEV) {
+  (window as unknown as { gameState: GameState }).gameState = gameState;
+}
 
 // DOM Screens
 const screenMainMenu = document.getElementById('screen-main-menu')!;
@@ -82,6 +88,10 @@ const btnModalAction = document.getElementById('btn-modal-action') as HTMLButton
 function renderUI() {
   // Screen Switcher
   [screenMainMenu, screenWorldMap, screenMetaShop, screenBattle].forEach(s => s.classList.remove('active'));
+
+  // The ad countdown only needs to tick while its button is on screen; renderMetaShop
+  // starts it again below.
+  stopAdChipsTicker();
 
   if (gameState.screenState === 'MAIN_MENU') {
     screenMainMenu.classList.add('active');
@@ -274,22 +284,14 @@ function renderBattleUI() {
     const currentLoc = gameState.currentLocationIndex;
     const currentBoss = gameState.currentBossIndex;
 
-    // Progressive Option 1 Rewards Matrix: [locIdx][bossIdx]
-    const rewardsMatrix = [
-      [35, 60, 120],     // Loc 1
-      [75, 120, 250],    // Loc 2
-      [160, 260, 550],   // Loc 3
-      [350, 580, 1200],  // Loc 4
-      [800, 1400, 3000]  // Loc 5
-    ];
     let prevLoc = currentLoc;
     let prevBoss = currentBoss - 1;
     if (prevBoss < 0) {
       prevLoc = Math.max(0, currentLoc - 1);
       prevBoss = 2;
     }
-    const baseReward = rewardsMatrix[prevLoc]?.[prevBoss] || 35;
-    const totalReward = Math.round(baseReward * gameState.getChipsMultiplier());
+    const baseReward = BOSS_REWARDS[prevLoc]?.[prevBoss] || 35;
+    const totalReward = baseReward;
     lastEncounterReward = totalReward;
 
     // Doubling is available ONLY on Location Boss (when currentBossIndex === 0 after completing boss 3)
@@ -338,9 +340,8 @@ function renderBattleUI() {
     platformSDK.showInterstitialAd();
   } else if (gameState.phase === 'GAMEOVER') {
     const prevBossNum = gameState.currentBossIndex + 1;
-    const defeatRewards = [15, 35, 80, 180, 450];
-    const baseDefeat = defeatRewards[gameState.currentLocationIndex] || 15;
-    const defeatReward = Math.round(baseDefeat * gameState.getChipsMultiplier());
+    const baseDefeat = DEFEAT_REWARDS[gameState.currentLocationIndex] || 15;
+    const defeatReward = baseDefeat;
     lastEncounterReward = defeatReward;
 
     modalTitle.innerText = '💀 ПОРАЖЕНИЕ В ДУЭЛИ';
@@ -445,7 +446,7 @@ function showBossIntroModal(locIdx: number, bossIdx: number) {
   // Ad Buff Button & Scaled Rewards
   const btnBossAdBuff = document.getElementById('btn-boss-ad-buff') as HTMLButtonElement;
   const adBuffLabel = document.getElementById('ad-buff-label');
-  const adBuffVal = 2 + locIdx; // Loc 1: +2 HP/Shield, Loc 2: +3, Loc 3: +4, Loc 4: +5, Loc 5: +6
+  const adBuffVal = (2 + locIdx) * 10; // Loc 1: +20 HP/Shield, Loc 2: +30, ... Loc 5: +60
 
   if (adBuffLabel) {
     adBuffLabel.innerText = `+${adBuffVal} HP и +${adBuffVal} Щита`;
@@ -562,34 +563,92 @@ function renderWorldMap() {
   });
 }
 
+// --- Rewarded ad for chips ------------------------------------------------------------
+// The platform cannot rate-limit this: the payout happens in our own onRewarded handler,
+// so the window lives in the save and the button reports its own state.
+const btnMetaAdChips = document.getElementById('btn-meta-ad-chips') as HTMLButtonElement | null;
+let adChipsTicker: ReturnType<typeof setInterval> | null = null;
+
+function formatCountdown(ms: number): string {
+  const total = Math.ceil(ms / 1000);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+function syncAdChipsButton() {
+  if (!btnMetaAdChips) return;
+
+  const { remaining, nextAvailableInMs } = gameState.getAdChipsStatus();
+  const available = remaining > 0;
+
+  btnMetaAdChips.disabled = !available;
+  btnMetaAdChips.style.opacity = available ? '1' : '0.5';
+  btnMetaAdChips.style.cursor = available ? 'pointer' : 'not-allowed';
+  btnMetaAdChips.innerText = available
+    ? `📺 Реклама: +${gameState.getAdChipsReward()} $  (осталось ${remaining} из ${AD_CHIPS_MAX_IN_WINDOW})`
+    : `⏳ Лимит рекламы исчерпан — ещё через ${formatCountdown(nextAvailableInMs)}`;
+}
+
+function startAdChipsTicker() {
+  // One ticker, only while the shop is on screen, so the countdown stays live.
+  if (adChipsTicker) return;
+  adChipsTicker = setInterval(syncAdChipsButton, 1000);
+}
+
+function stopAdChipsTicker() {
+  if (adChipsTicker) {
+    clearInterval(adChipsTicker);
+    adChipsTicker = null;
+  }
+}
+
+btnMetaAdChips?.addEventListener('click', () => {
+  if (gameState.getAdChipsStatus().remaining <= 0) return;
+
+  // Lock the button for the duration of the roll so a double tap cannot queue two ads.
+  btnMetaAdChips.disabled = true;
+
+  platformSDK.showRewardedVideo(
+    () => {
+      const amount = gameState.grantAdChips();
+      if (amount > 0) {
+        sound.playCoinChime();
+        if (gameState.onFloatingText) {
+          gameState.onFloatingText(`+${amount} $ (РЕКЛАМА 📺)`, 'CHIPS', '#ffb703');
+        }
+      }
+      gameState.notifyUpdate();
+      syncAdChipsButton();
+    },
+    // No fill, offline, or the player closed it early — the window stays untouched.
+    () => syncAdChipsButton()
+  );
+});
+
 // Render Meta Shop
 function renderMetaShop() {
   metaUpgradesGrid.innerHTML = '';
 
-  const hpLvl = Math.round((gameState.metaUpgrades.baseMaxHp - 8) / 2);
+  const hpLvl = Math.round((gameState.metaUpgrades.baseMaxHp - 80) / 20);
   const hpCost = 150 + hpLvl * 75;
 
-  const armorLvl = gameState.metaUpgrades.baseArmor;
+  const armorLvl = gameState.metaUpgrades.baseArmor / 10;
   const armorCost = 200 + armorLvl * 100;
 
   const dmgLvl = gameState.metaUpgrades.baseDamageBonus;
   const dmgCost = 250 + dmgLvl * 125;
 
-  const chipsLvl = gameState.metaUpgrades.capitalBonus;
-  const chipsCost = 100 + chipsLvl * 25;
-
   const metaItems = [
     {
       id: 'baseMaxHp',
-      name: 'Базовое Здоровье (+2 HP)',
+      name: 'Базовое Здоровье (+20 HP)',
       icon: '❤️',
-      desc: 'Постоянно увеличивает максимум HP на +2 единицы.',
+      desc: 'Постоянно увеличивает максимум HP на +20 единиц.',
       val: `${gameState.metaUpgrades.baseMaxHp} Max HP`,
       cost: hpCost
     },
     {
       id: 'baseArmor',
-      name: 'Кибер-Броня (+1 Shield)',
+      name: 'Кибер-Броня (+10 Shield)',
       icon: '🛡️',
       desc: 'Постоянный щит на каждый бой, поглощающий урон.',
       val: `${gameState.metaUpgrades.baseArmor} Щит`,
@@ -597,20 +656,12 @@ function renderMetaShop() {
     },
     {
       id: 'baseDamageBonus',
-      name: 'Усилитель Патронов (+0.5 Урон)',
+      name: 'Усилитель Патронов (+5 Урона)',
       icon: '⚡',
       desc: 'Увеличивает базовый урон всех боевых патронов.',
-      val: `+${gameState.metaUpgrades.baseDamageBonus * 0.5} Урона`,
+      val: `+${gameState.metaUpgrades.baseDamageBonus * 5} Урона`,
       cost: dmgCost
     },
-    {
-      id: 'capitalBonus',
-      name: 'Бонус Капитала (+0.1%)',
-      icon: '💰',
-      desc: 'Увеличивает получаемые фишки за победы, поражения и адресные бонусы на +0.1% за ур.',
-      val: `Бонус награды: +${(gameState.metaUpgrades.capitalBonus * 0.1).toFixed(1)}%`,
-      cost: chipsCost
-    }
   ];
 
   metaItems.forEach(item => {
@@ -634,16 +685,8 @@ function renderMetaShop() {
     metaUpgradesGrid.appendChild(card);
   });
 
-  const btnMetaAdChips = document.getElementById('btn-meta-ad-chips');
-  if (btnMetaAdChips) {
-    btnMetaAdChips.onclick = () => {
-      gameState.player.chips += 150;
-      sound.playCoinChime();
-      gameState.requestSave();
-      if (gameState.onFloatingText) gameState.onFloatingText('+150 $ (РЕКЛАМА 📺)', 'CHIPS', '#ffb703');
-      gameState.notifyUpdate();
-    };
-  }
+  syncAdChipsButton();
+  startAdChipsTicker();
 
   const btnMetaNextBoss = document.getElementById('btn-meta-next-boss');
   if (btnMetaNextBoss) {
@@ -713,7 +756,6 @@ const openGuide = () => modalGuide.classList.add('active');
 const closeGuide = () => modalGuide.classList.remove('active');
 
 document.getElementById('btn-open-guide-header')?.addEventListener('click', openGuide);
-document.getElementById('btn-open-guide-menu')?.addEventListener('click', openGuide);
 document.getElementById('btn-guide-close')?.addEventListener('click', closeGuide);
 document.getElementById('btn-guide-start')?.addEventListener('click', closeGuide);
 
