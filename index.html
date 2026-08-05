@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dealer's Gambit — Кибер-Оккультный Рогалик</title>
-  <link rel="stylesheet" href="./src/style.css">
-  <!-- Yandex Games SDK v2 -->
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <!-- Yandex Games SDK v2. The only external script we keep: Yandex requires it to be
+       served from their domain. vk-bridge ships in the bundle (see PlatformSDK.ts),
+       fonts and art are self-hosted. -->
   <script src="https://yandex.ru/games/sdk/v2"></script>
-  <!-- VK Bridge SDK -->
-  <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser/vk-bridge.min.js"></script>
 </head>
 <body>
   <div id="app">
@@ -171,6 +171,14 @@
             </div>
             <div class="chamber-counter" style="margin-left: 0;">
               <span id="live-count" class="live-count">🔴 2</span> | <span id="blank-count" class="blank-count">🔵 2</span>
+            </div>
+          </div>
+
+          <!-- Combat Log: who shot whom, and with what -->
+          <div class="combat-log">
+            <div class="combat-log-title">📋 ХРОНИКА ДУЭЛИ</div>
+            <div id="combat-log-entries" class="combat-log-entries">
+              <!-- Entries injected dynamically -->
             </div>
           </div>
 

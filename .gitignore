@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# Release archives — rebuild with `npm run build`, don't commit
+*.zip
+
+# High-res art masters. Run `npm run assets` to regenerate the shipped
+# webp in src/assets/images/ from these.
+assets-source
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

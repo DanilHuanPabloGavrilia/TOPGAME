@@ -1,5 +1,22 @@
 import type { LocationDefinition } from './Types';
 
+// Imported rather than referenced by absolute path so Vite rewrites them against `base`.
+import baphometAvatar from '../assets/images/bosses/baphomet.webp';
+import crusherAvatar from '../assets/images/bosses/crusher.webp';
+import felixAvatar from '../assets/images/bosses/felix.webp';
+import granddealerAvatar from '../assets/images/bosses/granddealer.webp';
+import gregAvatar from '../assets/images/bosses/greg.webp';
+import ironcladAvatar from '../assets/images/bosses/ironclad.webp';
+import kiraAvatar from '../assets/images/bosses/kira.webp';
+import markovAvatar from '../assets/images/bosses/markov.webp';
+import oracleAvatar from '../assets/images/bosses/oracle.webp';
+import pinkieAvatar from '../assets/images/bosses/pinkie.webp';
+import shadowAvatar from '../assets/images/bosses/shadow.webp';
+import shamanAvatar from '../assets/images/bosses/shaman.webp';
+import vanceAvatar from '../assets/images/bosses/vance.webp';
+import vectorAvatar from '../assets/images/bosses/vector.webp';
+import vladAvatar from '../assets/images/bosses/vlad.webp';
+
 export const LOCATIONS: LocationDefinition[] = [
   {
     id: 'CYBER_BAR',
@@ -12,7 +29,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'BARMAN_PINKIE',
         name: 'Бармен "Пинки"',
         avatar: '👨‍🍳',
-        avatarUrl: '/images/bosses/pinkie.jpg',
+        avatarUrl: pinkieAvatar,
         hp: 10,
         loreTitle: '«Новичок-Любитель»',
         loreDesc: 'Раньше наливал синтетический эль в порту. Купил дуэльный комплект по дешевке на черном рынке.',
@@ -27,7 +44,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'BOUNCER_CRUSHER',
         name: 'Вышибала "Крушитель"',
         avatar: '👹',
-        avatarUrl: '/images/bosses/crusher.jpg',
+        avatarUrl: crusherAvatar,
         hp: 14,
         loreTitle: '«Сильный, но ленивый»',
         loreDesc: 'Бывший чемпион подпольного бокса. Силен в ближнем бою, но ненавидит долгие логические дуэли.',
@@ -42,7 +59,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'CYBER_MARKOV',
         name: 'Диллер "Кибер-Марков"',
         avatar: '🎰',
-        avatarUrl: '/images/bosses/markov.jpg',
+        avatarUrl: markovAvatar,
         hp: 18,
         loreTitle: '«Легенда Подполья 2024»',
         loreDesc: 'Когда-то выиграл крупный неоновый турнир, но вшил себе кибер-процессор и стал неофициальным хозяином бара.',
@@ -66,7 +83,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'PIMP_FELIX',
         name: 'Пижонар "Феликс"',
         avatar: '🤵',
-        avatarUrl: '/images/bosses/felix.jpg',
+        avatarUrl: felixAvatar,
         hp: 33,
         loreTitle: '«Золотой Мальчик»',
         loreDesc: 'Сын нефтяного магната, играющий ради азарта и выпендрежа перед публикой пентхауса.',
@@ -81,7 +98,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'BROKER_GREG',
         name: 'Брокер "Грег"',
         avatar: '👨‍💼',
-        avatarUrl: '/images/bosses/greg.jpg',
+        avatarUrl: gregAvatar,
         hp: 39,
         loreTitle: '«Акула Банковских Рынков»',
         loreDesc: 'Скопил состояние на фьючерсах и опционах. Играет строго по хладнокровному расчету рисков.',
@@ -96,7 +113,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'VECTOR_AI',
         name: 'Взломанный ИИ "Вектор"',
         avatar: '🤖',
-        avatarUrl: '/images/bosses/vector.jpg',
+        avatarUrl: vectorAvatar,
         hp: 45,
         loreTitle: '«Автономный Нейро-Диллер»',
         loreDesc: 'Экспериментальный кибернетический чип, захвативший управление безопасностью пентхауса.',
@@ -120,7 +137,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'NEOPHYTE_MALAKAI',
         name: 'Неофит "Влад"',
         avatar: '🧙‍♂️',
-        avatarUrl: '/images/bosses/vlad.jpg',
+        avatarUrl: vladAvatar,
         hp: 51,
         armor: 10,
         loreTitle: '«Ученик Темного Ордена»',
@@ -136,7 +153,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'PRIEST_VARFOLOMEY',
         name: 'Шаман "Нейро-Вуду"',
         avatar: '📿',
-        avatarUrl: '/images/bosses/shaman.jpg',
+        avatarUrl: shamanAvatar,
         hp: 57,
         armor: 10,
         loreTitle: '«Хранитель Ритуального Зала»',
@@ -152,7 +169,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'DEMON_ABADDON',
         name: 'Демон "Бафомет"',
         avatar: '👿',
-        avatarUrl: '/images/bosses/baphomet.jpg',
+        avatarUrl: baphometAvatar,
         hp: 63,
         armor: 10,
         loreTitle: '«Демон Высшего Ранга»',
@@ -177,7 +194,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'DROID_UNIT_7',
         name: 'Вице-Президент "Кира"',
         avatar: '🦾',
-        avatarUrl: '/images/bosses/kira.jpg',
+        avatarUrl: kiraAvatar,
         hp: 69,
         armor: 20,
         loreTitle: '«Промышленный Охранник»',
@@ -193,7 +210,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'COMMAND_AI',
         name: 'Глава Охраны "Броненосец"',
         avatar: '🖥️',
-        avatarUrl: '/images/bosses/ironclad.jpg',
+        avatarUrl: ironcladAvatar,
         hp: 78,
         armor: 20,
         loreTitle: '«Суперкомпьютер Станции»',
@@ -209,7 +226,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'LADY_LUCK_ANDROID',
         name: 'CEO "Квантум-Вэнс"',
         avatar: '👸',
-        avatarUrl: '/images/bosses/vance.jpg',
+        avatarUrl: vanceAvatar,
         hp: 90,
         armor: 20,
         loreTitle: '«Непобедимый Чемпион Галактики»',
@@ -234,7 +251,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'GATEKEEPER_VOID',
         name: 'Оракул "Пустота"',
         avatar: '👾',
-        avatarUrl: '/images/bosses/oracle.jpg',
+        avatarUrl: oracleAvatar,
         hp: 102,
         armor: 30,
         loreTitle: '«Древний Защитник Врат»',
@@ -250,7 +267,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'SHADOW_DESTINY',
         name: 'Теневой "Игрок"',
         avatar: '👤',
-        avatarUrl: '/images/bosses/shadow.jpg',
+        avatarUrl: shadowAvatar,
         hp: 114,
         armor: 30,
         loreTitle: '«Воплощение Твоих Прошлых Фейлов»',
@@ -266,7 +283,7 @@ export const LOCATIONS: LocationDefinition[] = [
         id: 'LORD_OF_THE_VOID',
         name: 'Великий Диллер',
         avatar: '👁️',
-        avatarUrl: '/images/bosses/granddealer.jpg',
+        avatarUrl: granddealerAvatar,
         hp: 132,
         armor: 50,
         loreTitle: '«Создатель Правил Азарта»',

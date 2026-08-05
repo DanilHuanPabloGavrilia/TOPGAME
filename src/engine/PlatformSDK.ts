@@ -1,25 +1,65 @@
 // Platform SDK Manager for Yandex Games SDK v2 & VK Direct Games (VK Bridge)
+//
+// The Yandex SDK must be loaded from yandex.ru — their platform requires it and it cannot
+// be bundled. vk-bridge is an npm dependency, imported dynamically only when the page is
+// actually running inside VK, so a Yandex or standalone build never downloads it.
 
 declare global {
   interface Window {
     YaGames?: any;
-    vkBridge?: any;
   }
 }
+
+/** VK Mini Apps / Direct Games always hand the frame a vk_app_id parameter. */
+function isVkContext(): boolean {
+  try {
+    const query = location.search || location.hash.replace(/^#/, '');
+    return new URLSearchParams(query).has('vk_app_id');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Yandex and VK always run a game inside their own frame. A top-level window means a dev
+ * server or a build opened directly — and there YaGames.init() still resolves while every
+ * ad call silently does nothing, which would make ad-gated features untestable.
+ */
+function isFramed(): boolean {
+  try {
+    return window.self !== window.top;
+  } catch {
+    // A cross-origin parent throws on access, which itself proves we are framed.
+    return true;
+  }
+}
+
+// Key for VK's key/value storage. Yandex stores the blob as an unnamed player-data object.
+const VK_STORAGE_KEY = 'dealers_gambit_save';
+
+// How long to wait for an ad to report that it opened before assuming the SDK swallowed
+// the call. Without this the "ad in progress" lock leaks and blocks every later ad.
+const AD_OPEN_TIMEOUT_MS = 15000;
 
 class PlatformSDK {
   public platform: 'YANDEX' | 'VK' | 'LOCAL' = 'LOCAL';
   private ysdk: any = null;
+  private yPlayer: any = null;
+  private vkBridge: any = null;
   private isInitialized = false;
   private isAdShowing = false;
+  private adWatchdog: ReturnType<typeof setTimeout> | null = null;
 
   async init(): Promise<void> {
     if (this.isInitialized) return;
 
     // Try VK Bridge first
-    if (window.vkBridge) {
+    if (isVkContext()) {
       try {
-        await window.vkBridge.send('VKWebAppInit');
+        const mod = await import('@vkontakte/vk-bridge');
+        const bridge = mod.default;
+        await bridge.send('VKWebAppInit');
+        this.vkBridge = bridge;
         this.platform = 'VK';
         this.isInitialized = true;
         console.log('[SDK] VK Bridge Initialized');
@@ -30,12 +70,20 @@ class PlatformSDK {
     }
 
     // Try Yandex Games SDK
-    if (window.YaGames) {
+    if (window.YaGames && isFramed()) {
       try {
         this.ysdk = await window.YaGames.init();
         this.platform = 'YANDEX';
         this.isInitialized = true;
         console.log('[SDK] Yandex Games SDK Initialized');
+
+        // scopes:false returns a player handle without prompting to log in — anonymous
+        // players still get durable cloud storage, which is what we need for saves.
+        try {
+          this.yPlayer = await this.ysdk.getPlayer({ scopes: false });
+        } catch (err) {
+          console.warn('[SDK] getPlayer failed, cloud saves disabled', err);
+        }
 
         if (this.ysdk.features?.LoadingAPI?.ready) {
           this.ysdk.features.LoadingAPI.ready();
@@ -55,6 +103,82 @@ class PlatformSDK {
     return this.isAdShowing;
   }
 
+  /**
+   * Takes the "an ad is on screen" lock and arms a watchdog. If the SDK never reports that
+   * the ad opened — throttled frame, unreachable ad network, a call it simply swallowed —
+   * the lock is released instead of refusing every ad for the rest of the session.
+   */
+  private beginAd(onTimeout?: () => void): void {
+    this.isAdShowing = true;
+    this.clearAdWatchdog();
+    this.adWatchdog = setTimeout(() => {
+      console.warn('[SDK] Ad never opened within timeout, releasing lock');
+      this.adWatchdog = null;
+      this.isAdShowing = false;
+      if (onTimeout) onTimeout();
+    }, AD_OPEN_TIMEOUT_MS);
+  }
+
+  /** The ad is genuinely on screen; its own close/error callback will release the lock. */
+  private adOpened(): void {
+    this.clearAdWatchdog();
+  }
+
+  private endAd(): void {
+    this.clearAdWatchdog();
+    this.isAdShowing = false;
+  }
+
+  private clearAdWatchdog(): void {
+    if (this.adWatchdog) {
+      clearTimeout(this.adWatchdog);
+      this.adWatchdog = null;
+    }
+  }
+
+  /** True when the platform offers storage that survives a cleared browser cache. */
+  public hasCloudStorage(): boolean {
+    return (this.platform === 'YANDEX' && !!this.yPlayer) || (this.platform === 'VK' && !!this.vkBridge);
+  }
+
+  /** Writes the save blob to platform storage. Resolves false if it did not land. */
+  async saveToCloud(data: unknown): Promise<boolean> {
+    try {
+      if (this.platform === 'YANDEX' && this.yPlayer) {
+        await this.yPlayer.setData(data, true);
+        return true;
+      }
+      if (this.platform === 'VK' && this.vkBridge) {
+        await this.vkBridge.send('VKWebAppStorageSet', {
+          key: VK_STORAGE_KEY,
+          value: JSON.stringify(data)
+        });
+        return true;
+      }
+    } catch (err) {
+      console.warn('[SDK] Cloud save failed', err);
+    }
+    return false;
+  }
+
+  /** Reads the save blob from platform storage. Resolves null when absent or unreachable. */
+  async loadFromCloud(): Promise<any | null> {
+    try {
+      if (this.platform === 'YANDEX' && this.yPlayer) {
+        const data = await this.yPlayer.getData();
+        return data && Object.keys(data).length > 0 ? data : null;
+      }
+      if (this.platform === 'VK' && this.vkBridge) {
+        const res = await this.vkBridge.send('VKWebAppStorageGet', { keys: [VK_STORAGE_KEY] });
+        const raw = res?.keys?.find((k: any) => k.key === VK_STORAGE_KEY)?.value;
+        return raw ? JSON.parse(raw) : null;
+      }
+    } catch (err) {
+      console.warn('[SDK] Cloud load failed', err);
+    }
+    return null;
+  }
+
   showRewardedVideo(onSuccess: () => void, onError?: () => void): void {
     if (this.isAdShowing) {
       console.warn('[SDK] Ad is already showing! Ignoring duplicate call.');
@@ -63,47 +187,50 @@ class PlatformSDK {
     }
 
     if (this.platform === 'YANDEX' && this.ysdk) {
-      this.isAdShowing = true;
+      this.beginAd(onError);
       try {
         this.ysdk.adv.showRewardedVideo({
           callbacks: {
-            onOpen: () => console.log('[SDK] Rewarded Video Opened'),
+            onOpen: () => {
+              console.log('[SDK] Rewarded Video Opened');
+              this.adOpened();
+            },
             onRewarded: () => {
               console.log('[SDK] Rewarded Video Granted');
               onSuccess();
             },
             onClose: () => {
               console.log('[SDK] Rewarded Video Closed');
-              this.isAdShowing = false;
+              this.endAd();
             },
             onError: (e: any) => {
               console.error('[SDK] Rewarded Video Error:', e);
-              this.isAdShowing = false;
+              this.endAd();
               if (onError) onError();
             },
             onOffline: () => {
               console.warn('[SDK] Rewarded Video Offline');
-              this.isAdShowing = false;
+              this.endAd();
               if (onError) onError();
             }
           }
         });
       } catch (err) {
         console.error('[SDK] Rewarded Video Exception:', err);
-        this.isAdShowing = false;
+        this.endAd();
         if (onError) onError();
       }
-    } else if (this.platform === 'VK' && window.vkBridge) {
-      this.isAdShowing = true;
-      window.vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' })
+    } else if (this.platform === 'VK' && this.vkBridge) {
+      this.beginAd(onError);
+      this.vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'reward' })
         .then((data: any) => {
-          this.isAdShowing = false;
+          this.endAd();
           if (data.result) onSuccess();
           else if (onError) onError();
         })
         .catch((e: any) => {
           console.error('[SDK] VK Rewarded Error:', e);
-          this.isAdShowing = false;
+          this.endAd();
           if (onError) onError();
         });
     } else {
@@ -120,42 +247,45 @@ class PlatformSDK {
     }
 
     if (this.platform === 'YANDEX' && this.ysdk) {
-      this.isAdShowing = true;
+      this.beginAd(onComplete);
       try {
         this.ysdk.adv.showFullscreenAdv({
           callbacks: {
-            onOpen: () => console.log('[SDK] Fullscreen Ad Opened'),
+            onOpen: () => {
+              console.log('[SDK] Fullscreen Ad Opened');
+              this.adOpened();
+            },
             onClose: (wasShown: boolean) => {
               console.log('[SDK] Fullscreen Ad Closed, wasShown:', wasShown);
-              this.isAdShowing = false;
+              this.endAd();
               if (onComplete) onComplete();
             },
             onError: (e: any) => {
               console.error('[SDK] Fullscreen Ad Error:', e);
-              this.isAdShowing = false;
+              this.endAd();
               if (onComplete) onComplete();
             },
             onOffline: () => {
               console.warn('[SDK] Fullscreen Ad Offline');
-              this.isAdShowing = false;
+              this.endAd();
               if (onComplete) onComplete();
             }
           }
         });
       } catch (err) {
         console.error('[SDK] Fullscreen Ad Exception:', err);
-        this.isAdShowing = false;
+        this.endAd();
         if (onComplete) onComplete();
       }
-    } else if (this.platform === 'VK' && window.vkBridge) {
-      this.isAdShowing = true;
-      window.vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'interstitial' })
+    } else if (this.platform === 'VK' && this.vkBridge) {
+      this.beginAd(onComplete);
+      this.vkBridge.send('VKWebAppShowNativeAds', { ad_format: 'interstitial' })
         .then(() => {
-          this.isAdShowing = false;
+          this.endAd();
           if (onComplete) onComplete();
         })
         .catch(() => {
-          this.isAdShowing = false;
+          this.endAd();
           if (onComplete) onComplete();
         });
     } else {

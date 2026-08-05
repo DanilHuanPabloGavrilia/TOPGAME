@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&display=swap');
+/* Fonts are bundled, not fetched from fonts.googleapis.com — see the @fontsource
+   imports at the top of main.ts. External font requests are slow or blocked inside
+   the Yandex Games frame, and a blocked request means the UI renders in Times. */
 
 :root {
   --bg-color: #08080d;
@@ -385,6 +387,36 @@ body {
 .bullet-indicator.live { background: var(--neon-red); border-color: #ff7597; box-shadow: 0 0 10px var(--neon-red); }
 .bullet-indicator.blank { background: var(--neon-cyan); border-color: #8aeefe; box-shadow: 0 0 10px var(--neon-cyan); }
 .bullet-indicator.unknown { background: var(--neon-yellow); border-color: #ffe375; box-shadow: 0 0 10px var(--neon-yellow); }
+
+.combat-log {
+  width: 100%;
+  max-width: 340px;
+  background: rgba(8, 10, 18, 0.75);
+  border: 1px solid rgba(5, 217, 232, 0.22);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.combat-log-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: var(--neon-purple);
+  margin-bottom: 5px;
+}
+
+.combat-log-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--text-dim);
+}
+
+/* Newest entry is unshifted to the front — highlight it as "what just happened". */
+.combat-log-entries > div:first-child { color: var(--text-main); }
 
 .chamber-counter { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--text-dim); }
 .chamber-counter span.live-count { color: var(--neon-red); }

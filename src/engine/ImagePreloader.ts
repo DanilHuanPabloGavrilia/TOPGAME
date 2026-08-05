@@ -1,65 +1,37 @@
-// In-Memory Asset Preloader & Image Resizer Engine for Dealer's Gambit
-// Pre-decodes and downscales high-res item card images into 128x128 optimized RAM buffers for 0ms DOM rendering
+// Warms the browser image cache for item icons before the first hand is dealt,
+// so cards paint instantly instead of popping in mid-battle.
+//
+// The art is already exported at render size by scripts/optimize-images.mjs, so there is
+// nothing to downscale here — decoding ahead of time is the whole job.
 
 import { ALL_ITEMS } from '../game/ItemCatalog';
 
 class ImagePreloaderEngine {
-  private cache: Record<string, string> = {};
   private preloadedImages: Record<string, HTMLImageElement> = {};
   public isReady: boolean = false;
 
   public async preloadAll(): Promise<void> {
     const items = Object.values(ALL_ITEMS);
-    const loadPromises = items.map(item => this.loadAndOptimize(item.id, item.iconUrl || ''));
-
-    try {
-      await Promise.all(loadPromises);
-      this.isReady = true;
-    } catch (e) {
-      console.warn('Preloader finished with warnings', e);
-      this.isReady = true;
-    }
+    await Promise.all(items.map(item => this.preload(item.id, item.iconUrl || '')));
+    this.isReady = true;
   }
 
-  private loadAndOptimize(id: string, url: string): Promise<void> {
+  private preload(id: string, url: string): Promise<void> {
+    if (!url) return Promise.resolve();
+
     return new Promise((resolve) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = url;
-
       img.onload = () => {
-        try {
-          // Downscale to 128x128 canvas
-          const canvas = document.createElement('canvas');
-          canvas.width = 128;
-          canvas.height = 128;
-          const ctx = canvas.getContext('2d');
-
-          if (ctx) {
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, 0, 0, 128, 128);
-            const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-            this.cache[id] = optimizedDataUrl;
-          } else {
-            this.cache[id] = url;
-          }
-        } catch (e) {
-          this.cache[id] = url;
-        }
         this.preloadedImages[id] = img;
         resolve();
       };
-
-      img.onerror = () => {
-        this.cache[id] = url;
-        resolve();
-      };
+      img.onerror = () => resolve();
+      img.src = url;
     });
   }
 
-  public getItemImage(id: string, defaultUrl: string): string {
-    return this.cache[id] || defaultUrl;
+  public getItemImage(_id: string, defaultUrl: string): string {
+    return defaultUrl;
   }
 }
 

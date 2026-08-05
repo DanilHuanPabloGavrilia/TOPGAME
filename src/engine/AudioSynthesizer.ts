@@ -1,20 +1,40 @@
 // Web Audio & File-based High-Performance Sound Engine for Dealer's Gambit
 // Pre-decodes MP3 files into Web Audio API AudioBuffers for 0ms latency synchronous playback
 
+// Imported rather than referenced by absolute path so Vite rewrites them against `base`.
+import shotUrl from '../assets/sounds/shot.mp3';
+import blankUrl from '../assets/sounds/blank.mp3';
+import reloadUrl from '../assets/sounds/reload.mp3';
+import cardDealUrl from '../assets/sounds/card_deal.mp3';
+import cardUseUrl from '../assets/sounds/card_use.mp3';
+
+type SoundKey = 'shot' | 'blank' | 'reload' | 'card_deal' | 'card_use';
+
 class AudioSynthesizer {
   private ctx: AudioContext | null = null;
-  private audioBuffers: Record<string, AudioBuffer> = {};
-  private audioPool: Record<string, HTMLAudioElement[]> = {};
+  private audioBuffers: Partial<Record<SoundKey, AudioBuffer>> = {};
+  private audioPool: Partial<Record<SoundKey, HTMLAudioElement[]>> = {};
   private activeReloadSources: (AudioBufferSourceNode | HTMLAudioElement)[] = [];
   public isMuted: boolean = false;
 
-  private soundFiles: Record<string, string> = {
-    shot: '/sounds/shot.mp3',
-    blank: '/sounds/blank.mp3',
-    reload: '/sounds/reload.mp3',
-    card_deal: '/sounds/card_deal.mp3',
-    card_use: '/sounds/card_use.mp3'
+  private soundFiles: Record<SoundKey, string> = {
+    shot: shotUrl,
+    blank: blankUrl,
+    reload: reloadUrl,
+    card_deal: cardDealUrl,
+    card_use: cardUseUrl
   };
+
+  // Each file is fetched exactly once. The bytes feed both playback paths: Web Audio
+  // decodes a copy, and the HTMLAudio fallback — if it is ever needed — is built from a
+  // blob of the same bytes rather than a second download.
+  private rawBytes: Partial<Record<SoundKey, ArrayBuffer>> = {};
+  private blobUrls: Partial<Record<SoundKey, string>> = {};
+  private fetchAllDone: Promise<void>;
+
+  private get soundKeys(): SoundKey[] {
+    return Object.keys(this.soundFiles) as SoundKey[];
+  }
 
   constructor() {
     // Unlock AudioContext on first user interaction
@@ -28,14 +48,9 @@ class AudioSynthesizer {
     window.addEventListener('keydown', unlock);
     window.addEventListener('touchstart', unlock);
 
-    // Preload HTML5 Audio fallback pool
-    Object.entries(this.soundFiles).forEach(([key, url]) => {
-      this.audioPool[key] = Array.from({ length: 4 }, () => {
-        const a = new Audio(url);
-        a.preload = 'auto';
-        return a;
-      });
-    });
+    // Start downloading immediately; decoding waits for the AudioContext, which in turn
+    // waits for a user gesture. Overlapping the two keeps the first shot from stuttering.
+    this.fetchAllDone = this.fetchAll();
   }
 
   public toggleMute(): boolean {
@@ -43,31 +58,73 @@ class AudioSynthesizer {
     return this.isMuted;
   }
 
+  /** Restores the persisted mute preference without toggling. */
+  public setMuted(muted: boolean): void {
+    this.isMuted = muted;
+  }
+
+  private async fetchAll(): Promise<void> {
+    await Promise.all(this.soundKeys.map(async key => {
+      try {
+        const response = await fetch(this.soundFiles[key]);
+        this.rawBytes[key] = await response.arrayBuffer();
+      } catch (e) {
+        console.warn(`[Audio] Failed to fetch ${key}`, e);
+      }
+    }));
+  }
+
   private init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new AudioCtx();
-      this.loadAudioBuffers();
+      void this.decodeAll();
     }
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
   }
 
-  private async loadAudioBuffers() {
-    if (!this.ctx) return;
-    for (const [key, url] of Object.entries(this.soundFiles)) {
+  private async decodeAll(): Promise<void> {
+    await this.fetchAllDone;
+    const ctx = this.ctx;
+    if (!ctx) return;
+
+    for (const key of this.soundKeys) {
+      const bytes = this.rawBytes[key];
+      if (!bytes) continue;
       try {
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        if (this.ctx) {
-          const decoded = await this.ctx.decodeAudioData(arrayBuffer);
-          this.audioBuffers[key] = decoded;
-        }
+        // decodeAudioData detaches the buffer it is handed, so give it a copy and keep
+        // the original intact for the fallback path.
+        this.audioBuffers[key] = await ctx.decodeAudioData(bytes.slice(0));
       } catch (e) {
-        console.warn(`Failed to decode audio buffer for ${key}`, e);
+        console.warn(`[Audio] Failed to decode ${key}`, e);
       }
     }
+  }
+
+  /** Builds the HTMLAudio fallback pool on demand, reusing the already-downloaded bytes. */
+  private getPool(key: SoundKey): HTMLAudioElement[] {
+    const existing = this.audioPool[key];
+    if (existing) return existing;
+
+    let src = this.blobUrls[key];
+    if (!src) {
+      const bytes = this.rawBytes[key];
+      // Only fall back to the network URL if the original fetch never landed.
+      src = bytes
+        ? URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }))
+        : this.soundFiles[key];
+      this.blobUrls[key] = src;
+    }
+
+    const pool = Array.from({ length: 4 }, () => {
+      const a = new Audio(src);
+      a.preload = 'auto';
+      return a;
+    });
+    this.audioPool[key] = pool;
+    return pool;
   }
 
   public stopReload() {
@@ -84,7 +141,7 @@ class AudioSynthesizer {
     this.activeReloadSources = [];
   }
 
-  private playBufferOrFallback(key: string, volume: number = 0.85): boolean {
+  private playBufferOrFallback(key: SoundKey, volume: number = 0.85): boolean {
     if (this.isMuted) return true;
     this.init();
 
@@ -93,7 +150,7 @@ class AudioSynthesizer {
       try {
         const source = this.ctx.createBufferSource();
         const gainNode = this.ctx.createGain();
-        source.buffer = this.audioBuffers[key];
+        source.buffer = this.audioBuffers[key]!;
         gainNode.gain.setValueAtTime(volume, this.ctx.currentTime);
         source.connect(gainNode);
         gainNode.connect(this.ctx.destination);
@@ -108,9 +165,9 @@ class AudioSynthesizer {
       }
     }
 
-    // 2. Pre-allocated HTMLAudioElement Pool fallback
-    const pool = this.audioPool[key];
-    if (pool && pool.length > 0) {
+    // 2. HTMLAudioElement pool fallback, built from the bytes we already downloaded
+    const pool = this.getPool(key);
+    if (pool.length > 0) {
       const available = pool.find(a => a.paused || a.ended) || pool[0];
       if (available) {
         available.currentTime = 0;

@@ -1,13 +1,23 @@
+// Self-hosted fonts. Only the weights the stylesheet actually asks for, and only the
+// subsets the text needs: Fira Code carries the Russian body copy, Orbitron is display
+// type with no Cyrillic coverage at all — it renders the logo, digits and stat readouts.
+import '@fontsource/fira-code/latin-400.css';
+import '@fontsource/fira-code/latin-700.css';
+import '@fontsource/fira-code/cyrillic-400.css';
+import '@fontsource/fira-code/cyrillic-700.css';
+import '@fontsource/orbitron/latin-700.css';
+import '@fontsource/orbitron/latin-800.css';
+import '@fontsource/orbitron/latin-900.css';
+
 import './style.css';
-import { GameState } from './game/GameState';
+import { GameState, formatHp } from './game/GameState';
 import { ParticleSystem } from './engine/ParticleSystem';
 import { LOCATIONS } from './game/BossCatalog';
 import { sound } from './engine/AudioSynthesizer';
 import { platformSDK } from './engine/PlatformSDK';
 import { imagePreloader } from './engine/ImagePreloader';
+import { saveManager } from './engine/SaveManager';
 
-// Init Platform SDK (Yandex Games / VK Direct Games / Local) & Asset Preloader
-platformSDK.init();
 imagePreloader.preloadAll();
 
 // Initialize Canvas Particles
@@ -97,11 +107,6 @@ function renderBattleUI() {
   if (loc && document.getElementById('app')) {
     document.getElementById('app')!.style.background = loc.bgGradient;
   }
-
-  const formatHp = (val: number) => {
-    const rounded = Math.round(val * 10) / 10;
-    return Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1);
-  };
 
   // Dealer
   const currentLoc = LOCATIONS[gameState.currentLocationIndex];
@@ -312,6 +317,7 @@ function renderBattleUI() {
           platformSDK.showRewardedVideo(() => {
             gameState.player.chips += lastEncounterReward;
             sound.playCoinChime();
+            gameState.requestSave();
             btnAdDoubleChips.style.display = 'none';
             if (gameState.onFloatingText) gameState.onFloatingText(`💰 +${lastEncounterReward}$ (2x ДЖЕКПОТ!)`, 'CHIPS', '#ffb703');
             chipsDisplay.innerText = `${gameState.player.chips} $`;
@@ -358,6 +364,7 @@ function renderBattleUI() {
         platformSDK.showRewardedVideo(() => {
           gameState.player.chips += lastEncounterReward;
           sound.playCoinChime();
+          gameState.requestSave();
           btnAdDoubleChips.style.display = 'none';
           if (gameState.onFloatingText) gameState.onFloatingText(`💰 +${lastEncounterReward}$ (2x КОМПЕНСАЦИЯ!)`, 'CHIPS', '#ffb703');
           chipsDisplay.innerText = `${gameState.player.chips} $`;
@@ -632,6 +639,7 @@ function renderMetaShop() {
     btnMetaAdChips.onclick = () => {
       gameState.player.chips += 150;
       sound.playCoinChime();
+      gameState.requestSave();
       if (gameState.onFloatingText) gameState.onFloatingText('+150 $ (РЕКЛАМА 📺)', 'CHIPS', '#ffb703');
       gameState.notifyUpdate();
     };
@@ -650,11 +658,17 @@ function renderMetaShop() {
 }
 
 // Global Event Listeners & Navigation
-btnSoundToggle.addEventListener('click', () => {
-  const isMuted = sound.toggleMute();
+function syncSoundButton() {
+  const isMuted = sound.isMuted;
   btnSoundToggle.innerText = isMuted ? '🔇 ВЫКЛ' : '🔊 ЗВУК';
   (btnSoundToggle as HTMLElement).style.color = isMuted ? 'var(--neon-red)' : 'var(--neon-cyan)';
   (btnSoundToggle as HTMLElement).style.borderColor = isMuted ? 'var(--neon-red)' : 'var(--neon-cyan)';
+}
+
+btnSoundToggle.addEventListener('click', () => {
+  sound.toggleMute();
+  syncSoundButton();
+  gameState.requestSave();
 });
 
 btnStartGame.addEventListener('click', () => {
@@ -847,5 +861,24 @@ gameState.onClearDealerFX = () => {
 // Bind GameState Update Callback
 gameState.onUpdateUI = renderUI;
 
-// Initial Render
-renderUI();
+// Boot: bring the platform up first so the save load can reach cloud storage, then paint.
+// Nothing here is allowed to keep the player staring at an empty screen, so a failure at
+// any step falls through to a fresh game rather than aborting.
+async function boot() {
+  try {
+    await platformSDK.init();
+  } catch (err) {
+    console.warn('[Boot] Platform init failed, continuing standalone', err);
+  }
+
+  try {
+    gameState.applySave(await saveManager.load());
+  } catch (err) {
+    console.warn('[Boot] Save load failed, starting fresh', err);
+  }
+
+  syncSoundButton();
+  renderUI();
+}
+
+void boot();

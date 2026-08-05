@@ -1,11 +1,25 @@
 import type { ItemCard, ItemId, Relic } from './Types';
 
+// Imported rather than referenced by absolute path so Vite rewrites them against `base`.
+import cigaretteIcon from '../assets/images/items/cigarette.webp';
+import coinIcon from '../assets/images/items/coin.webp';
+import energyIcon from '../assets/images/items/energy.webp';
+import hackchipIcon from '../assets/images/items/hackchip.webp';
+import magnetIcon from '../assets/images/items/magnet.webp';
+import magnifierIcon from '../assets/images/items/magnifier.webp';
+import nullifierIcon from '../assets/images/items/nullifier.webp';
+import overdriveIcon from '../assets/images/items/overdrive.webp';
+import overdrive2Icon from '../assets/images/items/overdrive2.webp';
+import sawIcon from '../assets/images/items/saw.webp';
+import shieldIcon from '../assets/images/items/shield.webp';
+import xrayIcon from '../assets/images/items/xray.webp';
+
 export const ALL_ITEMS: Record<ItemId, ItemCard> = {
   MAGNIFIER: {
     id: 'MAGNIFIER',
     name: 'Лупа',
     icon: '🔍',
-    iconUrl: '/images/items/magnifier.jpg',
+    iconUrl: magnifierIcon,
     description: 'Узнать тип следующего патрона в барабане.',
     cost: 30
   },
@@ -13,7 +27,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'SAW',
     name: 'Ножовка',
     icon: '🪚',
-    iconUrl: '/images/items/saw.jpg',
+    iconUrl: sawIcon,
     description: 'Удваивает урон от следующего выстрела (х2).',
     cost: 45
   },
@@ -21,7 +35,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'ENERGY_DRINK',
     name: 'Энергетик',
     icon: '🍺',
-    iconUrl: '/images/items/energy.jpg',
+    iconUrl: energyIcon,
     description: 'Выбросить текущий патрон без выстрела.',
     cost: 35
   },
@@ -29,7 +43,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'CIGARETTE',
     name: 'Сигарета',
     icon: '🚬',
-    iconUrl: '/images/items/cigarette.jpg',
+    iconUrl: cigaretteIcon,
     description: 'Восстанавливает 10% от максимального здоровья.',
     cost: 50
   },
@@ -37,7 +51,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'HACK_CHIP',
     name: 'Хак-чип',
     icon: '⚡',
-    iconUrl: '/images/items/hackchip.jpg',
+    iconUrl: hackchipIcon,
     description: 'Инвертирует текущий патрон (Боевой ↔ Холостой).',
     cost: 60
   },
@@ -45,7 +59,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'MIRROR_SHIELD',
     name: 'Щит-Зеркало',
     icon: '🛡️',
-    iconUrl: '/images/items/shield.jpg',
+    iconUrl: shieldIcon,
     description: 'Отражает 1 урон обратно в противника.',
     cost: 55
   },
@@ -53,7 +67,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'CURSED_COIN',
     name: 'Проклятая монета',
     icon: '🎴',
-    iconUrl: '/images/items/coin.jpg',
+    iconUrl: coinIcon,
     description: 'Принудительно передает ход противоположному игроку.',
     cost: 40
   },
@@ -61,7 +75,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'OVERDRIVE',
     name: 'Овердрайв',
     icon: '💣',
-    iconUrl: '/images/items/overdrive.jpg',
+    iconUrl: overdriveIcon,
     description: 'Тройной урон (х3), но 1 урон себе при холостом.',
     cost: 70
   },
@@ -69,7 +83,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'MAGNET',
     name: 'Магнит',
     icon: '🧲',
-    iconUrl: '/images/items/magnet.jpg',
+    iconUrl: magnetIcon,
     description: 'Украсть случайную карту из руки босса.',
     cost: 65
   },
@@ -77,7 +91,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'XRAY',
     name: 'Рентген-Сканер',
     icon: '🩺',
-    iconUrl: '/images/items/xray.jpg',
+    iconUrl: xrayIcon,
     description: 'Показывает типы ВСЕХ патронов в барабане.',
     cost: 75
   },
@@ -85,7 +99,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'OVERDRIVE_2',
     name: 'Овердрайв 2.0',
     icon: '⚡',
-    iconUrl: '/images/items/overdrive2.jpg',
+    iconUrl: overdrive2Icon,
     description: 'Увеличивает урон следующего выстрела в 2.5 раза (х2.5)!',
     cost: 90
   },
@@ -93,7 +107,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
     id: 'NULLIFIER',
     name: 'Нуллификатор',
     icon: '🚫',
-    iconUrl: '/images/items/nullifier.jpg',
+    iconUrl: nullifierIcon,
     description: 'Сбрасывает урон босса и удаляет его карту.',
     cost: 80
   }
