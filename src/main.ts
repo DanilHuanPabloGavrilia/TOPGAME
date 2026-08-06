@@ -240,7 +240,8 @@ function renderBattleUI() {
 
   gameState.player.hand.forEach((item, idx) => {
     const cardEl = document.createElement('div');
-    cardEl.className = 'item-card';
+    const playable = gameState.canUseItem(item);
+    cardEl.className = playable ? 'item-card' : 'item-card locked';
 
     const imgSrc = imagePreloader.getItemImage(item.id, item.iconUrl || '');
     const iconHTML = item.iconUrl
@@ -256,7 +257,9 @@ function renderBattleUI() {
     // Tooltip Hover Events
     const showTooltip = () => {
       tooltipTitle.innerText = `${item.name}`;
-      tooltipDesc.innerText = item.description;
+      tooltipDesc.innerText = playable
+        ? item.description
+        : `Множитель х${gameState.damageMultiplier} уже активен. Карта останется на руках — сыграйте её после выстрела.`;
 
       const rect = cardEl.getBoundingClientRect();
       const appRect = document.getElementById('app')!.getBoundingClientRect();
@@ -277,7 +280,7 @@ function renderBattleUI() {
 
     cardEl.addEventListener('click', () => {
       hideTooltip();
-      if (isPlayerTurn) {
+      if (isPlayerTurn && playable) {
         const rect = cardEl.getBoundingClientRect();
         particles.spawnBurst(rect.left + rect.width / 2, rect.top, '#05d9e8', 20);
         gameState.useItem(idx, 'PLAYER');

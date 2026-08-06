@@ -1,5 +1,5 @@
 import type { BulletType, ChamberState, DealerStats, GamePhase, GameTurn, ItemCard, ItemId, MetaUpgrades, PlayerStats, ScreenState } from './Types';
-import { ALL_ITEMS, getRandomItems } from './ItemCatalog';
+import { ALL_ITEMS, getRandomItems, isMultiplierCard, multiplierValue } from './ItemCatalog';
 import { LOCATIONS, TRAINING_BOSS } from './BossCatalog';
 import { DealerAI, mostDangerousCardIndex } from './DealerAI';
 import { sound } from '../engine/AudioSynthesizer';
@@ -211,7 +211,7 @@ export class GameState {
     // Hands
     this.player.hand = getRandomItems(3);
     this.dealer.hand = getRandomItems(3);
-    sound.playCardSlide();
+    sound.playRoundStart();
 
     this.reloadChamber();
     this.dealerCardsThisTurn = 0;
@@ -245,7 +245,7 @@ export class GameState {
     this.player.hand = ['MAGNIFIER', 'SAW', 'CIGARETTE'].map(id => ({ ...ALL_ITEMS[id as ItemId] }));
     // The trainer plays no cards — one new mechanic at a time.
     this.dealer.hand = [];
-    sound.playCardSlide();
+    sound.playRoundStart();
 
     this.reloadChamber({ firstBlank: true });
     this.dealerCardsThisTurn = 0;
@@ -482,11 +482,31 @@ export class GameState {
     }
   }
 
+  /**
+   * False while the card cannot legally be played. Only boosters are ever blocked, and only
+   * because another multiplier is already standing. The UI greys these out instead of
+   * letting the click fall through to a silent no-op.
+   */
+  canUseItem(item: ItemCard): boolean {
+    return !(isMultiplierCard(item.id) && this.damageMultiplier > 1);
+  }
+
   useItem(itemIndex: number, user: 'PLAYER' | 'DEALER') {
     const hand = user === 'PLAYER' ? this.player.hand : this.dealer.hand;
     if (itemIndex < 0 || itemIndex >= hand.length) return;
 
     const item = hand[itemIndex];
+
+    // One booster per shot. A second multiplier is refused outright instead of overwriting
+    // the first — and the card is not spent, it stays in hand until the shot clears the buff.
+    if (!this.canUseItem(item)) {
+      if (user === 'PLAYER') {
+        this.dealer.dialogue = `Множитель х${this.damageMultiplier} уже активен — второй усилитель не сыграть. Стреляйте.`;
+        this.notifyUpdate();
+      }
+      return;
+    }
+
     hand.splice(itemIndex, 1);
     sound.playItemPowerup();
     this.addLog(`${user === 'PLAYER' ? 'Вы применили' : 'Диллер применил'} карту «${item.name}»`);
@@ -508,8 +528,8 @@ export class GameState {
         break;
 
       case 'SAW':
-        this.damageMultiplier = 2;
-        this.dealer.dialogue = `${user === 'PLAYER' ? 'Вы подпилили' : 'Диллер подпилил'} ствол! Урон следующего выстрела х2!`;
+        this.damageMultiplier = multiplierValue('SAW')!;
+        this.dealer.dialogue = `${user === 'PLAYER' ? 'Вы подпилили' : 'Диллер подпилил'} ствол! Урон следующего выстрела х${this.damageMultiplier}!`;
         break;
 
       case 'ENERGY_DRINK':
@@ -564,8 +584,8 @@ export class GameState {
         break;
 
       case 'OVERDRIVE':
-        this.damageMultiplier = 3;
-        this.dealer.dialogue = `Включен ОВЕРДРАЙВ (x3 урон)!`;
+        this.damageMultiplier = multiplierValue('OVERDRIVE')!;
+        this.dealer.dialogue = `Включен ОВЕРДРАЙВ (х${this.damageMultiplier} урон)!`;
         break;
 
       case 'MAGNET': {
@@ -594,8 +614,8 @@ export class GameState {
       }
 
       case 'OVERDRIVE_2':
-        this.damageMultiplier = 4;
-        this.dealer.dialogue = `⚡ ОВЕРДРАЙВ 2.0 (х4 урон) активирован!`;
+        this.damageMultiplier = multiplierValue('OVERDRIVE_2')!;
+        this.dealer.dialogue = `⚡ ОВЕРДРАЙВ 2.0 (х${this.damageMultiplier} урон) активирован!`;
         break;
 
       case 'NULLIFIER': {
@@ -788,15 +808,6 @@ export class GameState {
     this.dealer.dialogue = `⚡ ВТОРОЙ ШАНС! Игрок вернулся в бой с +${restoredHp} HP!`;
     this.addLog(`Активирован Второй Шанс! Восстановлено +${restoredHp} HP!`);
     this.notifyUpdate();
-  }
-
-  buyShopItem(item: ItemCard) {
-    if (this.player.chips >= (item.cost || 40)) {
-      this.player.chips -= item.cost || 40;
-      this.player.hand.push({ ...item });
-      sound.playCoinChime();
-      this.notifyUpdate();
-    }
   }
 
   /** Drops grants that fell out of the window, and any left in the future by a clock change. */

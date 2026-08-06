@@ -13,94 +13,121 @@ import sawIcon from '../assets/images/items/saw.webp';
 import shieldIcon from '../assets/images/items/shield.webp';
 import xrayIcon from '../assets/images/items/xray.webp';
 
+/**
+ * Damage multipliers, strongest first. This table is the only place the numbers live:
+ * the effect, the on-screen dialogue and the card text below all read from it, so a card
+ * that promises х3 can never resolve as anything else.
+ *
+ * Only one can stand at a time — `GameState.useItem` refuses a second booster rather than
+ * overwriting the first, and nothing here ever stacks.
+ */
+export const MULTIPLIER_CARDS: { id: ItemId; value: number }[] = [
+  { id: 'OVERDRIVE', value: 3 },
+  { id: 'OVERDRIVE_2', value: 2.5 },
+  { id: 'SAW', value: 2 }
+];
+
+/** The multiplier this card applies, or null when the card is not a booster. */
+export function multiplierValue(id: ItemId): number | null {
+  return MULTIPLIER_CARDS.find(m => m.id === id)?.value ?? null;
+}
+
+export function isMultiplierCard(id: ItemId): boolean {
+  return multiplierValue(id) !== null;
+}
+
+/**
+ * Card text for a booster. Kept short on purpose: `.card-desc` clamps to three lines, and
+ * a longer phrasing pushes the multiplier itself onto the clipped fourth line — the one
+ * number the player needs is the one that would disappear.
+ */
+function boosterText(id: ItemId): string {
+  return `Урон следующего выстрела — х${multiplierValue(id)}.`;
+}
+
+/*
+ * Cards are never bought — `getRandomItems` deals them free, uniformly, at the start of a
+ * duel and again on every drum reload. There is no price and no purchase decision, so the
+ * cards carry no cost field: a stray number here would only invite balance arguments about
+ * a shop that does not exist. Chips buy meta upgrades (HP / armour / damage) and nothing else.
+ */
 export const ALL_ITEMS: Record<ItemId, ItemCard> = {
   MAGNIFIER: {
     id: 'MAGNIFIER',
     name: 'Лупа',
     icon: '🔍',
     iconUrl: magnifierIcon,
-    description: 'Узнать тип следующего патрона в барабане.',
-    cost: 30
+    description: 'Узнать тип следующего патрона в барабане.'
   },
   SAW: {
     id: 'SAW',
     name: 'Ножовка',
     icon: '🪚',
     iconUrl: sawIcon,
-    description: 'Удваивает урон от следующего выстрела (х2).',
-    cost: 45
+    description: boosterText('SAW')
   },
   ENERGY_DRINK: {
     id: 'ENERGY_DRINK',
     name: 'Энергетик',
     icon: '🍺',
     iconUrl: energyIcon,
-    description: 'Выбросить текущий патрон без выстрела.',
-    cost: 35
+    description: 'Выбросить текущий патрон без выстрела.'
   },
   CIGARETTE: {
     id: 'CIGARETTE',
     name: 'Сигарета',
     icon: '🚬',
     iconUrl: cigaretteIcon,
-    description: 'Восстанавливает 10% от максимального здоровья.',
-    cost: 50
+    description: 'Восстанавливает 10% от максимального здоровья, но не меньше 10.'
   },
   HACK_CHIP: {
     id: 'HACK_CHIP',
     name: 'Хак-чип',
     icon: '⚡',
     iconUrl: hackchipIcon,
-    description: 'Инвертирует текущий патрон (Боевой ↔ Холостой).',
-    cost: 60
+    description: 'Инвертирует текущий патрон (Боевой ↔ Холостой).'
   },
   MIRROR_SHIELD: {
     id: 'MIRROR_SHIELD',
     name: 'Щит-Зеркало',
     icon: '🛡️',
     iconUrl: shieldIcon,
-    description: 'Отражает 1 урон обратно в противника.',
-    cost: 55
+    description: 'Отражает следующий выстрел обратно в стрелка.'
   },
   OVERDRIVE: {
     id: 'OVERDRIVE',
     name: 'Овердрайв',
     icon: '💣',
     iconUrl: overdriveIcon,
-    description: 'Тройной урон (х3), но 1 урон себе при холостом.',
-    cost: 70
+    description: boosterText('OVERDRIVE')
   },
   MAGNET: {
     id: 'MAGNET',
     name: 'Магнит',
     icon: '🧲',
     iconUrl: magnetIcon,
-    description: 'Украсть случайную карту из руки босса.',
-    cost: 65
+    description: 'Украсть случайную карту из руки босса.'
   },
   XRAY: {
     id: 'XRAY',
     name: 'Рентген-Сканер',
     icon: '🩺',
     iconUrl: xrayIcon,
-    description: 'Показывает типы ВСЕХ патронов в барабане.',
-    cost: 75
+    description: 'Показывает типы ВСЕХ патронов в барабане.'
   },
   OVERDRIVE_2: {
     id: 'OVERDRIVE_2',
     name: 'Овердрайв 2.0',
     icon: '⚡',
     iconUrl: overdrive2Icon,
-    description: 'Увеличивает урон следующего выстрела в 2.5 раза (х2.5)!',
-    cost: 90
+    description: boosterText('OVERDRIVE_2')
   },
   NULLIFIER: {
     id: 'NULLIFIER',
     name: 'Нуллификатор',
     icon: '🚫',
     iconUrl: nullifierIcon,
-    description: 'Сбрасывает урон босса и удаляет его карту.',
-    cost: 80
+    description: 'Сбрасывает множитель урона и сжигает карту противника.'
   }
 };
 

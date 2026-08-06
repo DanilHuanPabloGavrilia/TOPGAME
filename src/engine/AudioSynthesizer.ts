@@ -7,8 +7,9 @@ import blankUrl from '../assets/sounds/blank.mp3';
 import reloadUrl from '../assets/sounds/reload.mp3';
 import cardDealUrl from '../assets/sounds/card_deal.mp3';
 import cardUseUrl from '../assets/sounds/card_use.mp3';
+import roundStartUrl from '../assets/sounds/round_starts.mp3';
 
-type SoundKey = 'shot' | 'blank' | 'reload' | 'card_deal' | 'card_use';
+type SoundKey = 'shot' | 'blank' | 'reload' | 'card_deal' | 'card_use' | 'round_start';
 
 class AudioSynthesizer {
   private ctx: AudioContext | null = null;
@@ -22,7 +23,8 @@ class AudioSynthesizer {
     blank: blankUrl,
     reload: reloadUrl,
     card_deal: cardDealUrl,
-    card_use: cardUseUrl
+    card_use: cardUseUrl,
+    round_start: roundStartUrl
   };
 
   // Each file is fetched exactly once. The bytes feed both playback paths: Web Audio
@@ -211,6 +213,11 @@ class AudioSynthesizer {
 
     osc.start(now);
     osc.stop(now + 0.035);
+  }
+
+  /** Fanfare when a duel opens. Purely decorative, so there is no synth fallback. */
+  playRoundStart() {
+    this.playBufferOrFallback('round_start', 0.85);
   }
 
   // Play Card Slide / Deal Sound

@@ -28,7 +28,6 @@ export interface ItemCard {
   icon: string;
   iconUrl?: string;
   description: string;
-  cost?: number;
 }
 
 export interface Relic {

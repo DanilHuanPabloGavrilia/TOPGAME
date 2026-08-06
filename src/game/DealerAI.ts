@@ -1,4 +1,5 @@
 import type { ChamberState, ItemCard, ItemId } from './Types';
+import { MULTIPLIER_CARDS } from './ItemCatalog';
 
 export interface AIDecision {
   action: 'SHOOT_PLAYER' | 'SHOOT_SELF' | 'USE_ITEM';
@@ -27,8 +28,8 @@ export interface AIContext {
 
 /** Ranked worst-to-face-across-the-table, for Nullifier burns and Magnet steals. */
 const THREAT_ORDER: ItemId[] = [
-  'OVERDRIVE_2',
   'OVERDRIVE',
+  'OVERDRIVE_2',
   'SAW',
   'XRAY',
   'HACK_CHIP',
@@ -54,13 +55,9 @@ export function mostDangerousCardIndex(hand: ItemCard[]): number {
   return best;
 }
 
-// Damage multipliers, strongest first. Only one can be active — the field is overwritten,
-// not stacked — so the dealer always reaches for the biggest it holds.
-const MULTIPLIER_CARDS: { id: ItemId; value: number }[] = [
-  { id: 'OVERDRIVE_2', value: 4 },
-  { id: 'OVERDRIVE', value: 3 },
-  { id: 'SAW', value: 2 }
-];
+// Multiplier table lives in ItemCatalog so the AI's ranking, the card text and the effect
+// can never disagree. Only one booster can stand at a time and a second is refused outright,
+// so the dealer must reach for the biggest it holds on the first try.
 
 const HEAL_THRESHOLD = 0.5;    // smoke once half the health bar is gone
 const PANIC_THRESHOLD = 0.35;  // below this, survival outranks aggression

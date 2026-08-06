@@ -684,6 +684,33 @@ body {
 .item-card:nth-child(4) { animation-delay: 1.2s; }
 .item-card:nth-child(5) { animation-delay: 1.6s; }
 
+/*
+ * A booster that cannot be played while another multiplier is standing. The card stays in
+ * hand, so it has to read as "not now" rather than "gone": greyed and still, but legible.
+ * Declared after the float/hover rules above so it wins without !important.
+ */
+.item-card.locked,
+.item-card.locked:hover {
+  position: relative;
+  animation: none;
+  transform: none;
+  cursor: not-allowed;
+  opacity: 0.4;
+  filter: grayscale(0.85);
+  border-color: var(--text-dim);
+  box-shadow: none;
+}
+/* Anchored to the card, not the flex flow, so it never pushes the name or description
+   around. It inherits the card's dimming — this is a marker, not a highlight. */
+.item-card.locked::after {
+  content: '🔒';
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
 /* Screen Flash Vignette FX */
 .flash-vignette-live {
   animation: vignetteLive 0.35s ease-out;
