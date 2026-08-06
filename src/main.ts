@@ -17,6 +17,8 @@ import { sound } from './engine/AudioSynthesizer';
 import { platformSDK } from './engine/PlatformSDK';
 import { imagePreloader } from './engine/ImagePreloader';
 import { saveManager } from './engine/SaveManager';
+import { tutorial, type TutorialScreen } from './engine/TutorialManager';
+import { buildTutorialSteps } from './game/TutorialSteps';
 
 imagePreloader.preloadAll();
 
@@ -106,6 +108,12 @@ function renderUI() {
     renderBattleUI();
   }
 
+  // The tutorial parks itself when its step belongs to a screen that is not open, so it
+  // has to hear about every switch. The boss dossier is a modal and reports separately.
+  if (!document.getElementById('modal-boss-intro')!.classList.contains('active')) {
+    tutorial.changeScreen(gameState.screenState as TutorialScreen);
+  }
+
   // Header Stats
   chipsDisplay.innerText = `${gameState.player.chips} $`;
   stageDisplay.innerText = `Локация ${gameState.currentLocationIndex + 1} | Босс ${gameState.currentBossIndex + 1}`;
@@ -175,7 +183,12 @@ function renderBattleUI() {
   let liveNum = 0;
   let blankNum = 0;
   const totalBullets = gameState.chamber.bullets.length;
-  const radius = 36; // radius in px for 105px drum
+  // Derived from the drum's rendered size, not hardcoded: the cylinder shrinks on narrow
+  // screens, and a fixed radius would throw the chambers outside the ring.
+  // offsetWidth, not clientWidth: the drum has a 3px border and box-sizing:border-box,
+  // so clientWidth would report 99 for a 105px cylinder and pull the chambers inward.
+  const drumSize = document.getElementById('revolver-drum')?.offsetWidth || 105;
+  const radius = Math.round(drumSize * (36 / 105));
 
   gameState.chamber.bullets.forEach((bullet, idx) => {
     const isPast = idx < gameState.chamber.currentIndex;
@@ -277,6 +290,40 @@ function renderBattleUI() {
   // Shop / Intermission / GameOver Modals
   const btnAdDoubleChips = document.getElementById('btn-ad-double-chips') as HTMLButtonElement;
   const btnAdRevive = document.getElementById('btn-ad-revive') as HTMLButtonElement;
+
+  // Sparring gets its own end screens. The normal ones quote a payout and offer to double
+  // it, which would be a lie here — training pays nothing and unlocks nothing.
+  if (gameState.isTrainingBattle && (gameState.phase === 'VICTORY' || gameState.phase === 'GAMEOVER')) {
+    const won = gameState.phase === 'VICTORY';
+    if (btnAdDoubleChips) btnAdDoubleChips.style.display = 'none';
+    if (btnAdRevive) btnAdRevive.style.display = 'none';
+
+    modalTitle.innerText = won ? '🎓 ТРЕНИРОВКА ПРОЙДЕНА' : '🎓 ТРЕНИРОВКА ОКОНЧЕНА';
+    modalDesc.innerHTML = won
+      ? `<div style="background: rgba(0,255,102,0.1); border: 1.5px solid var(--neon-green); border-radius: 10px; padding: 14px; margin: 12px 0;">
+           <div style="font-size: 1.05rem; color: var(--neon-green); font-weight: 800;">Тренер повержен — вы разобрались с правилами.</div>
+         </div>
+         <div style="color: var(--text-dim); font-size: 0.9rem;">Фишки и прогресс за спарринг не начисляются. Настоящие деньги ждут на Карте Мира.</div>`
+      : `<div style="background: rgba(255,42,109,0.08); border: 1.5px solid var(--neon-red); border-radius: 10px; padding: 14px; margin: 12px 0;">
+           <div style="font-size: 1.05rem; color: var(--neon-red); font-weight: 800;">В тренировке проигрыш ничего не стоит.</div>
+         </div>
+         <div style="color: var(--text-dim); font-size: 0.9rem;">Ни фишек, ни прогресса вы не потеряли. Можно попробовать ещё раз.</div>`;
+
+    btnModalAction.innerText = won ? 'На Карту Мира 🌍' : 'Ещё раз 🎓';
+    btnModalAction.onclick = () => {
+      modalOverlay.classList.remove('active');
+      if (won) {
+        gameState.isTrainingBattle = false;
+        gameState.screenState = 'WORLD_MAP';
+        gameState.notifyUpdate();
+      } else {
+        gameState.startTrainingBattle();
+      }
+    };
+    shopGrid.innerHTML = '';
+    modalOverlay.classList.add('active');
+    return;
+  }
 
   if (gameState.phase === 'SHOP') {
     if (btnAdRevive) btnAdRevive.style.display = 'none';
@@ -497,6 +544,7 @@ function showBossIntroModal(locIdx: number, bossIdx: number) {
   };
 
   modalBossIntro.classList.add('active');
+  tutorial.changeScreen('BOSS_INTRO');
 }
 
 // Render World Map with individual Boss Buttons & Statuses
@@ -756,6 +804,23 @@ const openGuide = () => modalGuide.classList.add('active');
 const closeGuide = () => modalGuide.classList.remove('active');
 
 document.getElementById('btn-open-guide-header')?.addEventListener('click', openGuide);
+document.getElementById('btn-guide-tutorial')?.addEventListener('click', () => {
+  closeGuide();
+  startTutorial();
+});
+
+document.getElementById('btn-meta-training')?.addEventListener('click', () => {
+  gameState.startTrainingBattle();
+});
+
+/** Runs the guided tour from the top, starting in the meta shop where step 3 lives. */
+function startTutorial() {
+  tutorial.init(buildTutorialSteps(gameState));
+  gameState.screenState = 'META_SHOP';
+  gameState.notifyUpdate();
+  tutorial.start();
+}
+
 document.getElementById('btn-guide-close')?.addEventListener('click', closeGuide);
 document.getElementById('btn-guide-start')?.addEventListener('click', closeGuide);
 

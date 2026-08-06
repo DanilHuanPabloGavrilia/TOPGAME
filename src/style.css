@@ -290,6 +290,11 @@ body {
   overflow: hidden;
 }
 
+/* Grid and flex children default to min-width:auto, which means they refuse to shrink
+   below their content. Without this the hand widens the whole row instead of scrolling
+   inside it, and the overflow rules below never get a chance to fire. */
+.game-table > * { min-width: 0; }
+
 .dealer-zone {
   display: flex;
   justify-content: space-between;
@@ -443,10 +448,18 @@ body {
 .btn-shoot-self:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); box-shadow: 0 0 28px rgba(5, 217, 232, 0.8); }
 .btn-action:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-.player-zone { display: flex; flex-direction: column; gap: 6px; }
+.player-zone { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .player-header { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 6px 18px; border-radius: 10px; border: 1px solid rgba(5, 217, 232, 0.25); }
 
-.cards-container { display: flex; justify-content: center; gap: 8px; min-height: 110px; padding: 4px; }
+.cards-container {
+  display: flex; justify-content: center; gap: 8px; min-height: 110px; padding: 4px;
+  /* The hand grows by two cards per cylinder reload and has no cap, so on any width it
+     eventually has to scroll rather than push the layout wider. */
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .item-card {
   width: clamp(86px, 9.5vw, 104px);
   height: clamp(108px, 14.5vh, 128px);
@@ -939,3 +952,367 @@ body {
   to { transform: scale(1.35); opacity: 1; }
 }
 
+
+/* ==========================================================================
+   RESPONSIVE
+   The table is a three-row grid (dealer / centre / hand) inside a viewport that
+   never scrolls, so on a phone every row has to give up height rather than push
+   the hand past the fold. Card art, paddings and type all shrink together.
+   ========================================================================== */
+
+/* Tablets and small laptops */
+@media (max-width: 900px) {
+  .game-table { padding: 8px 12px; gap: 6px; }
+  .header-bar { padding: 8px 12px; }
+  .game-title { font-size: 1.1rem; letter-spacing: 1px; }
+  .stats-group { gap: 12px; font-size: 0.9rem; }
+  .modal-box { padding: 28px 24px; }
+  .modal-title { font-size: 1.6rem; }
+  .location-card { padding: 14px; }
+}
+
+/* Phones. Everything below assumes a single thumb and ~360-480px of width. */
+@media (max-width: 768px) {
+  /* Reclaim the frame: on a phone the chrome is pure cost. */
+  #app {
+    border: none;
+    border-radius: 0;
+    max-width: 100%;
+  }
+
+  /* --- Header: title shrinks to the mark, controls stay tappable --- */
+  .header-bar {
+    padding: 6px 8px;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+  .game-title {
+    font-size: 0.8rem;
+    letter-spacing: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 30%;
+  }
+  .stats-group {
+    gap: 6px;
+    font-size: 0.7rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Without this the flex child sizes to its content and overflows the header instead
+       of scrolling inside it — which would leave the guide button unreachable. */
+    min-width: 0;
+    flex: 1;
+  }
+  .stats-group::-webkit-scrollbar { display: none; }
+  .stat-item { gap: 4px; white-space: nowrap; }
+  .header-bar button {
+    padding: 6px 8px !important;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    /* Keep the tap target at the 44px guideline even though the label is small. */
+    min-height: 36px;
+  }
+
+  /* --- Main menu --- */
+  .hero-title { font-size: 1.8rem; letter-spacing: 1px; }
+  .hero-subtitle { font-size: 0.8rem; padding: 0 12px; }
+  .main-menu-box { gap: 14px; padding: 0 12px; }
+  .btn-large { padding: 14px 18px; font-size: 0.9rem; }
+
+  /* --- Battle table --- */
+  .game-table { padding: 6px 8px; gap: 4px; }
+
+  .dealer-zone { padding: 6px 10px; border-radius: 10px; }
+  .char-info { gap: 8px; }
+  .avatar-box { width: 38px; height: 38px; font-size: 1.4rem; }
+  .char-details h3 { font-size: 0.8rem; }
+  .char-details small,
+  .player-header small { font-size: 0.62rem; }
+
+  .table-center { gap: 4px; }
+  .chamber-display { padding: 6px 12px; gap: 8px; border-radius: 14px; }
+  .chamber-counter { font-size: 0.78rem; }
+
+  .combat-log { max-width: 100%; padding: 6px 8px; }
+  .combat-log-entries { font-size: 0.6rem; line-height: 1.3; }
+  .combat-log-title { font-size: 0.55rem; }
+
+  .dealer-dialogue-box { font-size: 0.72rem; padding: 6px 10px; }
+
+  /* Two thumbs-width buttons rather than one wide row. */
+  .action-controls { gap: 8px; width: 100%; }
+  .btn-action {
+    flex: 1;
+    padding: 10px 6px;
+    font-size: 0.72rem;
+    min-height: 48px;
+  }
+  .btn-action div:last-child { font-size: 0.55rem !important; }
+
+  /* --- The hand ---
+     The hand grows by two cards on every cylinder reload, so it can never be
+     made to fit. Scroll it sideways instead of letting it run off-screen. */
+  .cards-container {
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    min-height: 0;
+    gap: 6px;
+    padding: 2px 4px 6px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cards-container::-webkit-scrollbar { height: 3px; }
+  .cards-container::-webkit-scrollbar-thumb {
+    background: var(--neon-cyan);
+    border-radius: 3px;
+  }
+  .item-card {
+    width: 68px;
+    height: 92px;
+    flex: 0 0 auto;
+    padding: 4px 3px;
+    scroll-snap-align: start;
+    /* Hover lift belongs to a mouse; on touch it just clips inside the scroller. */
+    animation: none;
+  }
+  .item-card:hover { transform: none; }
+  .item-card-icon-img { width: 32px; height: 32px; }
+  .card-name { font-size: 0.5rem !important; line-height: 1.1 !important; }
+  .card-desc { display: none; }
+
+  .player-header { padding: 4px 10px; }
+
+  /* --- Modals --- */
+  .modal-box {
+    padding: 18px 14px;
+    width: 94%;
+    max-height: 88vh;
+    overflow-y: auto;
+    gap: 12px;
+  }
+  .modal-title { font-size: 1.15rem; }
+  .modal-box p,
+  .modal-box div { font-size: 0.8rem; }
+  .modal-box .btn-primary,
+  .modal-box .btn-secondary { padding: 11px 16px; font-size: 0.82rem; }
+
+  /* --- World map --- */
+  .location-card { padding: 12px; border-radius: 10px; }
+  .location-icon { font-size: 1.6rem; }
+  .location-title { font-size: 0.95rem; }
+  .btn-boss-select {
+    width: 100%;
+    font-size: 0.72rem;
+    min-height: 46px;
+  }
+
+  /* --- Meta shop --- */
+  #meta-upgrades-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .shop-item-card { padding: 10px; }
+  .shop-item-card small { font-size: 0.7rem; min-height: 0 !important; }
+
+  /* The card tooltip has no room to float next to a card on a phone. */
+  .card-tooltip { display: none !important; }
+}
+
+/* Very small or landscape phones: the vertical budget is the binding constraint. */
+@media (max-height: 560px), (max-width: 380px) {
+  .revolver-drum { width: 84px; height: 84px; }
+  .item-card { width: 60px; height: 80px; }
+  .item-card-icon-img { width: 26px; height: 26px; }
+  .combat-log { display: none; }
+  .hero-title { font-size: 1.4rem; }
+  .btn-action { min-height: 42px; font-size: 0.66rem; }
+}
+
+/* Coarse pointers get no hover affordances at all — they only cause stuck states. */
+@media (hover: none) {
+  .item-card:hover,
+  .shop-item-card:hover,
+  .location-card:hover { transform: none; }
+}
+
+/* ==========================================================================
+   TUTORIAL SPOTLIGHT
+   The dark layer is painted by a huge spread box-shadow on a transparent box
+   rather than a clip-path: it needs no path maths, animates smoothly as the
+   cutout moves, and the box itself stays click-through so the highlighted
+   control underneath remains pressable. Everything else is blocked by the
+   backdrop panels around it.
+   ========================================================================== */
+
+.tutorial-root {
+  position: fixed;
+  inset: 0;
+  z-index: 900; /* above modals (200) and the card tooltip (450) */
+  display: none;
+  pointer-events: none;
+  font-family: 'Fira Code', monospace;
+}
+
+.tutorial-root.active { display: block; }
+
+/* Parked: the step's screen is not open yet, so hide the furniture but stay alive. */
+.tutorial-root.waiting .tutorial-spotlight,
+.tutorial-root.waiting .tutorial-tooltip {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tutorial-spotlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 12px;
+  /* The spread is what darkens the rest of the screen. */
+  box-shadow: 0 0 0 9999px rgba(4, 5, 12, 0.86);
+  border: 2px solid var(--neon-yellow);
+  opacity: 1;
+  /* Clicks pass through the hole to the real control. */
+  pointer-events: none;
+  transition:
+    transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+  animation: tutorialPulse 2s ease-in-out infinite;
+}
+
+@keyframes tutorialPulse {
+  0%, 100% { box-shadow: 0 0 0 9999px rgba(4, 5, 12, 0.86), 0 0 14px 2px rgba(246, 201, 14, 0.55); }
+  50%      { box-shadow: 0 0 0 9999px rgba(4, 5, 12, 0.86), 0 0 26px 6px rgba(246, 201, 14, 0.9); }
+}
+
+.tutorial-tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+  background: linear-gradient(145deg, rgba(18, 22, 38, 0.99), rgba(10, 12, 22, 0.99));
+  border: 1.5px solid var(--neon-cyan);
+  border-radius: 12px;
+  box-shadow: 0 0 30px rgba(5, 217, 232, 0.35), 0 10px 40px rgba(0, 0, 0, 0.7);
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  animation: tutorialPopIn 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes tutorialPopIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.tutorial-body { padding: 14px 16px 12px; }
+
+.tutorial-text {
+  color: var(--text-main);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.tutorial-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tutorial-counter {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.tutorial-actions { display: flex; align-items: center; gap: 8px; }
+
+.tutorial-next {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 9px 16px;
+  min-height: 38px;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+.tutorial-next:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+.tutorial-skip {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.66rem;
+  padding: 8px 10px;
+  min-height: 38px;
+  background: transparent;
+  border: 1px solid rgba(120, 133, 150, 0.5);
+  border-radius: 7px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.tutorial-skip:hover { color: var(--neon-red); border-color: var(--neon-red); }
+
+/* Shown only while the step is waiting for a real click on the highlighted control. */
+.tutorial-hint {
+  display: none;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(246, 201, 14, 0.35);
+  color: var(--neon-yellow);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  animation: tutorialNudge 1.4s ease-in-out infinite;
+}
+.tutorial-tooltip.awaiting-action .tutorial-hint { display: block; }
+
+@keyframes tutorialNudge {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(3px); }
+}
+
+/* Arrow. Its left offset is set from JS so it keeps pointing at the target even when
+   the tooltip has been pushed away from the edge of the screen. */
+.tutorial-arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: rgba(14, 17, 30, 0.99);
+  border: 1.5px solid var(--neon-cyan);
+  transform: rotate(45deg);
+  margin-left: -6px;
+}
+.tutorial-tooltip[data-side="bottom"] .tutorial-arrow {
+  top: -7px;
+  border-right: none;
+  border-bottom: none;
+}
+.tutorial-tooltip[data-side="top"] .tutorial-arrow {
+  bottom: -7px;
+  border-left: none;
+  border-top: none;
+}
+
+@media (max-width: 768px) {
+  .tutorial-body { padding: 12px 13px 10px; }
+  .tutorial-text { font-size: 0.78rem; line-height: 1.45; }
+  .tutorial-next { font-size: 0.68rem; padding: 9px 13px; }
+  .tutorial-skip { font-size: 0.62rem; }
+}
+
+/* Respect a reduced-motion preference: the pulse and slide are decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .tutorial-spotlight { animation: none; transition: opacity 0.2s ease; }
+  .tutorial-tooltip { animation: none; transition: opacity 0.2s ease; }
+  .tutorial-hint { animation: none; }
+}

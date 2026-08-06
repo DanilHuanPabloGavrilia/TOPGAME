@@ -1,4 +1,4 @@
-import type { LocationDefinition } from './Types';
+import type { BossDefinition, LocationDefinition } from './Types';
 
 // Imported rather than referenced by absolute path so Vite rewrites them against `base`.
 import baphometAvatar from '../assets/images/bosses/baphomet.webp';
@@ -298,3 +298,26 @@ export const LOCATIONS: LocationDefinition[] = [
     ]
   }
 ];
+
+/**
+ * The sparring partner used by the tutorial. Deliberately kept out of LOCATIONS: the
+ * completedBosses matrix, the world map and the reward table are all indexed 5x3, and a
+ * sixteenth entry would shift every one of them.
+ */
+export const TRAINING_BOSS: BossDefinition = {
+  id: 'TRAINING_DUMMY',
+  name: 'Тренер "Кэл"',
+  avatar: '🎓',
+  avatarUrl: pinkieAvatar,
+  // Deliberately soft: a first-timer playing badly still has to be able to win, because
+  // the tutorial's payoff is the victory screen.
+  hp: 40,
+  loreTitle: '«Спарринг-партнёр»',
+  loreDesc: 'Отставной крупье. Держит стол для новичков и патроны заряжает вполсилы — учиться так учиться.',
+  specialAbility: 'Не применяет карты и бьёт слабее любого настоящего противника.',
+  dialogueSet: [
+    'Садись, покажу как здесь всё устроено. Стреляю вполсилы, не бойся.',
+    'Спокойно. Смотри на барабан и считай патроны.',
+    'Неплохо. Ещё разок.'
+  ]
+};

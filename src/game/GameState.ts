@@ -1,6 +1,6 @@
-import type { BulletType, ChamberState, DealerStats, GamePhase, GameTurn, ItemCard, MetaUpgrades, PlayerStats, ScreenState } from './Types';
-import { getRandomItems } from './ItemCatalog';
-import { LOCATIONS } from './BossCatalog';
+import type { BulletType, ChamberState, DealerStats, GamePhase, GameTurn, ItemCard, ItemId, MetaUpgrades, PlayerStats, ScreenState } from './Types';
+import { ALL_ITEMS, getRandomItems } from './ItemCatalog';
+import { LOCATIONS, TRAINING_BOSS } from './BossCatalog';
 import { DealerAI, mostDangerousCardIndex } from './DealerAI';
 import { sound } from '../engine/AudioSynthesizer';
 import { saveManager } from '../engine/SaveManager';
@@ -70,6 +70,10 @@ export class GameState {
   };
 
   getEnemyBaseDamage(): number {
+    // The trainer hits for a flat, survivable amount — a newcomer must be able to lose a
+    // few exchanges while reading the interface and still finish the bout.
+    if (this.isTrainingBattle) return 5;
+
     const loc = this.currentLocationIndex; // 0 to 4
     const isBoss = this.currentBossIndex === 2; // 3rd boss (index 2) of location
 
@@ -157,6 +161,7 @@ export class GameState {
   }
 
   startBossEncounter(locIdx: number, bossIdx: number, adBuff?: { hp: number; armor: number }) {
+    this.isTrainingBattle = false;
     this.currentLocationIndex = locIdx;
     this.currentBossIndex = bossIdx;
     this.hasUsedReviveThisBattle = false;
@@ -193,7 +198,41 @@ export class GameState {
     this.notifyUpdate();
   }
 
-  reloadChamber() {
+  /**
+   * Opens the sparring bout. Mirrors startBossEncounter but skips everything tied to
+   * progression, and deals a hand chosen to demonstrate rather than at random.
+   */
+  startTrainingBattle() {
+    this.isTrainingBattle = true;
+    this.hasUsedReviveThisBattle = false;
+
+    this.player.maxHp = this.metaUpgrades.baseMaxHp;
+    this.player.hp = this.player.maxHp;
+    this.player.armor = this.metaUpgrades.baseArmor;
+
+    this.dealer.name = TRAINING_BOSS.name;
+    this.dealer.avatar = TRAINING_BOSS.avatar;
+    this.dealer.maxHp = TRAINING_BOSS.hp;
+    this.dealer.hp = TRAINING_BOSS.hp;
+    this.dealer.armor = 0;
+
+    // A readable opening hand: look at the round, double the damage, patch yourself up.
+    this.player.hand = ['MAGNIFIER', 'SAW', 'CIGARETTE'].map(id => ({ ...ALL_ITEMS[id as ItemId] }));
+    // The trainer plays no cards — one new mechanic at a time.
+    this.dealer.hand = [];
+    sound.playCardSlide();
+
+    this.reloadChamber({ firstBlank: true });
+    this.dealerCardsThisTurn = 0;
+    this.combatLog = ['• Тренировочный бой. Патроны заряжены вполсилы.'];
+    this.phase = 'BATTLE';
+    this.turn = 'PLAYER';
+    this.screenState = 'BATTLE';
+    this.dealer.dialogue = TRAINING_BOSS.dialogueSet[0];
+    this.notifyUpdate();
+  }
+
+  reloadChamber(opts?: { firstBlank?: boolean }) {
     const count = 4 + Math.floor(Math.random() * 3); // 4 to 6 bullets
     const liveCount = Math.max(1, Math.floor(count / 2) + (Math.random() > 0.5 ? 1 : 0));
     const blankCount = count - liveCount;
@@ -207,6 +246,13 @@ export class GameState {
     for (let i = bullets.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [bullets[i], bullets[j]] = [bullets[j], bullets[i]];
+    }
+
+    // The tutorial teaches "a blank into your own head keeps the turn and pays". That
+    // lesson only lands if the first round really is a blank, so sparring stacks it.
+    if (opts?.firstBlank) {
+      const blankAt = bullets.indexOf('BLANK');
+      if (blankAt > 0) [bullets[0], bullets[blankAt]] = [bullets[blankAt], bullets[0]];
     }
 
     this.chamber = {
@@ -318,7 +364,7 @@ export class GameState {
 
       let bonusChips = 0;
       if (isSelfShot && shooter === 'PLAYER') {
-        bonusChips = BLANK_SELF_SHOT_CHIPS;
+        bonusChips = this.isTrainingBattle ? 0 : BLANK_SELF_SHOT_CHIPS;
         this.player.chips += bonusChips;
         sound.playCoinChime();
         if (this.onFloatingText) {
@@ -349,9 +395,15 @@ export class GameState {
     if (isChamberEmpty) {
       this.reloadChamber();
       this.player.hand.push(...getRandomItems(2));
-      this.dealer.hand.push(...getRandomItems(2));
+      // The trainer stays card-less for the whole bout, not just the opening hand —
+      // otherwise the restock hands him an Overdrive and the lesson turns into a beating.
+      if (!this.isTrainingBattle) {
+        this.dealer.hand.push(...getRandomItems(2));
+      }
       sound.playCardSlide();
-      this.dealer.dialogue = '📦 БАРАБАН ОПУСТЕЛ! Казино выдает игрокам по 2 новые карты предметов!';
+      this.dealer.dialogue = this.isTrainingBattle
+        ? '📦 Барабан опустел — перезаряжаю. Вам ещё две карты.'
+        : '📦 БАРАБАН ОПУСТЕЛ! Казино выдает игрокам по 2 новые карты предметов!';
     }
 
     // Only a blank fired into your own head keeps the turn. Everything else passes it.
@@ -618,6 +670,15 @@ export class GameState {
 
   handleBossVictory() {
     sound.playCoinChime();
+
+    // Sparring pays nothing and unlocks nothing; it only reports that it is over.
+    if (this.isTrainingBattle) {
+      this.phase = 'VICTORY';
+      this.dealer.dialogue = '🎓 Тренировка пройдена! Теперь ты знаешь, как здесь играют.';
+      this.notifyUpdate();
+      return;
+    }
+
     const currentLoc = this.currentLocationIndex;
     const currentBoss = this.currentBossIndex;
 
@@ -653,6 +714,14 @@ export class GameState {
   handlePlayerDefeatRewind() {
     sound.playBlankClick();
 
+    if (this.isTrainingBattle) {
+      this.phase = 'GAMEOVER';
+      this.dealer.dialogue = '🎓 Ничего страшного — это тренировка. Попробуй ещё раз.';
+      this.notifyUpdate();
+      return;
+    }
+
+
     // Consolation reward on defeat scaling with location (Option 1)
     const baseDefeat = DEFEAT_REWARDS[this.currentLocationIndex] || 15;
     const defeatReward = baseDefeat;
@@ -674,6 +743,9 @@ export class GameState {
   }
 
   hasUsedReviveThisBattle = false;
+
+  /** Sparring mode: no payout, no progression, and a cylinder stacked for teaching. */
+  isTrainingBattle = false;
 
   revivePlayerWith20PercentHp() {
     this.hasUsedReviveThisBattle = true;
