@@ -10,7 +10,7 @@ import '@fontsource/orbitron/latin-800.css';
 import '@fontsource/orbitron/latin-900.css';
 
 import './style.css';
-import { GameState, formatHp, BOSS_REWARDS, DEFEAT_REWARDS, AD_CHIPS_MAX_IN_WINDOW } from './game/GameState';
+import { GameState, formatHp, BOSS_REWARDS, defeatReward, hpUpgradeCost, armorUpgradeCost, damageUpgradeCost, AD_CHIPS_MAX_IN_WINDOW } from './game/GameState';
 import { ParticleSystem } from './engine/ParticleSystem';
 import { LOCATIONS } from './game/BossCatalog';
 import { sound } from './engine/AudioSynthesizer';
@@ -341,8 +341,6 @@ function renderBattleUI() {
     const totalReward = baseReward;
     lastEncounterReward = totalReward;
 
-    // Doubling is available ONLY on Location Boss (when currentBossIndex === 0 after completing boss 3)
-    const isLocationBossDefeated = currentBoss === 0;
 
     modalTitle.innerText = `🎉 ПОБЕДА! ГОТОВНОСТЬ К БОССУ ${nextBossNum}`;
     modalDesc.innerHTML = `
@@ -357,11 +355,13 @@ function renderBattleUI() {
       <div style="color: var(--text-dim); font-size: 0.9rem;">Зайдите в Мета-Прокачку характеристик или продолжайте путь!</div>
     `;
 
+    // Every win can be doubled. It used to be offered only after clearing a whole
+    // location, while every defeat could be doubled — which is what made losing pay.
     if (btnAdDoubleChips) {
-      if (isLocationBossDefeated) {
+      {
         btnAdDoubleChips.style.display = 'inline-block';
         btnAdDoubleChips.disabled = false;
-        btnAdDoubleChips.innerText = '🏆 📺 Удвоить Джекпот Босса (2x Фишек)!';
+        btnAdDoubleChips.innerText = '📺 Удвоить выигрыш (2x Фишек)!';
         btnAdDoubleChips.onclick = () => {
           platformSDK.showRewardedVideo(() => {
             gameState.player.chips += lastEncounterReward;
@@ -372,8 +372,6 @@ function renderBattleUI() {
             chipsDisplay.innerText = `${gameState.player.chips} $`;
           });
         };
-      } else {
-        btnAdDoubleChips.style.display = 'none';
       }
     }
 
@@ -387,38 +385,25 @@ function renderBattleUI() {
     platformSDK.showInterstitialAd();
   } else if (gameState.phase === 'GAMEOVER') {
     const prevBossNum = gameState.currentBossIndex + 1;
-    const baseDefeat = DEFEAT_REWARDS[gameState.currentLocationIndex] || 15;
-    const defeatReward = baseDefeat;
-    lastEncounterReward = defeatReward;
+    const consolation = defeatReward(gameState.currentLocationIndex, gameState.currentBossIndex);
+    lastEncounterReward = consolation;
 
     modalTitle.innerText = '💀 ПОРАЖЕНИЕ В ДУЭЛИ';
     modalDesc.innerHTML = `
       <div style="background: rgba(255, 42, 109, 0.1); border: 1.5px solid var(--neon-red); border-radius: 10px; padding: 14px; margin: 12px 0; text-align: center;">
         <div style="font-size: 1.15rem; color: var(--neon-red); font-weight: 800; margin-bottom: 6px;">
-          🩹 КОМПЕНСАЦИЯ ЗА РИСК: <span style="color: var(--gold); text-shadow: 0 0 10px rgba(255,183,3,0.5);">+${defeatReward} $</span>
+          🩹 КОМПЕНСАЦИЯ ЗА РИСК: <span style="color: var(--gold); text-shadow: 0 0 10px rgba(255,183,3,0.5);">+${consolation} $</span>
         </div>
         <div style="font-size: 1rem; color: var(--text-main);">
           🏦 ТЕКУЩИЙ ОБЩИЙ БАЛАНС: <strong style="color: var(--neon-green); font-size: 1.1rem;">${gameState.player.chips} $</strong>
         </div>
       </div>
-      <div style="color: var(--text-dim); font-size: 0.9rem;">Вы откатились к Боссу ${prevBossNum}. Выберите рекламу или зайдите в Мета-Прокачку!</div>
+      <div style="color: var(--text-dim); font-size: 0.9rem;">Вы вернётесь к Боссу ${prevBossNum}. Второй шанс или Мета-Прокачка — решать вам.</div>
     `;
 
-    if (btnAdDoubleChips) {
-      btnAdDoubleChips.style.display = 'inline-block';
-      btnAdDoubleChips.disabled = false;
-      btnAdDoubleChips.innerText = '📺 Удвоить компенсацию (2x Фишек)!';
-      btnAdDoubleChips.onclick = () => {
-        platformSDK.showRewardedVideo(() => {
-          gameState.player.chips += lastEncounterReward;
-          sound.playCoinChime();
-          gameState.requestSave();
-          btnAdDoubleChips.style.display = 'none';
-          if (gameState.onFloatingText) gameState.onFloatingText(`💰 +${lastEncounterReward}$ (2x КОМПЕНСАЦИЯ!)`, 'CHIPS', '#ffb703');
-          chipsDisplay.innerText = `${gameState.player.chips} $`;
-        });
-      };
-    }
+    // No doubling on a defeat. Offering it here while withholding it from ordinary wins is
+    // exactly what made throwing a duel the profitable move.
+    if (btnAdDoubleChips) btnAdDoubleChips.style.display = 'none';
 
     if (btnAdRevive) {
       if (!gameState.hasUsedReviveThisBattle) {
@@ -677,13 +662,13 @@ function renderMetaShop() {
   metaUpgradesGrid.innerHTML = '';
 
   const hpLvl = Math.round((gameState.metaUpgrades.baseMaxHp - 80) / 20);
-  const hpCost = 150 + hpLvl * 75;
+  const hpCost = hpUpgradeCost(hpLvl);
 
   const armorLvl = gameState.metaUpgrades.baseArmor / 10;
-  const armorCost = 200 + armorLvl * 100;
+  const armorCost = armorUpgradeCost(armorLvl);
 
   const dmgLvl = gameState.metaUpgrades.baseDamageBonus;
-  const dmgCost = 250 + dmgLvl * 125;
+  const dmgCost = damageUpgradeCost(dmgLvl);
 
   const metaItems = [
     {
@@ -732,6 +717,11 @@ function renderMetaShop() {
 
     metaUpgradesGrid.appendChild(card);
   });
+
+  // Sparring is a tutorial affordance, not a permanent shop feature: it appears only for
+  // the duration of a guided run and disappears with it.
+  const btnTraining = document.getElementById('btn-meta-training');
+  if (btnTraining) btnTraining.style.display = tutorial.isRunning() ? 'inline-block' : 'none';
 
   syncAdChipsButton();
   startAdChipsTicker();
@@ -817,9 +807,14 @@ document.getElementById('btn-meta-training')?.addEventListener('click', () => {
 function startTutorial() {
   tutorial.init(buildTutorialSteps(gameState));
   gameState.screenState = 'META_SHOP';
-  gameState.notifyUpdate();
+  // Start first: renderMetaShop reads tutorial.isRunning() to decide whether the sparring
+  // button exists, so the flag has to be up before the shop paints.
   tutorial.start();
+  gameState.notifyUpdate();
 }
+
+// When the run ends — finished or skipped — repaint so the sparring button goes away.
+tutorial.onFinish = () => gameState.notifyUpdate();
 
 document.getElementById('btn-guide-close')?.addEventListener('click', closeGuide);
 document.getElementById('btn-guide-start')?.addEventListener('click', closeGuide);

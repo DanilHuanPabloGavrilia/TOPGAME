@@ -101,7 +101,8 @@
           <button id="btn-meta-back-map" class="btn-secondary">
             🗺️ На Карту Мира
           </button>
-          <button id="btn-meta-training" class="btn-secondary" style="border-color: var(--neon-yellow); color: var(--neon-yellow);">
+          <!-- Only surfaces while the guided tutorial is running; renderMetaShop keeps it in sync. -->
+          <button id="btn-meta-training" class="btn-secondary" style="display: none; border-color: var(--neon-yellow); color: var(--neon-yellow);">
             🎓 Тренировочный бой
           </button>
           <button id="btn-meta-next-boss" class="btn-primary" style="padding: 14px 28px; font-size: 1.05rem;">

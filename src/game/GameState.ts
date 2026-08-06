@@ -9,8 +9,11 @@ import { SAVE_VERSION, type SaveData } from './SaveData';
 const LOCATION_COUNT = 5;
 const BOSSES_PER_LOCATION = 3;
 
-// Payout for calling your own bluff: a blank fired into your own head.
+// Payout for calling your own bluff: a blank fired into your own head. Capped per duel:
+// the shot also keeps the turn, so an uncapped payout lets a player farm chips forever
+// by never advancing the fight.
 const BLANK_SELF_SHOT_CHIPS = 25;
+const MAX_BLANK_SELF_SHOT_PAYOUTS = 5;
 
 /**
  * Chips paid for beating [location][boss]. Single source of truth — the victory modal,
@@ -24,8 +27,26 @@ export const BOSS_REWARDS: number[][] = [
   [800, 1400, 3000]  // Loc 5
 ];
 
-/** Consolation paid for losing, by location. */
-export const DEFEAT_REWARDS: number[] = [15, 35, 80, 180, 450];
+/**
+  * Losing pays a slice of what that specific boss was worth, never a flat per-location
+  * figure. The old flat table drifted above the reward for a location's first boss, which
+  * made throwing a duel the better move from location three onward.
+  */
+export const DEFEAT_SHARE = 0.15;
+
+export function defeatReward(locIdx: number, bossIdx: number): number {
+  const base = BOSS_REWARDS[locIdx]?.[bossIdx] ?? BOSS_REWARDS[0][0];
+  return Math.max(5, Math.round(base * DEFEAT_SHARE));
+}
+
+/**
+ * Meta upgrade prices. Quadratic in the level because location income grows ~24x across
+ * the run while a linear price grows ~4x — with a linear step the first upgrade costs a
+ * newcomer three locations of income and the last costs a veteran half of one.
+ */
+export function hpUpgradeCost(level: number): number { return 70 + 10 * level * level; }
+export function armorUpgradeCost(level: number): number { return 150 + 12 * level * level; }
+export function damageUpgradeCost(level: number): number { return 100 + 15 * level * level; }
 
 // Rewarded ad for chips: a rolling window, because the platform cannot cap this for us.
 // The reward is granted by our own onRewarded handler, so the limit has to live here.
@@ -62,6 +83,9 @@ export class GameState {
 
   /** Timestamps of granted chip ads, kept inside the rolling window. */
   private adChipsGrants: number[] = [];
+
+  /** Paid blank self-shots this duel; resets with every encounter. */
+  private blankSelfShotPayouts = 0;
 
   metaUpgrades: MetaUpgrades = {
     baseMaxHp: 80,
@@ -191,6 +215,7 @@ export class GameState {
 
     this.reloadChamber();
     this.dealerCardsThisTurn = 0;
+    this.blankSelfShotPayouts = 0;
     this.phase = 'BATTLE';
     this.turn = 'PLAYER';
     this.screenState = 'BATTLE';
@@ -224,6 +249,7 @@ export class GameState {
 
     this.reloadChamber({ firstBlank: true });
     this.dealerCardsThisTurn = 0;
+    this.blankSelfShotPayouts = 0;
     this.combatLog = ['• Тренировочный бой. Патроны заряжены вполсилы.'];
     this.phase = 'BATTLE';
     this.turn = 'PLAYER';
@@ -283,9 +309,12 @@ export class GameState {
     }
 
     if (shooter === 'PLAYER') {
-      return isSelfShot
+      if (!isSelfShot) return `💨 ЩЕЛЧОК! Холостой патрон (0 урона). Ход передается Диллеру!`;
+      // Once the per-duel payout cap is spent the move still keeps the turn, so say that
+      // outright — a silent zero would read as a bug.
+      return chips > 0
         ? `🔥 АДРЕНАЛИНОВЫЙ БОНУС! Холостой по себе: +${chips}$ и Повторный Ход!`
-        : `💨 ЩЕЛЧОК! Холостой патрон (0 урона). Ход передается Диллеру!`;
+        : `💨 Холостой по себе — ход остаётся у вас. Касса за риск на сегодня закрыта.`;
     }
     return isSelfShot
       ? `💨 Диллер выстрелил В СЕБЯ: ХОЛОСТОЙ! (0 урона). Диллер берет повторный ход...`
@@ -364,7 +393,9 @@ export class GameState {
 
       let bonusChips = 0;
       if (isSelfShot && shooter === 'PLAYER') {
-        bonusChips = this.isTrainingBattle ? 0 : BLANK_SELF_SHOT_CHIPS;
+        const payoutsLeft = MAX_BLANK_SELF_SHOT_PAYOUTS - this.blankSelfShotPayouts;
+        bonusChips = this.isTrainingBattle || payoutsLeft <= 0 ? 0 : BLANK_SELF_SHOT_CHIPS;
+        if (bonusChips > 0) this.blankSelfShotPayouts++;
         this.player.chips += bonusChips;
         sound.playCoinChime();
         if (this.onFloatingText) {
@@ -723,9 +754,8 @@ export class GameState {
 
 
     // Consolation reward on defeat scaling with location (Option 1)
-    const baseDefeat = DEFEAT_REWARDS[this.currentLocationIndex] || 15;
-    const defeatReward = baseDefeat;
-    this.player.chips += defeatReward;
+    const consolation = defeatReward(this.currentLocationIndex, this.currentBossIndex);
+    this.player.chips += consolation;
 
     this.phase = 'GAMEOVER';
     this.dealer.dialogue = `💀 ПОРАЖЕНИЕ! Вам выплачена компенсация +${defeatReward}$. Зайдите в Мета-Прокачку или на Карту Мира!`;
