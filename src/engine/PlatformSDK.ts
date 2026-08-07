@@ -34,6 +34,45 @@ function isFramed(): boolean {
   }
 }
 
+// Yandex insists their SDK be served from their own domain, so it cannot be bundled. It is
+// injected here rather than sat in index.html as a blocking tag: on VK and abroad yandex.ru
+// is slow or unreachable, and a tag in <head> would hold up first paint until it timed out.
+const YANDEX_SDK_URL = 'https://yandex.ru/games/sdk/v2';
+
+// Long enough for a cold CDN on a bad phone connection, short enough that a player never
+// waits on a host that is simply not going to answer.
+const SDK_LOAD_TIMEOUT_MS = 6000;
+
+/**
+ * Fetches the Yandex SDK. Resolves false — never rejects — when the script fails, times out
+ * or loads without defining YaGames, so the caller can just fall through to standalone mode.
+ */
+function loadYandexSdk(): Promise<boolean> {
+  if (window.YaGames) return Promise.resolve(true);
+
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      // onload can fire for a script that never defined the global — check, don't assume.
+      resolve(ok && !!window.YaGames);
+    };
+
+    const timer = setTimeout(() => {
+      console.warn('[SDK] Yandex SDK did not load within timeout, continuing without it');
+      finish(false);
+    }, SDK_LOAD_TIMEOUT_MS);
+
+    const script = document.createElement('script');
+    script.src = YANDEX_SDK_URL;
+    script.onload = () => finish(true);
+    script.onerror = () => finish(false);
+    document.head.appendChild(script);
+  });
+}
+
 // Key for VK's key/value storage. Yandex stores the blob as an unnamed player-data object.
 const VK_STORAGE_KEY = 'dealers_gambit_save';
 
@@ -69,8 +108,9 @@ class PlatformSDK {
       }
     }
 
-    // Try Yandex Games SDK
-    if (window.YaGames && isFramed()) {
+    // Try Yandex Games SDK. Gated on isFramed() so a standalone build, a VK frame that fell
+    // through, or a local dev server never even requests yandex.ru.
+    if (isFramed() && await loadYandexSdk()) {
       try {
         this.ysdk = await window.YaGames.init();
         this.platform = 'YANDEX';
@@ -101,6 +141,31 @@ class PlatformSDK {
 
   public getIsAdShowing(): boolean {
     return this.isAdShowing;
+  }
+
+  /**
+   * The language the platform launched us in, as a raw locale tag — 'en', 'tr', 'kk-KZ'.
+   * Yandex exposes it on the SDK; VK passes vk_language in the launch parameters, which is
+   * why it is read from the URL rather than over the bridge. Null means "nobody told us",
+   * and the caller falls back to the browser's own preference.
+   */
+  public getLanguage(): string | null {
+    if (this.platform === 'YANDEX' && this.ysdk) {
+      const lang = this.ysdk.environment?.i18n?.lang;
+      if (typeof lang === 'string' && lang) return lang;
+    }
+
+    if (this.platform === 'VK') {
+      try {
+        const query = location.search || location.hash.replace(/^#/, '');
+        const lang = new URLSearchParams(query).get('vk_language');
+        if (lang) return lang;
+      } catch {
+        // Malformed launch URL — fall through to the browser preference.
+      }
+    }
+
+    return null;
   }
 
   /**

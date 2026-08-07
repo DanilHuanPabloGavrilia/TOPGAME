@@ -1,4 +1,5 @@
 import type { ItemCard, ItemId, Relic } from './Types';
+import { t } from '../i18n';
 
 // Imported rather than referenced by absolute path so Vite rewrites them against `base`.
 import cigaretteIcon from '../assets/images/items/cigarette.webp';
@@ -37,12 +38,26 @@ export function isMultiplierCard(id: ItemId): boolean {
 }
 
 /**
- * Card text for a booster. Kept short on purpose: `.card-desc` clamps to three lines, and
- * a longer phrasing pushes the multiplier itself onto the clipped fourth line — the one
+ * Turns a catalog entry into a display-ready card: `name` and `description` hold i18n keys,
+ * and this is where they become text.
+ *
+ * Resolution happens here rather than in the catalog literal because the catalog is built at
+ * import time, long before the platform has told us which language to speak. Every hand is
+ * dealt through this function, so by the time a card reaches the table it is already in the
+ * player's language.
+ *
+ * Booster text is kept short on purpose in every locale: `.card-desc` clamps to three lines,
+ * and a longer phrasing pushes the multiplier itself onto the clipped fourth line — the one
  * number the player needs is the one that would disappear.
  */
-function boosterText(id: ItemId): string {
-  return `Урон следующего выстрела — х${multiplierValue(id)}.`;
+export function localizedItem(id: ItemId): ItemCard {
+  const base = ALL_ITEMS[id];
+  const mult = multiplierValue(id);
+  return {
+    ...base,
+    name: t(base.name),
+    description: mult === null ? t(base.description) : t('item.booster.desc', { mult })
+  };
 }
 
 /*
@@ -50,84 +65,88 @@ function boosterText(id: ItemId): string {
  * duel and again on every drum reload. There is no price and no purchase decision, so the
  * cards carry no cost field: a stray number here would only invite balance arguments about
  * a shop that does not exist. Chips buy meta upgrades (HP / armour / damage) and nothing else.
+ *
+ * `name` and `description` hold i18n keys, not text. Nothing renders these fields directly —
+ * every hand goes through localizedItem(), which resolves them. Boosters carry the shared
+ * 'item.booster.desc' key because their multiplier is filled in from MULTIPLIER_CARDS.
  */
 export const ALL_ITEMS: Record<ItemId, ItemCard> = {
   MAGNIFIER: {
     id: 'MAGNIFIER',
-    name: 'Лупа',
+    name: 'item.MAGNIFIER.name',
     icon: '🔍',
     iconUrl: magnifierIcon,
-    description: 'Узнать тип следующего патрона в барабане.'
+    description: 'item.MAGNIFIER.desc'
   },
   SAW: {
     id: 'SAW',
-    name: 'Ножовка',
+    name: 'item.SAW.name',
     icon: '🪚',
     iconUrl: sawIcon,
-    description: boosterText('SAW')
+    description: 'item.booster.desc'
   },
   ENERGY_DRINK: {
     id: 'ENERGY_DRINK',
-    name: 'Энергетик',
+    name: 'item.ENERGY_DRINK.name',
     icon: '🍺',
     iconUrl: energyIcon,
-    description: 'Выбросить текущий патрон без выстрела.'
+    description: 'item.ENERGY_DRINK.desc'
   },
   CIGARETTE: {
     id: 'CIGARETTE',
-    name: 'Сигарета',
+    name: 'item.CIGARETTE.name',
     icon: '🚬',
     iconUrl: cigaretteIcon,
-    description: 'Восстанавливает 10% от максимального здоровья, но не меньше 10.'
+    description: 'item.CIGARETTE.desc'
   },
   HACK_CHIP: {
     id: 'HACK_CHIP',
-    name: 'Хак-чип',
+    name: 'item.HACK_CHIP.name',
     icon: '⚡',
     iconUrl: hackchipIcon,
-    description: 'Инвертирует текущий патрон (Боевой ↔ Холостой).'
+    description: 'item.HACK_CHIP.desc'
   },
   MIRROR_SHIELD: {
     id: 'MIRROR_SHIELD',
-    name: 'Щит-Зеркало',
+    name: 'item.MIRROR_SHIELD.name',
     icon: '🛡️',
     iconUrl: shieldIcon,
-    description: 'Отражает следующий выстрел обратно в стрелка.'
+    description: 'item.MIRROR_SHIELD.desc'
   },
   OVERDRIVE: {
     id: 'OVERDRIVE',
-    name: 'Овердрайв',
+    name: 'item.OVERDRIVE.name',
     icon: '💣',
     iconUrl: overdriveIcon,
-    description: boosterText('OVERDRIVE')
+    description: 'item.booster.desc'
   },
   MAGNET: {
     id: 'MAGNET',
-    name: 'Магнит',
+    name: 'item.MAGNET.name',
     icon: '🧲',
     iconUrl: magnetIcon,
-    description: 'Украсть случайную карту из руки босса.'
+    description: 'item.MAGNET.desc'
   },
   XRAY: {
     id: 'XRAY',
-    name: 'Рентген-Сканер',
+    name: 'item.XRAY.name',
     icon: '🩺',
     iconUrl: xrayIcon,
-    description: 'Показывает типы ВСЕХ патронов в барабане.'
+    description: 'item.XRAY.desc'
   },
   OVERDRIVE_2: {
     id: 'OVERDRIVE_2',
-    name: 'Овердрайв 2.0',
+    name: 'item.OVERDRIVE_2.name',
     icon: '⚡',
     iconUrl: overdrive2Icon,
-    description: boosterText('OVERDRIVE_2')
+    description: 'item.booster.desc'
   },
   NULLIFIER: {
     id: 'NULLIFIER',
-    name: 'Нуллификатор',
+    name: 'item.NULLIFIER.name',
     icon: '🚫',
     iconUrl: nullifierIcon,
-    description: 'Сбрасывает множитель урона и сжигает карту противника.'
+    description: 'item.NULLIFIER.desc'
   }
 };
 
@@ -163,7 +182,7 @@ export function getRandomItems(count: number): ItemCard[] {
   const result: ItemCard[] = [];
   for (let i = 0; i < count; i++) {
     const randomKey = keys[Math.floor(Math.random() * keys.length)];
-    result.push({ ...ALL_ITEMS[randomKey] });
+    result.push(localizedItem(randomKey));
   }
   return result;
 }

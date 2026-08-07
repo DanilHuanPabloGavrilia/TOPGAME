@@ -2,6 +2,13 @@
    imports at the top of main.ts. External font requests are slow or blocked inside
    the Yandex Games frame, and a blocked request means the UI renders in Times. */
 
+/*
+ * Headings ask for Orbitron first and fall back to Fira Code, never to a system font.
+ * Orbitron ships basic Latin only — no latin-ext, no Cyrillic — so Russian, Turkish,
+ * Kazakh and Uzbek headings would otherwise land on whatever the device happened to have,
+ * which differs per platform and breaks the look. Fira Code is already loaded with every
+ * subset the five languages need, so the fallback is both covered and consistent.
+ */
 :root {
   --bg-color: #08080d;
   --panel-bg: rgba(16, 18, 27, 0.88);
@@ -101,7 +108,7 @@ body {
 }
 
 .game-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 1.4rem;
   font-weight: 900;
   color: var(--neon-cyan);
@@ -157,7 +164,7 @@ body {
 }
 
 .hero-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 3.2rem;
   font-weight: 900;
   color: var(--neon-cyan);
@@ -186,7 +193,7 @@ body {
 }
 
 .btn-secondary {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   padding: 14px 28px;
   background: rgba(20, 24, 40, 0.8);
   border: 1.5px solid var(--neon-purple);
@@ -258,7 +265,7 @@ body {
 }
 
 .location-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 1.3rem;
   color: var(--neon-cyan);
 }
@@ -321,7 +328,7 @@ body {
   object-fit: cover;
 }
 
-.char-details h3 { font-family: 'Orbitron', sans-serif; font-size: 1rem; color: var(--neon-red); }
+.char-details h3 { font-family: 'Orbitron', 'Fira Code', monospace; font-size: 1rem; color: var(--neon-red); }
 .hp-bar-container {
   width: 150px; height: 10px; background: rgba(255,255,255,0.1);
   border-radius: 6px; overflow: hidden; margin-top: 3px; border: 1px solid rgba(255,255,255,0.2);
@@ -403,7 +410,7 @@ body {
 }
 
 .combat-log-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 1.5px;
@@ -423,18 +430,18 @@ body {
 /* Newest entry is unshifted to the front — highlight it as "what just happened". */
 .combat-log-entries > div:first-child { color: var(--text-main); }
 
-.chamber-counter { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--text-dim); }
+.chamber-counter { font-family: 'Orbitron', 'Fira Code', monospace; font-size: 0.9rem; font-weight: 700; color: var(--text-dim); }
 .chamber-counter span.live-count { color: var(--neon-red); }
 .chamber-counter span.blank-count { color: var(--neon-cyan); }
 
 .multiplier-badge {
-  font-family: 'Orbitron', sans-serif; background: linear-gradient(135deg, #ff2a6d, #9d4edd);
+  font-family: 'Orbitron', 'Fira Code', monospace; background: linear-gradient(135deg, #ff2a6d, #9d4edd);
   padding: 4px 14px; border-radius: 16px; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px;
 }
 
 .action-controls { display: flex; gap: 16px; position: relative; z-index: 105; }
 .btn-action {
-  font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 800;
+  font-family: 'Orbitron', 'Fira Code', monospace; font-size: 0.95rem; font-weight: 800;
   padding: 12px 28px; border: none; border-radius: 10px; cursor: pointer; text-transform: uppercase;
   transition: all 0.2s ease;
   position: relative;
@@ -482,7 +489,7 @@ body {
   background-color: rgba(10, 12, 22, 0.8);
 }
 .card-icon { font-size: 1.3rem; text-align: center; margin-bottom: 2px; }
-.card-name { font-family: 'Orbitron', sans-serif; font-size: 0.65rem; font-weight: 700; text-align: center; color: var(--neon-cyan); line-height: 1.15; margin-bottom: 2px; }
+.card-name { font-family: 'Orbitron', 'Fira Code', monospace; font-size: 0.65rem; font-weight: 700; text-align: center; color: var(--neon-cyan); line-height: 1.15; margin-bottom: 2px; }
 .card-desc { font-size: 0.58rem; color: var(--text-dim); text-align: center; line-height: 1.15; word-break: break-word; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 
 /* 3D Cyberpunk Card Deck Stack */
@@ -626,7 +633,7 @@ body {
   padding: 36px 48px; max-width: 680px; width: 90%; text-align: center;
   box-shadow: 0 0 50px rgba(5, 217, 232, 0.3); display: flex; flex-direction: column; gap: 20px;
 }
-.modal-title { font-family: 'Orbitron', sans-serif; font-size: 2.2rem; color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); }
+.modal-title { font-family: 'Orbitron', 'Fira Code', monospace; font-size: 2.2rem; color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); }
 
 .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 10px; }
 .shop-item-card {
@@ -636,7 +643,7 @@ body {
 .shop-item-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 0 15px rgba(255, 183, 3, 0.4); }
 
 .btn-primary {
-  font-family: 'Orbitron', sans-serif; padding: 14px 28px;
+  font-family: 'Orbitron', 'Fira Code', monospace; padding: 14px 28px;
   background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
   color: #fff; font-weight: 800; border: none; border-radius: 8px; font-size: 1.05rem; cursor: pointer; transition: all 0.2s ease; align-self: center;
 }
@@ -751,7 +758,7 @@ body {
   border: 1.5px solid var(--neon-cyan);
   border-radius: 20px;
   padding: 8px 22px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 0.85rem;
   font-weight: 800;
   color: var(--neon-cyan);
@@ -789,7 +796,7 @@ body {
 }
 
 .tooltip-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 0.85rem;
   font-weight: 800;
   color: var(--neon-yellow);
@@ -817,7 +824,7 @@ body {
   border: 2px solid var(--neon-red);
   border-radius: 24px;
   padding: 10px 26px;
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 0.95rem;
   font-weight: 800;
   color: var(--neon-red);
@@ -862,7 +869,7 @@ body {
 }
 
 .showcase-badge {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 0.7rem;
   font-weight: 800;
   color: var(--gold);
@@ -876,7 +883,7 @@ body {
 }
 
 .showcase-name {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 1.2rem;
   font-weight: 800;
   color: var(--neon-yellow);
@@ -1251,7 +1258,7 @@ body {
 }
 
 .tutorial-counter {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 1px;
@@ -1261,7 +1268,7 @@ body {
 .tutorial-actions { display: flex; align-items: center; gap: 8px; }
 
 .tutorial-next {
-  font-family: 'Orbitron', sans-serif;
+  font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 0.72rem;
   font-weight: 800;
   padding: 9px 16px;

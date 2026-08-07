@@ -1,5 +1,6 @@
 import type { ChamberState, ItemCard, ItemId } from './Types';
 import { MULTIPLIER_CARDS } from './ItemCatalog';
+import { t } from '../i18n';
 
 export interface AIDecision {
   action: 'SHOOT_PLAYER' | 'SHOOT_SELF' | 'USE_ITEM';
@@ -65,49 +66,22 @@ const SHIELD_THRESHOLD = 0.45; // raise the mirror while a reflected round still
 
 export class DealerAI {
   static getDialogue(event: 'START' | 'PLAYER_SHOOT_DEALER_LIVE' | 'PLAYER_SHOOT_DEALER_BLANK' | 'PLAYER_SHOOT_SELF_LIVE' | 'PLAYER_SHOOT_SELF_BLANK' | 'DEALER_TURN' | 'WIN' | 'LOSE'): string {
-    const dialogues: Record<string, string[]> = {
-      START: [
-        'Добро пожаловать в полуночную секцию. Правила просты: выживи.',
-        'Удача любит тех, кто умеет считать шансы...',
-        'Ставки сделаны. Барабан заряжен.'
-      ],
-      PLAYER_SHOOT_DEALER_LIVE: [
-        'Угх... Точное попадание. Неплохо.',
-        'Твой азарт начинает меня забавлять.',
-        'Больно, но игра только начинается.'
-      ],
-      PLAYER_SHOOT_DEALER_BLANK: [
-        'Мимо. Удача сегодня не на твоей стороне.',
-        'Щелчок... Холостой! Мой ход.',
-        'Ошибочка. Теперь черед моих ходов.'
-      ],
-      PLAYER_SHOOT_SELF_LIVE: [
-        'Опасный риск... и расплата за него!',
-        'Стрелять в себя — авантюра, которая не выгорела.',
-        'Самоуверенность убивает быстрее пуль.'
-      ],
-      PLAYER_SHOOT_SELF_BLANK: [
-        'Холостой по себе! Ты сохраняешь ход... Впечатляет.',
-        'Отличный просчет! Твой ход продолжается.',
-        'Нервы из стали.'
-      ],
-      DEALER_TURN: [
-        'Теперь посмотри, как играют профессионалы...',
-        'Мой черед. Барабан шепчет мне отгадку.',
-        'Оценим твои шансы выжить...'
-      ],
-      WIN: [
-        'Невозможно... Ты переиграл меня.',
-        'Твоя синергия уничтожила меня. Забирай банк.'
-      ],
-      LOSE: [
-        'Казино всегда остается в плюсе.',
-        'Твоя игра окончена. Попробуешь снова?'
-      ]
+    // The lines themselves live in the locale files as ai.<EVENT>.<n>; only how many there
+    // are per event is structural, so only that stays here. Every language must supply the
+    // same count — a missing key would fall back to Russian mid-duel.
+    const LINE_COUNT: Record<string, number> = {
+      START: 3,
+      PLAYER_SHOOT_DEALER_LIVE: 3,
+      PLAYER_SHOOT_DEALER_BLANK: 3,
+      PLAYER_SHOOT_SELF_LIVE: 3,
+      PLAYER_SHOOT_SELF_BLANK: 3,
+      DEALER_TURN: 3,
+      WIN: 2,
+      LOSE: 2
     };
 
-    const list = dialogues[event] || dialogues['START'];
-    return list[Math.floor(Math.random() * list.length)];
+    const key = LINE_COUNT[event] ? event : 'START';
+    return t(`ai.${key}.${Math.floor(Math.random() * LINE_COUNT[key])}`);
   }
 
   static decideTurn(ctx: AIContext): AIDecision {

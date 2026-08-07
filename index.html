@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dealer's Gambit — Кибер-Оккультный Рогалик</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-  <!-- Yandex Games SDK v2. The only external script we keep: Yandex requires it to be
-       served from their domain. vk-bridge ships in the bundle (see PlatformSDK.ts),
-       fonts and art are self-hosted. -->
-  <script src="https://yandex.ru/games/sdk/v2"></script>
+  <!-- No external <script> here on purpose. The Yandex SDK must be served from their
+       domain, but a blocking tag in <head> makes yandex.ru a single point of failure for
+       first paint — costly on VK and abroad, where it is slow or unreachable. PlatformSDK
+       injects it at runtime instead, only inside a platform frame and under a timeout. -->
 </head>
 <body>
   <div id="app">

@@ -1,6 +1,6 @@
 import type { BulletType, ChamberState, DealerStats, GamePhase, GameTurn, ItemCard, ItemId, MetaUpgrades, PlayerStats, ScreenState } from './Types';
-import { ALL_ITEMS, getRandomItems, isMultiplierCard, multiplierValue } from './ItemCatalog';
-import { LOCATIONS, TRAINING_BOSS } from './BossCatalog';
+import { getRandomItems, isMultiplierCard, localizedItem, multiplierValue } from './ItemCatalog';
+import { LOCATIONS, TRAINING_BOSS, localizedBoss } from './BossCatalog';
 import { DealerAI, mostDangerousCardIndex } from './DealerAI';
 import { sound } from '../engine/AudioSynthesizer';
 import { saveManager } from '../engine/SaveManager';
@@ -191,7 +191,9 @@ export class GameState {
     this.hasUsedReviveThisBattle = false;
 
     const location = LOCATIONS[locIdx];
-    const bossDef = location.bosses[bossIdx];
+    // Resolved once, here: everything downstream copies plain text out of it and never has
+    // to know that the catalog stores keys.
+    const bossDef = localizedBoss(location.bosses[bossIdx]);
 
     // Apply Meta Upgrades & Ad Buffs
     const extraHp = adBuff ? adBuff.hp : 0;
@@ -236,15 +238,16 @@ export class GameState {
     this.player.hp = this.player.maxHp;
     this.player.armor = this.metaUpgrades.baseArmor;
 
-    this.dealer.name = TRAINING_BOSS.name;
-    this.dealer.avatar = TRAINING_BOSS.avatar;
-    this.dealer.avatarUrl = TRAINING_BOSS.avatarUrl;
+    const trainer = localizedBoss(TRAINING_BOSS);
+    this.dealer.name = trainer.name;
+    this.dealer.avatar = trainer.avatar;
+    this.dealer.avatarUrl = trainer.avatarUrl;
     this.dealer.maxHp = TRAINING_BOSS.hp;
     this.dealer.hp = TRAINING_BOSS.hp;
     this.dealer.armor = 0;
 
     // A readable opening hand: look at the round, double the damage, patch yourself up.
-    this.player.hand = ['MAGNIFIER', 'SAW', 'CIGARETTE'].map(id => ({ ...ALL_ITEMS[id as ItemId] }));
+    this.player.hand = (['MAGNIFIER', 'SAW', 'CIGARETTE'] as ItemId[]).map(id => localizedItem(id));
     // The trainer plays no cards — one new mechanic at a time.
     this.dealer.hand = [];
     sound.playRoundStart();
@@ -256,7 +259,7 @@ export class GameState {
     this.phase = 'BATTLE';
     this.turn = 'PLAYER';
     this.screenState = 'BATTLE';
-    this.dealer.dialogue = TRAINING_BOSS.dialogueSet[0];
+    this.dealer.dialogue = trainer.dialogueSet[0];
     this.notifyUpdate();
   }
 
@@ -780,7 +783,9 @@ export class GameState {
     this.player.chips += consolation;
 
     this.phase = 'GAMEOVER';
-    this.dealer.dialogue = `💀 ПОРАЖЕНИЕ! Вам выплачена компенсация +${defeatReward}$. Зайдите в Мета-Прокачку или на Карту Мира!`;
+    // `consolation`, not `defeatReward` — the latter is the function, and interpolating it
+    // dropped its whole source text into the sentence the player reads on defeat.
+    this.dealer.dialogue = `💀 ПОРАЖЕНИЕ! Вам выплачена компенсация +${consolation}$. Зайдите в Мета-Прокачку или на Карту Мира!`;
     this.requestSave();
     this.notifyUpdate();
   }

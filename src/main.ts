@@ -1,10 +1,19 @@
-// Self-hosted fonts. Only the weights the stylesheet actually asks for, and only the
-// subsets the text needs: Fira Code carries the Russian body copy, Orbitron is display
-// type with no Cyrillic coverage at all — it renders the logo, digits and stat readouts.
+// Self-hosted fonts. Only the weights the stylesheet asks for, and only the subsets the
+// shipped languages need. Fira Code carries all body copy:
+//   latin        — English, and the ASCII half of Turkish/Uzbek
+//   latin-ext    — Turkish ş ğ ı İ and Uzbek oʻ gʻ  (без него они рисуются квадратами)
+//   cyrillic     — Russian
+//   cyrillic-ext — Kazakh ә ғ қ ң ө ұ ү һ і      (тоже отдельный блок, не входит в cyrillic)
+// Orbitron is display type with no coverage beyond basic Latin — see style.css for why the
+// headings no longer depend on it alone.
 import '@fontsource/fira-code/latin-400.css';
 import '@fontsource/fira-code/latin-700.css';
+import '@fontsource/fira-code/latin-ext-400.css';
+import '@fontsource/fira-code/latin-ext-700.css';
 import '@fontsource/fira-code/cyrillic-400.css';
 import '@fontsource/fira-code/cyrillic-700.css';
+import '@fontsource/fira-code/cyrillic-ext-400.css';
+import '@fontsource/fira-code/cyrillic-ext-700.css';
 import '@fontsource/orbitron/latin-700.css';
 import '@fontsource/orbitron/latin-800.css';
 import '@fontsource/orbitron/latin-900.css';
@@ -12,12 +21,13 @@ import '@fontsource/orbitron/latin-900.css';
 import './style.css';
 import { GameState, formatHp, BOSS_REWARDS, defeatReward, hpUpgradeCost, armorUpgradeCost, damageUpgradeCost, AD_CHIPS_MAX_IN_WINDOW } from './game/GameState';
 import { ParticleSystem } from './engine/ParticleSystem';
-import { LOCATIONS } from './game/BossCatalog';
+import { LOCATIONS, localizedBoss, localizedLocation } from './game/BossCatalog';
 import { sound } from './engine/AudioSynthesizer';
 import { platformSDK } from './engine/PlatformSDK';
 import { imagePreloader } from './engine/ImagePreloader';
 import { saveManager } from './engine/SaveManager';
 import { tutorial, type TutorialScreen } from './engine/TutorialManager';
+import { normalizeLang, setLang } from './i18n';
 import { buildTutorialSteps } from './game/TutorialSteps';
 
 imagePreloader.preloadAll();
@@ -481,7 +491,7 @@ let lastEncounterReward = 0;
 // Show Boss Dossier Modal
 function showBossIntroModal(locIdx: number, bossIdx: number) {
   const loc = LOCATIONS[locIdx];
-  const boss = loc.bosses[bossIdx];
+  const boss = localizedBoss(loc.bosses[bossIdx]);
 
   const modalBossIntro = document.getElementById('modal-boss-intro')!;
   const bossIntroAvatar = document.getElementById('boss-intro-avatar')!;
@@ -552,13 +562,15 @@ function showBossIntroModal(locIdx: number, bossIdx: number) {
 function renderWorldMap() {
   locationsList.innerHTML = '';
 
-  LOCATIONS.forEach((loc, locIdx) => {
+  LOCATIONS.forEach((rawLoc, locIdx) => {
+    const loc = localizedLocation(rawLoc);
     const isUnlocked = locIdx <= gameState.unlockedLocationIndex;
     const card = document.createElement('div');
     card.className = `location-card ${isUnlocked ? 'unlocked' : 'locked'}`;
 
     let bossesHTML = '';
-    loc.bosses.forEach((boss, bIdx) => {
+    loc.bosses.forEach((rawBoss, bIdx) => {
+      const boss = localizedBoss(rawBoss);
       const isCompleted = gameState.completedBosses[locIdx][bIdx];
       const isTarget = isUnlocked && !isCompleted && (bIdx === 0 || gameState.completedBosses[locIdx][bIdx - 1]);
       
@@ -745,7 +757,8 @@ function renderMetaShop() {
   const btnMetaNextBoss = document.getElementById('btn-meta-next-boss');
   if (btnMetaNextBoss) {
     const loc = LOCATIONS[gameState.currentLocationIndex];
-    const boss = loc?.bosses[gameState.currentBossIndex];
+    const rawBoss = loc?.bosses[gameState.currentBossIndex];
+    const boss = rawBoss ? localizedBoss(rawBoss) : undefined;
     const bossName = boss ? boss.name : `Боссу ${gameState.currentBossIndex + 1}`;
     btnMetaNextBoss.innerText = `⚔️ В БОЙ (К ${bossName}) ➔`;
     btnMetaNextBoss.onclick = () => {
@@ -988,6 +1001,17 @@ async function boot() {
   } catch (err) {
     console.warn('[Boot] Platform init failed, continuing standalone', err);
   }
+
+  // Language before anything reads text. The platform's choice always wins — Yandex and VK
+  // require the game to follow the locale they launched it in. Only when nobody told us
+  // (standalone build, local server) does ?lang= apply, which is what makes it possible to
+  // proof-read every translation on the real release bundle without touching platform behaviour.
+  const platformLang = normalizeLang(platformSDK.getLanguage());
+  const urlLang = normalizeLang(new URLSearchParams(location.search).get('lang'));
+  const browserLang = normalizeLang(typeof navigator !== 'undefined' ? navigator.language : null);
+  const lang = platformLang ?? urlLang ?? browserLang ?? 'ru';
+  setLang(lang);
+  console.log('[Boot] Language:', lang, '(platform:', platformLang, 'url:', urlLang, ')');
 
   try {
     gameState.applySave(await saveManager.load());
