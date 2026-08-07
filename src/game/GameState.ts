@@ -5,6 +5,7 @@ import { DealerAI, mostDangerousCardIndex } from './DealerAI';
 import { sound } from '../engine/AudioSynthesizer';
 import { saveManager } from '../engine/SaveManager';
 import { SAVE_VERSION, type SaveData } from './SaveData';
+import { t } from '../i18n';
 
 const LOCATION_COUNT = 5;
 const BOSSES_PER_LOCATION = 3;
@@ -130,7 +131,7 @@ export class GameState {
   };
 
   dealer: DealerStats = {
-    name: 'ИИ-Диллер "Вектор"',
+    name: '',
     avatar: '🤖',
     hp: 40,
     maxHp: 40,
@@ -149,7 +150,7 @@ export class GameState {
   damageMultiplier = 1;
   mirrorShieldActive = { player: false, dealer: false };
   isShooting = false;
-  combatLog: string[] = ['• Дуэль началась. Барабан заряжен!'];
+  combatLog: string[] = [];
 
   private dealerTurnTimeout: any = null;
   private isDealerProcessing = false;
@@ -255,7 +256,7 @@ export class GameState {
     this.reloadChamber({ firstBlank: true });
     this.dealerCardsThisTurn = 0;
     this.blankSelfShotPayouts = 0;
-    this.combatLog = ['• Тренировочный бой. Патроны заряжены вполсилы.'];
+    this.combatLog = [`• ${t('log.trainingStart')}`];
     this.phase = 'BATTLE';
     this.turn = 'PLAYER';
     this.screenState = 'BATTLE';
@@ -305,25 +306,25 @@ export class GameState {
     if (isLive) {
       if (shooter === 'PLAYER') {
         return isSelfShot
-          ? `💥 БОЕВОЙ В СЕБЯ! Урон -${formatHp(dmg)} HP. Ход перешел к Диллеру!`
+          ? t('shot.player.self.live', { dmg: formatHp(dmg) })
           : DealerAI.getDialogue('PLAYER_SHOOT_DEALER_LIVE');
       }
       return isSelfShot
-        ? `💥 Диллер выстрелил В СЕБЯ: БОЕВОЙ! -${formatHp(dmg)} HP. Ваш ход!`
-        : `🎯 Диллер выстрелил В ВАС: БОЕВОЙ! -${formatHp(dmg)} HP. Ваш ход!`;
+        ? t('shot.dealer.self.live', { dmg: formatHp(dmg) })
+        : t('shot.dealer.you.live', { dmg: formatHp(dmg) });
     }
 
     if (shooter === 'PLAYER') {
-      if (!isSelfShot) return `💨 ЩЕЛЧОК! Холостой патрон (0 урона). Ход передается Диллеру!`;
+      if (!isSelfShot) return t('shot.player.other.blank');
       // Once the per-duel payout cap is spent the move still keeps the turn, so say that
       // outright — a silent zero would read as a bug.
       return chips > 0
-        ? `🔥 АДРЕНАЛИНОВЫЙ БОНУС! Холостой по себе: +${chips}$ и Повторный Ход!`
-        : `💨 Холостой по себе — ход остаётся у вас. Касса за риск на сегодня закрыта.`;
+        ? t('shot.player.self.blank.paid', { chips })
+        : t('shot.player.self.blank.capped');
     }
     return isSelfShot
-      ? `💨 Диллер выстрелил В СЕБЯ: ХОЛОСТОЙ! (0 урона). Диллер берет повторный ход...`
-      : `💨 Диллер выстрелил В ВАС: ХОЛОСТОЙ! (0 урона). Ваш ход!`;
+      ? t('shot.dealer.self.blank')
+      : t('shot.dealer.you.blank');
   }
 
   shootTarget(target: 'DEALER' | 'PLAYER') {
@@ -345,8 +346,12 @@ export class GameState {
     this.chamber.currentIndex++;
     const isChamberEmpty = this.chamber.currentIndex >= this.chamber.bullets.length;
 
-    const shooterLabel = shooter === 'PLAYER' ? 'Вы выстрелили' : 'Диллер выстрелил';
-    const victimLabel = isSelfShot ? 'в себя' : (victim === 'DEALER' ? 'в Диллера' : 'в вас');
+    // Built as one phrase per language rather than glued from a subject and an object:
+    // Russian needs the accusative here, and Turkish would want a case suffix on the noun.
+    // Concatenating two fragments produces something no translator can make read naturally.
+    const who = shooter === 'PLAYER' ? 'player' : 'dealer';
+    const at = isSelfShot ? 'self' : (victim === 'DEALER' ? 'dealer' : 'player');
+    const shotPhrase = t(`log.shot.${who}.${at}`);
 
     if (isLive) {
       if (this.onScreenFlash) this.onScreenFlash('live');
@@ -372,22 +377,22 @@ export class GameState {
 
         if (victim === 'PLAYER') {
           this.applyDamageToDealer(dmg);
-          this.addLog(`${shooterLabel} ${victimLabel} (🪞 Отражено -${formatHp(dmg)} HP Диллеру)`);
-          this.dealer.dialogue = `🪞 ЗЕРКАЛЬНЫЙ ЩИТ! Пуля отражена в Диллера: -${formatHp(dmg)} HP!`;
+          this.addLog(`${shotPhrase} ${t('log.reflected.dealer', { dmg: formatHp(dmg) })}`);
+          this.dealer.dialogue = t('shield.reflected.dealer', { dmg: formatHp(dmg) });
         } else {
           this.applyDamageToPlayer(dmg);
-          if (this.onFloatingText) this.onFloatingText(`-${formatHp(dmg)} HP (ОТРАЖЕНО!)`, 'PLAYER', '#ff2a6d');
-          this.addLog(`${shooterLabel} ${victimLabel} (🪞 Отражено -${formatHp(dmg)} HP вам)`);
-          this.dealer.dialogue = `🪞 ЗЕРКАЛЬНЫЙ ЩИТ ДИЛЛЕРА! Пуля отражена в вас: -${formatHp(dmg)} HP!`;
+          if (this.onFloatingText) this.onFloatingText(t('float.reflected', { dmg: formatHp(dmg) }), 'PLAYER', '#ff2a6d');
+          this.addLog(`${shotPhrase} ${t('log.reflected.player', { dmg: formatHp(dmg) })}`);
+          this.dealer.dialogue = t('shield.reflected.player', { dmg: formatHp(dmg) });
         }
       } else {
         if (victim === 'PLAYER') this.applyDamageToPlayer(dmg);
         else this.applyDamageToDealer(dmg);
 
         if (isSelfShot && victim === 'PLAYER' && this.onFloatingText) {
-          this.onFloatingText(`🔴 БОЕВОЙ В СЕБЯ! -${formatHp(dmg)} HP`, 'PLAYER', '#ff2a6d');
+          this.onFloatingText(t('float.self.live', { dmg: formatHp(dmg) }), 'PLAYER', '#ff2a6d');
         }
-        this.addLog(`${shooterLabel} ${victimLabel} (🔴 Боевой -${formatHp(dmg)} HP)`);
+        this.addLog(`${shotPhrase} ${t('log.live', { dmg: formatHp(dmg) })}`);
         this.dealer.dialogue = this.describeShot(shooter, victim, true, dmg, 0);
       }
     } else {
@@ -404,13 +409,13 @@ export class GameState {
         this.player.chips += bonusChips;
         sound.playCoinChime();
         if (this.onFloatingText) {
-          this.onFloatingText(`🔵 ХОЛОСТОЙ В СЕБЯ! (+${bonusChips}$)`, 'PLAYER', '#00ff66');
-          this.onFloatingText(`+${bonusChips} $ 💰`, 'CHIPS', '#ffb703');
+          this.onFloatingText(t('float.self.blank', { chips: bonusChips }), 'PLAYER', '#00ff66');
+          this.onFloatingText(t('float.chips', { chips: bonusChips }), 'CHIPS', '#ffb703');
         }
-        this.addLog(`${shooterLabel} ${victimLabel} (🔵 Холостой +${bonusChips}$)`);
+        this.addLog(`${shotPhrase} ${t('log.blank.paid', { chips: bonusChips })}`);
       } else {
-        if (this.onFloatingText) this.onFloatingText('🔵 ХОЛОСТОЙ! (0 УРОНА)', victim, '#05d9e8');
-        this.addLog(`${shooterLabel} ${victimLabel} (🔵 Холостой 0 HP)`);
+        if (this.onFloatingText) this.onFloatingText(t('float.blank'), victim, '#05d9e8');
+        this.addLog(`${shotPhrase} ${t('log.blank')}`);
       }
 
       this.dealer.dialogue = this.describeShot(shooter, victim, false, 0, bonusChips);
@@ -438,8 +443,8 @@ export class GameState {
       }
       sound.playCardSlide();
       this.dealer.dialogue = this.isTrainingBattle
-        ? '📦 Барабан опустел — перезаряжаю. Вам ещё две карты.'
-        : '📦 БАРАБАН ОПУСТЕЛ! Казино выдает игрокам по 2 новые карты предметов!';
+        ? t('reload.training')
+        : t('reload.normal');
     }
 
     // Only a blank fired into your own head keeps the turn. Everything else passes it.
@@ -451,7 +456,7 @@ export class GameState {
     if (this.turn === 'DEALER') {
       this.scheduleDealerTurn(keepsTurn ? 800 : 400);
     } else if (shooter === 'DEALER') {
-      if (this.onFloatingText) this.onFloatingText('⚡ ВАШ ХОД!', 'PLAYER', '#00ff66');
+      if (this.onFloatingText) this.onFloatingText(t('float.yourTurn'), 'PLAYER', '#00ff66');
     }
 
     this.notifyUpdate();
@@ -464,11 +469,11 @@ export class GameState {
       const absorbed = Math.min(this.player.armor, remainingDmg);
       this.player.armor -= absorbed;
       remainingDmg -= absorbed;
-      if (this.onFloatingText) this.onFloatingText(`🛡️ БРОНЯ ПОГЛОТИЛА -${formatHp(absorbed)} HP!`, 'PLAYER', '#05d9e8');
+      if (this.onFloatingText) this.onFloatingText(t('float.armor.player', { dmg: formatHp(absorbed) }), 'PLAYER', '#05d9e8');
     }
     if (remainingDmg > 0) {
       this.player.hp = Math.max(0, this.player.hp - remainingDmg);
-      if (this.onFloatingText) this.onFloatingText(`🔴 -${formatHp(remainingDmg)} HP!`, 'PLAYER', '#ff2a6d');
+      if (this.onFloatingText) this.onFloatingText(t('float.damage', { dmg: formatHp(remainingDmg) }), 'PLAYER', '#ff2a6d');
     }
   }
 
@@ -479,11 +484,11 @@ export class GameState {
       const absorbed = Math.min(this.dealer.armor, remainingDmg);
       this.dealer.armor -= absorbed;
       remainingDmg -= absorbed;
-      if (this.onFloatingText) this.onFloatingText(`🛡️ БРОНЯ ВРАГА -${formatHp(absorbed)}!`, 'DEALER', '#05d9e8');
+      if (this.onFloatingText) this.onFloatingText(t('float.armor.dealer', { dmg: formatHp(absorbed) }), 'DEALER', '#05d9e8');
     }
     if (remainingDmg > 0) {
       this.dealer.hp = Math.max(0, this.dealer.hp - remainingDmg);
-      if (this.onFloatingText) this.onFloatingText(`🔴 -${formatHp(remainingDmg)} HP!`, 'DEALER', '#ff2a6d');
+      if (this.onFloatingText) this.onFloatingText(t('float.damage', { dmg: formatHp(remainingDmg) }), 'DEALER', '#ff2a6d');
     }
   }
 
@@ -506,7 +511,7 @@ export class GameState {
     // the first — and the card is not spent, it stays in hand until the shot clears the buff.
     if (!this.canUseItem(item)) {
       if (user === 'PLAYER') {
-        this.dealer.dialogue = `Множитель х${this.damageMultiplier} уже активен — второй усилитель не сыграть. Стреляйте.`;
+        this.dealer.dialogue = t('booster.locked', { mult: this.damageMultiplier });
         this.notifyUpdate();
       }
       return;
@@ -514,7 +519,7 @@ export class GameState {
 
     hand.splice(itemIndex, 1);
     sound.playItemPowerup();
-    this.addLog(`${user === 'PLAYER' ? 'Вы применили' : 'Диллер применил'} карту «${item.name}»`);
+    this.addLog(t(user === 'PLAYER' ? 'log.card.player' : 'log.card.dealer', { card: item.name }));
 
     const currIdx = this.chamber.currentIndex;
 
@@ -524,24 +529,24 @@ export class GameState {
           const bullet = this.chamber.bullets[currIdx];
           if (user === 'PLAYER') {
             this.chamber.knownBullets[currIdx] = bullet;
-            this.dealer.dialogue = `Вы посмотрели в лупу: текущий патрон — ${bullet === 'LIVE' ? 'БОЕВОЙ 🔴' : 'ХОЛОСТОЙ 🔵'}.`;
+            this.dealer.dialogue = t('card.magnifier.player', { bullet: t(bullet === 'LIVE' ? 'bullet.live' : 'bullet.blank') });
           } else {
             this.chamber.dealerKnownBullets[currIdx] = bullet;
-            this.dealer.dialogue = `🔍 Диллер посмотрел в лупу. Что он там увидел — знает только он.`;
+            this.dealer.dialogue = t('card.magnifier.dealer');
           }
         }
         break;
 
       case 'SAW':
         this.damageMultiplier = multiplierValue('SAW')!;
-        this.dealer.dialogue = `${user === 'PLAYER' ? 'Вы подпилили' : 'Диллер подпилил'} ствол! Урон следующего выстрела х${this.damageMultiplier}!`;
+        this.dealer.dialogue = t(user === 'PLAYER' ? 'card.saw.player' : 'card.saw.dealer', { mult: this.damageMultiplier });
         break;
 
       case 'ENERGY_DRINK':
         if (currIdx < this.chamber.bullets.length) {
           const ejected = this.chamber.bullets[currIdx];
           this.chamber.currentIndex++;
-          this.dealer.dialogue = `${user === 'PLAYER' ? 'Вы выбросили' : 'Диллер выбросил'} патрон (${ejected === 'LIVE' ? 'БОЕВОЙ 🔴' : 'ХОЛОСТОЙ 🔵'}).`;
+          this.dealer.dialogue = t(user === 'PLAYER' ? 'card.energy.player' : 'card.energy.dealer', { bullet: t(ejected === 'LIVE' ? 'bullet.live' : 'bullet.blank') });
           if (this.chamber.currentIndex >= this.chamber.bullets.length) {
             this.reloadChamber();
           }
@@ -552,13 +557,13 @@ export class GameState {
         if (user === 'PLAYER') {
           const heal = Math.max(10, Math.round(this.player.maxHp * 0.1));
           this.player.hp = Math.min(this.player.maxHp, this.player.hp + heal);
-          if (this.onFloatingText) this.onFloatingText(`+${heal} HP (10%) 🚬`, 'PLAYER', '#00ff66');
-          this.dealer.dialogue = `Вы выкурили сигарету (+${heal} HP / 10%).`;
+          if (this.onFloatingText) this.onFloatingText(t('float.heal', { hp: heal }), 'PLAYER', '#00ff66');
+          this.dealer.dialogue = t('card.cigarette.player', { hp: heal });
         } else {
           const heal = Math.max(10, Math.round(this.dealer.maxHp * 0.1));
           this.dealer.hp = Math.min(this.dealer.maxHp, this.dealer.hp + heal);
-          if (this.onFloatingText) this.onFloatingText(`+${heal} HP (10%) 🚬`, 'DEALER', '#00ff66');
-          this.dealer.dialogue = `Диллер выкурил сигарету (+${heal} HP / 10%).`;
+          if (this.onFloatingText) this.onFloatingText(t('float.heal', { hp: heal }), 'DEALER', '#00ff66');
+          this.dealer.dialogue = t('card.cigarette.dealer', { hp: heal });
         }
         break;
 
@@ -573,11 +578,11 @@ export class GameState {
           if (user === 'PLAYER') {
             this.chamber.knownBullets[currIdx] = flipped;
             this.chamber.dealerKnownBullets[currIdx] = null;
-            this.dealer.dialogue = `Хак-чип инвертировал патрон на ${flipped === 'LIVE' ? 'БОЕВОЙ 🔴' : 'ХОЛОСТОЙ 🔵'}!`;
+            this.dealer.dialogue = t('card.hack.player', { bullet: t(flipped === 'LIVE' ? 'bullet.live' : 'bullet.blank') });
           } else {
             this.chamber.dealerKnownBullets[currIdx] = flipped;
             this.chamber.knownBullets[currIdx] = null;
-            this.dealer.dialogue = `⚡ Диллер перепрошил текущий патрон хак-чипом!`;
+            this.dealer.dialogue = t('card.hack.dealer');
           }
         }
         break;
@@ -585,12 +590,12 @@ export class GameState {
       case 'MIRROR_SHIELD':
         if (user === 'PLAYER') this.mirrorShieldActive.player = true;
         else this.mirrorShieldActive.dealer = true;
-        this.dealer.dialogue = `${user === 'PLAYER' ? 'Вы активировали' : 'Диллер активировал'} Зеркальный Щит!`;
+        this.dealer.dialogue = t(user === 'PLAYER' ? 'card.shield.player' : 'card.shield.dealer');
         break;
 
       case 'OVERDRIVE':
         this.damageMultiplier = multiplierValue('OVERDRIVE')!;
-        this.dealer.dialogue = `Включен ОВЕРДРАЙВ (х${this.damageMultiplier} урон)!`;
+        this.dealer.dialogue = t('card.overdrive', { mult: this.damageMultiplier });
         break;
 
       case 'MAGNET': {
@@ -601,8 +606,8 @@ export class GameState {
           const stolenCard = victimHand.splice(stolenIdx, 1)[0];
           thiefHand.push(stolenCard);
           this.dealer.dialogue = user === 'PLAYER'
-            ? `🧲 Магнит притянул карту «${stolenCard.name}» из руки Диллера!`
-            : `🧲 Диллер магнитом вытянул у вас карту «${stolenCard.name}»!`;
+            ? t('card.magnet.player', { card: stolenCard.name })
+            : t('card.magnet.dealer', { card: stolenCard.name });
         }
         break;
       }
@@ -613,14 +618,14 @@ export class GameState {
           target[i] = this.chamber.bullets[i];
         }
         this.dealer.dialogue = user === 'PLAYER'
-          ? `🩺 Рентген-Сканер раскрыл ВСЕ патроны в барабане!`
-          : `🩺 Диллер просветил барабан сканером. Теперь он видит весь расклад.`;
+          ? t('card.xray.player')
+          : t('card.xray.dealer');
         break;
       }
 
       case 'OVERDRIVE_2':
         this.damageMultiplier = multiplierValue('OVERDRIVE_2')!;
-        this.dealer.dialogue = `⚡ ОВЕРДРАЙВ 2.0 (х${this.damageMultiplier} урон) активирован!`;
+        this.dealer.dialogue = t('card.overdrive2', { mult: this.damageMultiplier });
         break;
 
       case 'NULLIFIER': {
@@ -631,10 +636,10 @@ export class GameState {
           const burnIdx = mostDangerousCardIndex(victimHand);
           const burned = victimHand.splice(burnIdx, 1)[0];
           this.dealer.dialogue = user === 'PLAYER'
-            ? `🚫 Нуллификатор сбросил множитель и сжёг карту Диллера «${burned.name}»!`
-            : `🚫 Диллер обнулил множитель и сжёг вашу карту «${burned.name}»!`;
+            ? t('card.nullifier.player', { card: burned.name })
+            : t('card.nullifier.dealer', { card: burned.name });
         } else {
-          this.dealer.dialogue = `🚫 Нуллификатор сбросил множитель урона!`;
+          this.dealer.dialogue = t('card.nullifier.empty');
         }
         break;
       }
@@ -730,7 +735,7 @@ export class GameState {
     // Sparring pays nothing and unlocks nothing; it only reports that it is over.
     if (this.isTrainingBattle) {
       this.phase = 'VICTORY';
-      this.dealer.dialogue = '🎓 Тренировка пройдена! Теперь ты знаешь, как здесь играют.';
+      this.dealer.dialogue = t('outcome.training.win');
       this.notifyUpdate();
       return;
     }
@@ -749,7 +754,7 @@ export class GameState {
       // Advance to next boss in same location!
       this.currentBossIndex = currentBoss + 1;
       this.phase = 'SHOP';
-      this.dealer.dialogue = `🎉 ПОБЕДА! Босс ${currentBoss + 1} повержен! Заработано +${reward}$. Подготовьтесь к Боссу ${this.currentBossIndex + 1}.`;
+      this.dealer.dialogue = t('outcome.boss.win', { boss: currentBoss + 1, reward, next: this.currentBossIndex + 1 });
     } else {
       // Completed Location 3/3 Bosses!
       if (currentLoc < 4) {
@@ -757,7 +762,7 @@ export class GameState {
         this.currentLocationIndex = currentLoc + 1;
         this.currentBossIndex = 0;
         this.phase = 'SHOP';
-        this.dealer.dialogue = `🏆 ЛОКАЦИЯ ${currentLoc + 1} ПОЛНОСТЬЮ ПРОЙДЕНА! Открыта Локация ${this.currentLocationIndex + 1}!`;
+        this.dealer.dialogue = t('outcome.location.done', { done: currentLoc + 1, next: this.currentLocationIndex + 1 });
       } else {
         this.screenState = 'VICTORY';
       }
@@ -772,7 +777,7 @@ export class GameState {
 
     if (this.isTrainingBattle) {
       this.phase = 'GAMEOVER';
-      this.dealer.dialogue = '🎓 Ничего страшного — это тренировка. Попробуй ещё раз.';
+      this.dealer.dialogue = t('outcome.training.lose');
       this.notifyUpdate();
       return;
     }
@@ -785,7 +790,7 @@ export class GameState {
     this.phase = 'GAMEOVER';
     // `consolation`, not `defeatReward` — the latter is the function, and interpolating it
     // dropped its whole source text into the sentence the player reads on defeat.
-    this.dealer.dialogue = `💀 ПОРАЖЕНИЕ! Вам выплачена компенсация +${consolation}$. Зайдите в Мета-Прокачку или на Карту Мира!`;
+    this.dealer.dialogue = t('outcome.defeat', { chips: consolation });
     this.requestSave();
     this.notifyUpdate();
   }
@@ -812,8 +817,8 @@ export class GameState {
     this.screenState = 'BATTLE';
     this.turn = 'PLAYER';
     sound.playCoinChime();
-    this.dealer.dialogue = `⚡ ВТОРОЙ ШАНС! Игрок вернулся в бой с +${restoredHp} HP!`;
-    this.addLog(`Активирован Второй Шанс! Восстановлено +${restoredHp} HP!`);
+    this.dealer.dialogue = t('outcome.revive', { hp: restoredHp });
+    this.addLog(t('log.revive', { hp: restoredHp }));
     this.notifyUpdate();
   }
 

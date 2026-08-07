@@ -192,5 +192,82 @@ export const en: Dictionary = {
   'ai.WIN.0': 'Impossible... You out-played me.',
   'ai.WIN.1': 'Your combinations destroyed me. Take the bank.',
   'ai.LOSE.0': 'The house always comes out ahead.',
-  'ai.LOSE.1': 'Your game is over. Care to try again?'
+  'ai.LOSE.1': 'Your game is over. Care to try again?',
+
+  // ── Combat: shot narration ─────────────────────────────────────────────────
+  'shot.player.self.live': '💥 LIVE ROUND INTO YOUR OWN HEAD! -{dmg} HP. The turn passes to the Dealer!',
+  'shot.dealer.self.live': '💥 The Dealer shot HIMSELF: LIVE! -{dmg} HP. Your turn!',
+  'shot.dealer.you.live': '🎯 The Dealer shot YOU: LIVE! -{dmg} HP. Your turn!',
+  'shot.player.other.blank': '💨 CLICK! Blank round (0 damage). The turn passes to the Dealer!',
+  'shot.player.self.blank.paid': '🔥 ADRENALINE BONUS! A blank into your own head: +{chips}$ and another turn!',
+  'shot.player.self.blank.capped': '💨 A blank into your own head — you keep the turn. The risk payout is spent for this duel.',
+  'shot.dealer.self.blank': '💨 The Dealer shot HIMSELF: BLANK! (0 damage). He takes another turn...',
+  'shot.dealer.you.blank': '💨 The Dealer shot YOU: BLANK! (0 damage). Your turn!',
+
+  // ── Combat: log ────────────────────────────────────────────────────────────
+  'log.shot.player.self': 'You shot yourself',
+  'log.shot.player.dealer': 'You shot the Dealer',
+  'log.shot.dealer.self': 'The Dealer shot himself',
+  'log.shot.dealer.player': 'The Dealer shot you',
+  'log.live': '(🔴 Live -{dmg} HP)',
+  'log.blank': '(🔵 Blank 0 HP)',
+  'log.blank.paid': '(🔵 Blank +{chips}$)',
+  'log.reflected.dealer': '(🪞 Reflected -{dmg} HP onto the Dealer)',
+  'log.reflected.player': '(🪞 Reflected -{dmg} HP onto you)',
+  'log.card.player': 'You played the card “{card}”',
+  'log.card.dealer': 'The Dealer played the card “{card}”',
+  'log.revive': 'Second Chance used! Restored +{hp} HP!',
+  'log.trainingStart': 'Training duel. The rounds are loaded at half strength.',
+
+  // ── Combat: floating text ──────────────────────────────────────────────────
+  'float.damage': '🔴 -{dmg} HP!',
+  'float.armor.player': '🛡️ ARMOUR ABSORBED -{dmg} HP!',
+  'float.armor.dealer': '🛡️ ENEMY ARMOUR -{dmg}!',
+  'float.reflected': '-{dmg} HP (REFLECTED!)',
+  'float.self.live': '🔴 LIVE INTO YOURSELF! -{dmg} HP',
+  'float.self.blank': '🔵 BLANK INTO YOURSELF! (+{chips}$)',
+  'float.blank': '🔵 BLANK! (0 DAMAGE)',
+  'float.chips': '+{chips} $ 💰',
+  'float.heal': '+{hp} HP (10%) 🚬',
+  'float.yourTurn': '⚡ YOUR TURN!',
+
+  // ── Cylinder ───────────────────────────────────────────────────────────────
+  'bullet.live': 'LIVE 🔴',
+  'bullet.blank': 'BLANK 🔵',
+  'reload.training': '📦 The cylinder is empty — reloading. Two more cards for you.',
+  'reload.normal': '📦 CYLINDER EMPTY! The house deals both players 2 new item cards!',
+
+  // ── Playing cards ──────────────────────────────────────────────────────────
+  'booster.locked': 'A x{mult} multiplier is already up — a second booster cannot be played. Shoot.',
+  'card.magnifier.player': 'You looked through the magnifier: the current round is {bullet}.',
+  'card.magnifier.dealer': '🔍 The Dealer looked through the magnifier. Only he knows what he saw.',
+  'card.saw.player': 'You sawed off the barrel! Next shot deals x{mult} damage!',
+  'card.saw.dealer': 'The Dealer sawed off the barrel! Next shot deals x{mult} damage!',
+  'card.energy.player': 'You ejected a round ({bullet}).',
+  'card.energy.dealer': 'The Dealer ejected a round ({bullet}).',
+  'card.cigarette.player': 'You smoked a cigarette (+{hp} HP).',
+  'card.cigarette.dealer': 'The Dealer smoked a cigarette (+{hp} HP).',
+  'card.hack.player': 'The Hack Chip flipped the round to {bullet}!',
+  'card.hack.dealer': '⚡ The Dealer reflashed the current round with a Hack Chip!',
+  'card.shield.player': 'You raised the Mirror Shield!',
+  'card.shield.dealer': 'The Dealer raised the Mirror Shield!',
+  'card.overdrive': 'OVERDRIVE engaged (x{mult} damage)!',
+  'card.overdrive2': '⚡ OVERDRIVE 2.0 (x{mult} damage) engaged!',
+  'card.magnet.player': '🧲 The Magnet pulled the card “{card}” out of the Dealer’s hand!',
+  'card.magnet.dealer': '🧲 The Dealer magneted the card “{card}” out of your hand!',
+  'card.xray.player': '🩺 The X-Ray Scanner revealed EVERY round in the cylinder!',
+  'card.xray.dealer': '🩺 The Dealer scanned the cylinder. He can see the whole layout now.',
+  'card.nullifier.player': '🚫 The Nullifier cleared the multiplier and burned the Dealer’s card “{card}”!',
+  'card.nullifier.dealer': '🚫 The Dealer cleared the multiplier and burned your card “{card}”!',
+  'card.nullifier.empty': '🚫 The Nullifier cleared the damage multiplier!',
+  'shield.reflected.dealer': '🪞 MIRROR SHIELD! The round is reflected onto the Dealer: -{dmg} HP!',
+  'shield.reflected.player': '🪞 THE DEALER’S MIRROR SHIELD! The round is reflected onto you: -{dmg} HP!',
+
+  // ── Outcome ────────────────────────────────────────────────────────────────
+  'outcome.training.win': '🎓 Training complete! Now you know how the game is played here.',
+  'outcome.training.lose': '🎓 No harm done — it’s only training. Try again.',
+  'outcome.boss.win': '🎉 VICTORY! Boss {boss} is down! Earned +{reward}$. Get ready for Boss {next}.',
+  'outcome.location.done': '🏆 LOCATION {done} FULLY CLEARED! Location {next} is unlocked!',
+  'outcome.defeat': '💀 DEFEAT! You were paid +{chips}$ in compensation. Visit the Meta Upgrades or the World Map!',
+  'outcome.revive': '⚡ SECOND CHANCE! The player is back in the duel with +{hp} HP!'
 };

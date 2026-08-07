@@ -194,5 +194,82 @@ export const uz: Dictionary = {
   'ai.WIN.0': 'Imkonsiz... Sen meni yutding.',
   'ai.WIN.1': 'Kombinatsiyalaring meni tugatdi. Bankni ol.',
   'ai.LOSE.0': 'Kazino doim yutuqda qoladi.',
-  'ai.LOSE.1': 'O‘yining tugadi. Yana urinib ko‘rasanmi?'
+  'ai.LOSE.1': 'O‘yining tugadi. Yana urinib ko‘rasanmi?',
+
+  // ── Jang: otish tavsifi ────────────────────────────────────────────────────
+  'shot.player.self.live': '💥 O‘ZINGGA JANGOVAR O‘Q! -{dmg} HP. Navbat Dillerga o‘tdi!',
+  'shot.dealer.self.live': '💥 Diller O‘ZIGA otdi: JANGOVAR! -{dmg} HP. Navbat senda!',
+  'shot.dealer.you.live': '🎯 Diller SENGA otdi: JANGOVAR! -{dmg} HP. Navbat senda!',
+  'shot.player.other.blank': '💨 SHIRT! Bo‘sh o‘q (0 zarar). Navbat Dillerga o‘tadi!',
+  'shot.player.self.blank.paid': '🔥 ADRENALIN BONUSI! O‘zingga bo‘sh o‘q: +{chips}$ va yana bir navbat!',
+  'shot.player.self.blank.capped': '💨 O‘zingga bo‘sh o‘q — navbat senda qoladi. Tavakkal to‘lovi bu duel uchun tugadi.',
+  'shot.dealer.self.blank': '💨 Diller O‘ZIGA otdi: BO‘SH O‘Q! (0 zarar). U yana bir navbat oladi...',
+  'shot.dealer.you.blank': '💨 Diller SENGA otdi: BO‘SH O‘Q! (0 zarar). Navbat senda!',
+
+  // ── Jang: yilnoma ──────────────────────────────────────────────────────────
+  'log.shot.player.self': 'Siz o‘zingizga otdingiz',
+  'log.shot.player.dealer': 'Siz Dillerga otdingiz',
+  'log.shot.dealer.self': 'Diller o‘ziga otdi',
+  'log.shot.dealer.player': 'Diller sizga otdi',
+  'log.live': '(🔴 Jangovar -{dmg} HP)',
+  'log.blank': '(🔵 Bo‘sh o‘q 0 HP)',
+  'log.blank.paid': '(🔵 Bo‘sh o‘q +{chips}$)',
+  'log.reflected.dealer': '(🪞 Dillerga qaytdi -{dmg} HP)',
+  'log.reflected.player': '(🪞 Sizga qaytdi -{dmg} HP)',
+  'log.card.player': 'Siz «{card}» kartasini o‘ynadingiz',
+  'log.card.dealer': 'Diller «{card}» kartasini o‘ynadi',
+  'log.revive': 'Ikkinchi Imkoniyat ishga tushdi! +{hp} HP tiklandi!',
+  'log.trainingStart': 'Mashg‘ulot dueli. O‘qlar yarim kuch bilan to‘ldirilgan.',
+
+  // ── Jang: suzuvchi matn ────────────────────────────────────────────────────
+  'float.damage': '🔴 -{dmg} HP!',
+  'float.armor.player': '🛡️ ZIRH -{dmg} HP YUTDI!',
+  'float.armor.dealer': '🛡️ DUSHMAN ZIRHI -{dmg}!',
+  'float.reflected': '-{dmg} HP (QAYTDI!)',
+  'float.self.live': '🔴 O‘ZINGGA JANGOVAR! -{dmg} HP',
+  'float.self.blank': '🔵 O‘ZINGGA BO‘SH O‘Q! (+{chips}$)',
+  'float.blank': '🔵 BO‘SH O‘Q! (0 ZARAR)',
+  'float.chips': '+{chips} $ 💰',
+  'float.heal': '+{hp} HP (10%) 🚬',
+  'float.yourTurn': '⚡ NAVBAT SIZDA!',
+
+  // ── Baraban ────────────────────────────────────────────────────────────────
+  'bullet.live': 'JANGOVAR 🔴',
+  'bullet.blank': 'BO‘SH 🔵',
+  'reload.training': '📦 Baraban bo‘shadi — qayta to‘ldiryapman. Sizga yana ikkita karta.',
+  'reload.normal': '📦 BARABAN BO‘SHADI! Kazino ikkala o‘yinchiga 2 tadan yangi buyum kartasi beradi!',
+
+  // ── Karta o‘ynash ──────────────────────────────────────────────────────────
+  'booster.locked': 'x{mult} ko‘paytiruvchi allaqachon yoqilgan — ikkinchi kuchaytirgichni o‘ynab bo‘lmaydi. Oting.',
+  'card.magnifier.player': 'Lupa bilan qaradingiz: joriy o‘q — {bullet}.',
+  'card.magnifier.dealer': '🔍 Diller lupa bilan qaradi. Nima ko‘rganini faqat o‘zi biladi.',
+  'card.saw.player': 'Stvolni arraladingiz! Keyingi otishning zarari x{mult}!',
+  'card.saw.dealer': 'Diller stvolni arraladi! Keyingi otishning zarari x{mult}!',
+  'card.energy.player': 'O‘qni chiqarib tashladingiz ({bullet}).',
+  'card.energy.dealer': 'Diller o‘qni chiqarib tashladi ({bullet}).',
+  'card.cigarette.player': 'Sigaret chekdingiz (+{hp} HP).',
+  'card.cigarette.dealer': 'Diller sigaret chekdi (+{hp} HP).',
+  'card.hack.player': 'Hack-chip o‘qni {bullet} holatiga o‘zgartirdi!',
+  'card.hack.dealer': '⚡ Diller joriy o‘qni hack-chip bilan qayta yozdi!',
+  'card.shield.player': 'Oyna qalqonni yoqdingiz!',
+  'card.shield.dealer': 'Diller oyna qalqonni yoqdi!',
+  'card.overdrive': 'OVERDRAYV yoqildi (x{mult} zarar)!',
+  'card.overdrive2': '⚡ OVERDRAYV 2.0 (x{mult} zarar) yoqildi!',
+  'card.magnet.player': '🧲 Magnit Dillerning qo‘lidan «{card}» kartasini tortib oldi!',
+  'card.magnet.dealer': '🧲 Diller magnit bilan sizdan «{card}» kartasini tortib oldi!',
+  'card.xray.player': '🩺 Rentgen skaner barabandagi BARCHA o‘qlarni ochdi!',
+  'card.xray.dealer': '🩺 Diller barabanni skanerladi. Endi u butun joylashuvni ko‘radi.',
+  'card.nullifier.player': '🚫 Nullifikator ko‘paytiruvchini bekor qilib, Dillerning «{card}» kartasini yoqdi!',
+  'card.nullifier.dealer': '🚫 Diller ko‘paytiruvchini bekor qilib, sizning «{card}» kartangizni yoqdi!',
+  'card.nullifier.empty': '🚫 Nullifikator zarar ko‘paytiruvchisini bekor qildi!',
+  'shield.reflected.dealer': '🪞 OYNA QALQON! O‘q Dillerga qaytdi: -{dmg} HP!',
+  'shield.reflected.player': '🪞 DILLERNING OYNA QALQONI! O‘q sizga qaytdi: -{dmg} HP!',
+
+  // ── Jang natijasi ──────────────────────────────────────────────────────────
+  'outcome.training.win': '🎓 Mashg‘ulot yakunlandi! Endi bu yerda qanday o‘ynashni bilasan.',
+  'outcome.training.lose': '🎓 Hechqisi yo‘q — bu shunchaki mashg‘ulot. Yana urinib ko‘r.',
+  'outcome.boss.win': '🎉 G‘ALABA! {boss}-boss yiqildi! +{reward}$ ishlab topildi. {next}-bossga tayyorlaning.',
+  'outcome.location.done': '🏆 {done}-JOY TO‘LIQ TUGATILDI! {next}-joy ochildi!',
+  'outcome.defeat': '💀 MAG‘LUBIYAT! Sizga +{chips}$ tovon to‘landi. Meta-yangilanishga yoki Dunyo xaritasiga kiring!',
+  'outcome.revive': '⚡ IKKINCHI IMKONIYAT! O‘yinchi +{hp} HP bilan duelga qaytdi!'
 };

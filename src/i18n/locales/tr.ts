@@ -192,5 +192,82 @@ export const tr: Dictionary = {
   'ai.WIN.0': 'İmkânsız... Beni alt ettin.',
   'ai.WIN.1': 'Kombinasyonların beni bitirdi. Kasayı al.',
   'ai.LOSE.0': 'Kasa her zaman kazançlı çıkar.',
-  'ai.LOSE.1': 'Oyunun bitti. Bir daha denemek ister misin?'
+  'ai.LOSE.1': 'Oyunun bitti. Bir daha denemek ister misin?',
+
+  // ── Düello: atış anlatımı ──────────────────────────────────────────────────
+  'shot.player.self.live': '💥 KENDİ KAFANA GERÇEK MERMİ! -{dmg} can. Sıra Krupiye’ye geçti!',
+  'shot.dealer.self.live': '💥 Krupiye KENDİNE ateş etti: GERÇEK! -{dmg} can. Sıra sende!',
+  'shot.dealer.you.live': '🎯 Krupiye SANA ateş etti: GERÇEK! -{dmg} can. Sıra sende!',
+  'shot.player.other.blank': '💨 TIK! Kuru sıkı (0 hasar). Sıra Krupiye’ye geçiyor!',
+  'shot.player.self.blank.paid': '🔥 ADRENALİN BONUSU! Kendine kuru sıkı: +{chips}$ ve bir tur daha!',
+  'shot.player.self.blank.capped': '💨 Kendine kuru sıkı — sıra sende kalıyor. Risk ödemesi bu düello için tükendi.',
+  'shot.dealer.self.blank': '💨 Krupiye KENDİNE ateş etti: KURU SIKI! (0 hasar). Bir tur daha alıyor...',
+  'shot.dealer.you.blank': '💨 Krupiye SANA ateş etti: KURU SIKI! (0 hasar). Sıra sende!',
+
+  // ── Düello: kayıt ──────────────────────────────────────────────────────────
+  'log.shot.player.self': 'Kendine ateş ettin',
+  'log.shot.player.dealer': 'Krupiye’ye ateş ettin',
+  'log.shot.dealer.self': 'Krupiye kendine ateş etti',
+  'log.shot.dealer.player': 'Krupiye sana ateş etti',
+  'log.live': '(🔴 Gerçek -{dmg} can)',
+  'log.blank': '(🔵 Kuru sıkı 0 can)',
+  'log.blank.paid': '(🔵 Kuru sıkı +{chips}$)',
+  'log.reflected.dealer': '(🪞 Krupiye’ye yansıdı -{dmg} can)',
+  'log.reflected.player': '(🪞 Sana yansıdı -{dmg} can)',
+  'log.card.player': '“{card}” kartını oynadın',
+  'log.card.dealer': 'Krupiye “{card}” kartını oynadı',
+  'log.revive': 'İkinci Şans kullanıldı! +{hp} can geri geldi!',
+  'log.trainingStart': 'Antrenman düellosu. Mermiler yarı güçte dolduruldu.',
+
+  // ── Düello: uçan yazı ──────────────────────────────────────────────────────
+  'float.damage': '🔴 -{dmg} can!',
+  'float.armor.player': '🛡️ ZIRH -{dmg} CAN EMDİ!',
+  'float.armor.dealer': '🛡️ DÜŞMAN ZIRHI -{dmg}!',
+  'float.reflected': '-{dmg} can (YANSIDI!)',
+  'float.self.live': '🔴 KENDİNE GERÇEK MERMİ! -{dmg} can',
+  'float.self.blank': '🔵 KENDİNE KURU SIKI! (+{chips}$)',
+  'float.blank': '🔵 KURU SIKI! (0 HASAR)',
+  'float.chips': '+{chips} $ 💰',
+  'float.heal': '+{hp} can (%10) 🚬',
+  'float.yourTurn': '⚡ SIRA SENDE!',
+
+  // ── Silindir ───────────────────────────────────────────────────────────────
+  'bullet.live': 'GERÇEK 🔴',
+  'bullet.blank': 'KURU SIKI 🔵',
+  'reload.training': '📦 Silindir boşaldı — dolduruyorum. Sana iki kart daha.',
+  'reload.normal': '📦 SİLİNDİR BOŞALDI! Kasa her iki oyuncuya 2 yeni eşya kartı veriyor!',
+
+  // ── Kart oynama ────────────────────────────────────────────────────────────
+  'booster.locked': 'Zaten x{mult} çarpan açık — ikinci güçlendirici oynanamaz. Ateş et.',
+  'card.magnifier.player': 'Büyüteçle baktın: mevcut mermi {bullet}.',
+  'card.magnifier.dealer': '🔍 Krupiye büyüteçle baktı. Ne gördüğünü yalnızca o biliyor.',
+  'card.saw.player': 'Namluyu kestin! Sonraki atış x{mult} hasar verecek!',
+  'card.saw.dealer': 'Krupiye namluyu kesti! Sonraki atış x{mult} hasar verecek!',
+  'card.energy.player': 'Bir mermi çıkardın ({bullet}).',
+  'card.energy.dealer': 'Krupiye bir mermi çıkardı ({bullet}).',
+  'card.cigarette.player': 'Bir sigara içtin (+{hp} can).',
+  'card.cigarette.dealer': 'Krupiye bir sigara içti (+{hp} can).',
+  'card.hack.player': 'Hack Çipi mermiyi {bullet} hâline çevirdi!',
+  'card.hack.dealer': '⚡ Krupiye mevcut mermiyi hack çipiyle yeniden yazdı!',
+  'card.shield.player': 'Ayna Kalkanı kaldırdın!',
+  'card.shield.dealer': 'Krupiye Ayna Kalkanı kaldırdı!',
+  'card.overdrive': 'AŞIRI GÜÇ devrede (x{mult} hasar)!',
+  'card.overdrive2': '⚡ AŞIRI GÜÇ 2.0 (x{mult} hasar) devrede!',
+  'card.magnet.player': '🧲 Mıknatıs, Krupiye’nin elinden “{card}” kartını çekti!',
+  'card.magnet.dealer': '🧲 Krupiye mıknatısla elinden “{card}” kartını çekti!',
+  'card.xray.player': '🩺 Röntgen Tarayıcı silindirdeki TÜM mermileri açığa çıkardı!',
+  'card.xray.dealer': '🩺 Krupiye silindiri taradı. Artık bütün dizilimi görüyor.',
+  'card.nullifier.player': '🚫 Nötrleyici çarpanı sıfırladı ve Krupiye’nin “{card}” kartını yaktı!',
+  'card.nullifier.dealer': '🚫 Krupiye çarpanı sıfırladı ve senin “{card}” kartını yaktı!',
+  'card.nullifier.empty': '🚫 Nötrleyici hasar çarpanını sıfırladı!',
+  'shield.reflected.dealer': '🪞 AYNA KALKAN! Mermi Krupiye’ye yansıdı: -{dmg} can!',
+  'shield.reflected.player': '🪞 KRUPİYENİN AYNA KALKANI! Mermi sana yansıdı: -{dmg} can!',
+
+  // ── Sonuç ──────────────────────────────────────────────────────────────────
+  'outcome.training.win': '🎓 Antrenman tamamlandı! Artık burada oyunun nasıl oynandığını biliyorsun.',
+  'outcome.training.lose': '🎓 Önemli değil — bu sadece antrenman. Yeniden dene.',
+  'outcome.boss.win': '🎉 ZAFER! {boss}. patron devrildi! +{reward}$ kazandın. {next}. patrona hazırlan.',
+  'outcome.location.done': '🏆 {done}. MEKÂN TAMAMEN TEMİZLENDİ! {next}. mekân açıldı!',
+  'outcome.defeat': '💀 YENİLGİ! Tazminat olarak +{chips}$ ödendi. Karakter Geliştirme’ye ya da Dünya Haritası’na uğra!',
+  'outcome.revive': '⚡ İKİNCİ ŞANS! Oyuncu +{hp} canla düelloya döndü!'
 };
