@@ -204,6 +204,7 @@ export class GameState {
     // Boss Stats
     this.dealer.name = bossDef.name;
     this.dealer.avatar = bossDef.avatar;
+    this.dealer.avatarUrl = bossDef.avatarUrl;
     this.dealer.maxHp = bossDef.hp;
     this.dealer.hp = bossDef.hp;
     this.dealer.armor = bossDef.armor || 0;
@@ -237,6 +238,7 @@ export class GameState {
 
     this.dealer.name = TRAINING_BOSS.name;
     this.dealer.avatar = TRAINING_BOSS.avatar;
+    this.dealer.avatarUrl = TRAINING_BOSS.avatarUrl;
     this.dealer.maxHp = TRAINING_BOSS.hp;
     this.dealer.hp = TRAINING_BOSS.hp;
     this.dealer.armor = 0;

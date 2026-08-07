@@ -6,6 +6,7 @@ import crusherAvatar from '../assets/images/bosses/crusher.webp';
 import felixAvatar from '../assets/images/bosses/felix.webp';
 import granddealerAvatar from '../assets/images/bosses/granddealer.webp';
 import gregAvatar from '../assets/images/bosses/greg.webp';
+import ilshmonsterAvatar from '../assets/images/bosses/ilshmonster.webp';
 import ironcladAvatar from '../assets/images/bosses/ironclad.webp';
 import kiraAvatar from '../assets/images/bosses/kira.webp';
 import markovAvatar from '../assets/images/bosses/markov.webp';
@@ -306,9 +307,9 @@ export const LOCATIONS: LocationDefinition[] = [
  */
 export const TRAINING_BOSS: BossDefinition = {
   id: 'TRAINING_DUMMY',
-  name: 'Тренер "Кэл"',
+  name: 'ILSHMONSTER',
   avatar: '🎓',
-  avatarUrl: pinkieAvatar,
+  avatarUrl: ilshmonsterAvatar,
   // Deliberately soft: a first-timer playing badly still has to be able to win, because
   // the tutorial's payoff is the victory screen.
   hp: 40,

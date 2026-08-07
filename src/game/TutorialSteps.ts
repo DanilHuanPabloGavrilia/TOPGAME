@@ -41,7 +41,7 @@ export function buildTutorialSteps(gameState: GameState): TutorialStep[] {
       selector: '#btn-meta-training',
       position: 'top',
       actionRequired: 'click',
-      text: 'А теперь — за стол. Тренер Кэл бьёт вполсилы, на нём и разберёмся. Нажмите кнопку.'
+      text: 'А теперь — за стол. ILSHMONSTER бьёт вполсилы, на нём и разберёмся. Нажмите кнопку.'
     },
 
     // ---------------------------------------------------------------- battle

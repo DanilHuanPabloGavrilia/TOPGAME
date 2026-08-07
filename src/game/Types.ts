@@ -84,6 +84,12 @@ export interface PlayerStats {
 export interface DealerStats {
   name: string;
   avatar: string;
+  /**
+   * Portrait of whoever is actually across the table. Held here rather than looked up from
+   * LOCATIONS by index, because not every opponent sits in that 5x3 matrix — the tutorial's
+   * ILSHMONSTER is deliberately outside it, and an index lookup showed him the wrong face.
+   */
+  avatarUrl?: string;
   hp: number;
   maxHp: number;
   armor: number;

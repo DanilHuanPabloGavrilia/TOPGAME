@@ -126,12 +126,10 @@ function renderBattleUI() {
     document.getElementById('app')!.style.background = loc.bgGradient;
   }
 
-  // Dealer
-  const currentLoc = LOCATIONS[gameState.currentLocationIndex];
-  const currentBossDef = currentLoc?.bosses[gameState.currentBossIndex];
-
-  if (currentBossDef?.avatarUrl) {
-    dealerAvatar.innerHTML = `<img src="${currentBossDef.avatarUrl}" class="boss-avatar-img" alt="${gameState.dealer.name}" />`;
+  // Dealer. Read the portrait off the dealer we are actually fighting — indexing into
+  // LOCATIONS showed the training partner whichever boss shared his slot on the map.
+  if (gameState.dealer.avatarUrl) {
+    dealerAvatar.innerHTML = `<img src="${gameState.dealer.avatarUrl}" class="boss-avatar-img" alt="${gameState.dealer.name}" />`;
   } else {
     dealerAvatar.innerText = gameState.dealer.avatar;
   }
@@ -294,6 +292,14 @@ function renderBattleUI() {
   const btnAdDoubleChips = document.getElementById('btn-ad-double-chips') as HTMLButtonElement;
   const btnAdRevive = document.getElementById('btn-ad-revive') as HTMLButtonElement;
 
+  // The two nav buttons live in the modal markup and no other branch touches them, so their
+  // visibility is reset here on every render. Hiding one without this would hide it for the
+  // rest of the run — the intermission hub would quietly lose its way out.
+  const btnIntermissionMeta = document.getElementById('btn-intermission-meta') as HTMLButtonElement;
+  const btnIntermissionMap = document.getElementById('btn-intermission-map') as HTMLButtonElement;
+  if (btnIntermissionMeta) btnIntermissionMeta.style.display = '';
+  if (btnIntermissionMap) btnIntermissionMap.style.display = '';
+
   // Sparring gets its own end screens. The normal ones quote a payout and offer to double
   // it, which would be a lie here — training pays nothing and unlocks nothing.
   if (gameState.isTrainingBattle && (gameState.phase === 'VICTORY' || gameState.phase === 'GAMEOVER')) {
@@ -301,10 +307,17 @@ function renderBattleUI() {
     if (btnAdDoubleChips) btnAdDoubleChips.style.display = 'none';
     if (btnAdRevive) btnAdRevive.style.display = 'none';
 
+    // Sparring pays nothing, so there is never anything new to spend on upgrades here.
+    if (btnIntermissionMeta) btnIntermissionMeta.style.display = 'none';
+    // On a win the primary button already reads "На Карту Мира" — a second map button beside
+    // it was pure duplication. On a loss the primary is "Ещё раз", so this one stays as the
+    // way out; the modal has no close control and would otherwise trap the player.
+    if (btnIntermissionMap) btnIntermissionMap.style.display = won ? 'none' : '';
+
     modalTitle.innerText = won ? '🎓 ТРЕНИРОВКА ПРОЙДЕНА' : '🎓 ТРЕНИРОВКА ОКОНЧЕНА';
     modalDesc.innerHTML = won
       ? `<div style="background: rgba(0,255,102,0.1); border: 1.5px solid var(--neon-green); border-radius: 10px; padding: 14px; margin: 12px 0;">
-           <div style="font-size: 1.05rem; color: var(--neon-green); font-weight: 800;">Тренер повержен — вы разобрались с правилами.</div>
+           <div style="font-size: 1.05rem; color: var(--neon-green); font-weight: 800;">ILSHMONSTER повержен — вы разобрались с правилами.</div>
          </div>
          <div style="color: var(--text-dim); font-size: 0.9rem;">Фишки и прогресс за спарринг не начисляются. Настоящие деньги ждут на Карте Мира.</div>`
       : `<div style="background: rgba(255,42,109,0.08); border: 1.5px solid var(--neon-red); border-radius: 10px; padding: 14px; margin: 12px 0;">
