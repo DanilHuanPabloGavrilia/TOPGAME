@@ -271,5 +271,18 @@ export const uz: Dictionary = {
   'outcome.boss.win': '🎉 G‘ALABA! {boss}-boss yiqildi! +{reward}$ ishlab topildi. {next}-bossga tayyorlaning.',
   'outcome.location.done': '🏆 {done}-JOY TO‘LIQ TUGATILDI! {next}-joy ochildi!',
   'outcome.defeat': '💀 MAG‘LUBIYAT! Sizga +{chips}$ tovon to‘landi. Meta-yangilanishga yoki Dunyo xaritasiga kiring!',
-  'outcome.revive': '⚡ IKKINCHI IMKONIYAT! O‘yinchi +{hp} HP bilan duelga qaytdi!'
+  'outcome.revive': '⚡ IKKINCHI IMKONIYAT! O‘yinchi +{hp} HP bilan duelga qaytdi!',
+
+  // ── O‘qitish ───────────────────────────────────────────────────────────────
+  'tutorial.guide': 'Dealer’s Gambit’ga xush kelibsan! Qoidalarni unutsang, Qo‘llanma doim yuqorida, sarlavhada.',
+  'tutorial.chips': 'Bular sizning fishkalaringiz. Ularni duellarda topasiz va doimiy yaxshilanishlarga sarflaysiz.',
+  'tutorial.upgrades': 'Bu yerda maksimal salomatlikni oshirasiz. Bunday yaxshilanishlar mag‘lub bo‘lsangiz ham sizda qoladi.',
+  'tutorial.adChips': 'Yaxshilashga fishka yetmayaptimi? Reklama ko‘rib fishka olish mumkin. Besh daqiqada uch marta.',
+  'tutorial.startTraining': 'Endi stolga. ILSHMONSTER yarim kuch bilan uradi, o‘shanda o‘rganamiz. Tugmani bosing.',
+  'tutorial.opponent': 'Sizning raqibingiz va uning salomatligi. Chiziqni nolga tushiring — jang yutildi.',
+  'tutorial.drum': 'Revolver barabani. Oltin rang keyingi otiladigan o‘qni belgilaydi, ostidagi hisoblagich esa nechta jangovar 🔴 va bo‘sh 🔵 o‘q qolganini ko‘rsatadi.',
+  'tutorial.hand': 'Sizning qo‘lingiz. Lupa joriy o‘qni ko‘rsatadi, Arra zararni ikki barobar oshiradi, Sigaret davolaydi. Karta darhol sarflanadi va navbatni olmaydi.',
+  'tutorial.shootSelf': 'Asosiy qoida: o‘zingga otilgan bo‘sh o‘q jarohatlamaydi, navbatni sizda qoldiradi va fishka keltiradi. Hozir stvolda bo‘sh o‘q — tavakkal qiling.',
+  'tutorial.shootDealer': 'Ko‘rdingizmi? Navbat sizda qoldi. Raqibga otish esa zarar yetkazadi, lekin navbatni unga beradi. Oting.',
+  'tutorial.finish': 'Keyingisi o‘zingizga havola. O‘qlarni sanang, kartalardan foydalaning va murabbiyni yenging — o‘qitish jang bilan birga tugaydi.'
 };

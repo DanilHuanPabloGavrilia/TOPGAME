@@ -269,5 +269,18 @@ export const en: Dictionary = {
   'outcome.boss.win': '🎉 VICTORY! Boss {boss} is down! Earned +{reward}$. Get ready for Boss {next}.',
   'outcome.location.done': '🏆 LOCATION {done} FULLY CLEARED! Location {next} is unlocked!',
   'outcome.defeat': '💀 DEFEAT! You were paid +{chips}$ in compensation. Visit the Meta Upgrades or the World Map!',
-  'outcome.revive': '⚡ SECOND CHANCE! The player is back in the duel with +{hp} HP!'
+  'outcome.revive': '⚡ SECOND CHANCE! The player is back in the duel with +{hp} HP!',
+
+  // ── Tutorial ───────────────────────────────────────────────────────────────
+  'tutorial.guide': 'Welcome to Dealer’s Gambit! If you forget the rules, the Guide is always up here in the header.',
+  'tutorial.chips': 'These are your chips. You earn them in duels and spend them on permanent upgrades.',
+  'tutorial.upgrades': 'This is where you raise your maximum health. Upgrades like this stay with you even after a defeat.',
+  'tutorial.adChips': 'Short of chips for an upgrade? Watch an ad and get some. Three times per five minutes.',
+  'tutorial.startTraining': 'Now to the table. ILSHMONSTER hits at half strength — we’ll learn on him. Press the button.',
+  'tutorial.opponent': 'Your opponent and his health. Drop that bar to zero and the duel is won.',
+  'tutorial.drum': 'The revolver cylinder. Gold marks the round that fires next, and the counter under it shows how many live 🔴 and blank 🔵 rounds are left.',
+  'tutorial.hand': 'Your hand. The Magnifier shows the current round, the Hacksaw doubles damage, the Cigarette heals. A card is spent at once and costs you no turn.',
+  'tutorial.shootSelf': 'The key rule: a blank fired into your own head does no harm, keeps the turn and pays chips. There is a blank in the chamber right now — take the risk.',
+  'tutorial.shootDealer': 'See? The turn stayed with you. Shooting your opponent deals damage but hands him the turn. Fire.',
+  'tutorial.finish': 'You’re on your own now. Count the rounds, use your cards and finish the trainer — the tutorial ends with the duel.'
 };

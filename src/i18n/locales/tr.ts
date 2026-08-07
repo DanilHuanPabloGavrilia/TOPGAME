@@ -269,5 +269,18 @@ export const tr: Dictionary = {
   'outcome.boss.win': '🎉 ZAFER! {boss}. patron devrildi! +{reward}$ kazandın. {next}. patrona hazırlan.',
   'outcome.location.done': '🏆 {done}. MEKÂN TAMAMEN TEMİZLENDİ! {next}. mekân açıldı!',
   'outcome.defeat': '💀 YENİLGİ! Tazminat olarak +{chips}$ ödendi. Karakter Geliştirme’ye ya da Dünya Haritası’na uğra!',
-  'outcome.revive': '⚡ İKİNCİ ŞANS! Oyuncu +{hp} canla düelloya döndü!'
+  'outcome.revive': '⚡ İKİNCİ ŞANS! Oyuncu +{hp} canla düelloya döndü!',
+
+  // ── Eğitim ─────────────────────────────────────────────────────────────────
+  'tutorial.guide': 'Dealer’s Gambit’e hoş geldin! Kuralları unutursan Rehber her zaman yukarıda, başlıkta.',
+  'tutorial.chips': 'Bunlar senin fişlerin. Düellolarda kazanır, kalıcı geliştirmelere harcarsın.',
+  'tutorial.upgrades': 'Burada azami canını yükseltirsin. Bu tür geliştirmeler yenilsen bile sende kalır.',
+  'tutorial.adChips': 'Geliştirmeye fişin yetmiyor mu? Reklam izleyip fiş alabilirsin. Beş dakikada üç kez.',
+  'tutorial.startTraining': 'Şimdi masaya. ILSHMONSTER yarı güçte vuruyor, onun üzerinde öğreniriz. Düğmeye bas.',
+  'tutorial.opponent': 'Rakibin ve canı. Bu çubuğu sıfıra indir, düello senindir.',
+  'tutorial.drum': 'Tabancanın silindiri. Altın renk sıradaki mermiyi gösterir, altındaki sayaç ise kaç gerçek 🔴 ve kaç kuru sıkı 🔵 kaldığını söyler.',
+  'tutorial.hand': 'Senin elin. Büyüteç mevcut mermiyi gösterir, Testere hasarı ikiye katlar, Sigara iyileştirir. Kart anında harcanır ve sıranı almaz.',
+  'tutorial.shootSelf': 'Temel kural: kendine sıkılan kuru sıkı zarar vermez, sırayı sende bırakır ve fiş kazandırır. Şu an namluda kuru sıkı var — riski al.',
+  'tutorial.shootDealer': 'Gördün mü? Sıra sende kaldı. Rakibe ateş etmek hasar verir ama sırayı ona geçirir. Ateş et.',
+  'tutorial.finish': 'Bundan sonrası sana kalmış. Mermileri say, kartlarını kullan ve eğitmeni bitir — eğitim düelloyla birlikte sona erecek.'
 };
