@@ -20,23 +20,18 @@ function isVkContext(): boolean {
   }
 }
 
-/**
- * Yandex and VK always run a game inside their own frame. A top-level window means a dev
- * server or a build opened directly — and there YaGames.init() still resolves while every
- * ad call silently does nothing, which would make ad-gated features untestable.
- */
-function isFramed(): boolean {
-  try {
-    return window.self !== window.top;
-  } catch {
-    // A cross-origin parent throws on access, which itself proves we are framed.
-    return true;
-  }
-}
-
 // Yandex insists their SDK be served from their own domain, so it cannot be bundled. It is
 // injected here rather than sat in index.html as a blocking tag: on VK and abroad yandex.ru
 // is slow or unreachable, and a tag in <head> would hold up first paint until it timed out.
+/**
+ * A dev server or the owner's local playtest build. The one place the SDK genuinely has
+ * nothing to talk to: its postMessage handshake finds no parent and throws in a loop.
+ */
+function isLocalHost(): boolean {
+  const host = location.hostname;
+  return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '';
+}
+
 const YANDEX_SDK_URL = 'https://yandex.ru/games/sdk/v2';
 
 // Long enough for a cold CDN on a bad phone connection, short enough that a player never
@@ -109,9 +104,21 @@ class PlatformSDK {
       }
     }
 
-    // Try Yandex Games SDK. Gated on isFramed() so a standalone build, a VK frame that fell
-    // through, or a local dev server never even requests yandex.ru.
-    if (isFramed() && await loadYandexSdk()) {
+    // Try the Yandex Games SDK anywhere that is not a local server.
+    //
+    // This used to be gated on sitting inside an iframe, reasoning that a top-level window
+    // could only be a dev server. That is wrong for a deployed build: opened at its own URL
+    // — which is one way a build gets inspected — it never requested the SDK at all, so
+    // nothing reported a language and the game fell back to the browser's. Hostname is the
+    // honest test for "nobody out there to talk to"; framing is not.
+    //
+    // A local server is still skipped, and deliberately: the SDK's handshake has no parent
+    // to reach there, so it only floods the console, and the owner's playtest build runs
+    // top-level on 127.0.0.1. VK is skipped too — the bridge above is the integration there,
+    // and yandex.ru is the slow host worth not waiting on.
+    const tryYandex = !isLocalHost() && !isVkContext();
+
+    if (tryYandex && await loadYandexSdk()) {
       try {
         this.ysdk = await window.YaGames.init();
         this.platform = 'YANDEX';
