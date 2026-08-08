@@ -88,6 +88,7 @@ class PlatformSDK {
   private isInitialized = false;
   private isAdShowing = false;
   private adWatchdog: ReturnType<typeof setTimeout> | null = null;
+  private gameplayRunning = false;
 
   async init(): Promise<void> {
     if (this.isInitialized) return;
@@ -144,6 +145,33 @@ class PlatformSDK {
   }
 
   /**
+   * Marks the stretches when the player is actually duelling. Yandex uses it to keep its own
+   * interruptions out of live gameplay, and asks every game to report it.
+   *
+   * Both calls are idempotent — the render loop calls them on every repaint — and both are
+   * no-ops off Yandex, where `ysdk` is null.
+   */
+  public gameplayStart(): void {
+    if (this.gameplayRunning) return;
+    this.gameplayRunning = true;
+    try {
+      this.ysdk?.features?.GameplayAPI?.start?.();
+    } catch (err) {
+      console.warn('[SDK] GameplayAPI.start failed', err);
+    }
+  }
+
+  public gameplayStop(): void {
+    if (!this.gameplayRunning) return;
+    this.gameplayRunning = false;
+    try {
+      this.ysdk?.features?.GameplayAPI?.stop?.();
+    } catch (err) {
+      console.warn('[SDK] GameplayAPI.stop failed', err);
+    }
+  }
+
+  /**
    * The language the platform launched us in, as a raw locale tag — 'en', 'tr', 'kk-KZ'.
    * Yandex exposes it on the SDK; VK passes vk_language in the launch parameters, which is
    * why it is read from the URL rather than over the bridge. Null means "nobody told us",
@@ -175,6 +203,9 @@ class PlatformSDK {
    */
   private beginAd(onTimeout?: () => void): void {
     this.isAdShowing = true;
+    // An ad on screen is not gameplay. The render loop restarts it once the player is back
+    // in a duel, so nothing here has to remember to.
+    this.gameplayStop();
     this.clearAdWatchdog();
     this.adWatchdog = setTimeout(() => {
       console.warn('[SDK] Ad never opened within timeout, releasing lock');
@@ -299,8 +330,18 @@ class PlatformSDK {
           if (onError) onError();
         });
     } else {
-      // Local fallback (Simulated instant reward for testing)
-      onSuccess();
+      // No ad provider. In a dev build grant the reward anyway, otherwise every ad-gated
+      // feature becomes untestable locally.
+      //
+      // In a shipped build, refuse. 'LOCAL' there does not mean "someone is developing" — it
+      // means the SDK failed or timed out inside a real platform frame, and granting on that
+      // path hands out unlimited free rewards to anyone who can make yandex.ru unreachable.
+      if (import.meta.env.DEV) {
+        onSuccess();
+      } else {
+        console.warn('[SDK] No ad provider available, reward refused');
+        if (onError) onError();
+      }
     }
   }
 

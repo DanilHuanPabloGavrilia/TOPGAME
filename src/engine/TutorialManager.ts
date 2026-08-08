@@ -8,6 +8,8 @@
 //   2. Screens swap by toggling a class, and the element a step points at may not exist
 //      yet. A step whose screen is not on-screen parks the tutorial instead of failing.
 
+import { t } from '../i18n';
+
 export type TutorialScreen = 'ANY' | 'MAIN_MENU' | 'WORLD_MAP' | 'META_SHOP' | 'BATTLE' | 'BOSS_INTRO';
 
 export interface TutorialStep {
@@ -68,6 +70,7 @@ export class TutorialManager {
 
   start(fromIndex = 0) {
     if (!this.steps.length) return;
+    this.applyChrome();
     this.active = true;
     this.index = fromIndex - 1;
     this.root.classList.add('active');
@@ -297,6 +300,19 @@ export class TutorialManager {
 
   // ---------------------------------------------------------------------- dom
 
+  /**
+   * Labels the tooltip's own controls. Not done in buildDom: the manager is constructed at
+   * import time, long before the platform reports a language, so text baked in there would
+   * be Russian for everyone. start() only runs on a click, by which point the language is
+   * settled — and re-labelling three nodes costs nothing.
+   */
+  private applyChrome() {
+    this.btnSkip.innerText = t('tutorial.skip');
+    this.btnNext.innerText = t('tutorial.next');
+    const hint = this.root.querySelector<HTMLElement>('.tutorial-hint');
+    if (hint) hint.innerText = t('tutorial.clickHint');
+  }
+
   private buildDom() {
     this.root = document.createElement('div');
     this.root.className = 'tutorial-root';
@@ -309,11 +325,11 @@ export class TutorialManager {
           <div class="tutorial-footer">
             <span class="tutorial-counter"></span>
             <div class="tutorial-actions">
-              <button class="tutorial-skip" type="button">Пропустить</button>
-              <button class="tutorial-next" type="button">Далее ➔</button>
+              <button class="tutorial-skip" type="button"></button>
+              <button class="tutorial-next" type="button"></button>
             </div>
           </div>
-          <div class="tutorial-hint">👆 Нажмите на подсвеченную кнопку</div>
+          <div class="tutorial-hint"></div>
         </div>
       </div>
     `;

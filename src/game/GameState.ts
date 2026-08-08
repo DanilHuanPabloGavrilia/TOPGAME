@@ -13,7 +13,9 @@ const BOSSES_PER_LOCATION = 3;
 // Payout for calling your own bluff: a blank fired into your own head. Capped per duel:
 // the shot also keeps the turn, so an uncapped payout lets a player farm chips forever
 // by never advancing the fight.
-const BLANK_SELF_SHOT_CHIPS = 25;
+// Exported so the guide and the shoot-self button quote the real payout instead of a
+// number typed into the markup that nothing keeps in sync.
+export const BLANK_SELF_SHOT_CHIPS = 25;
 const MAX_BLANK_SELF_SHOT_PAYOUTS = 5;
 
 /**

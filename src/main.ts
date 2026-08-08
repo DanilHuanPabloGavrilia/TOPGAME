@@ -19,7 +19,7 @@ import '@fontsource/orbitron/latin-800.css';
 import '@fontsource/orbitron/latin-900.css';
 
 import './style.css';
-import { GameState, formatHp, BOSS_REWARDS, defeatReward, hpUpgradeCost, armorUpgradeCost, damageUpgradeCost, AD_CHIPS_MAX_IN_WINDOW } from './game/GameState';
+import { GameState, formatHp, BOSS_REWARDS, defeatReward, hpUpgradeCost, armorUpgradeCost, damageUpgradeCost, AD_CHIPS_MAX_IN_WINDOW, BLANK_SELF_SHOT_CHIPS, DEFEAT_SHARE } from './game/GameState';
 import { ParticleSystem } from './engine/ParticleSystem';
 import { LOCATIONS, localizedBoss, localizedLocation } from './game/BossCatalog';
 import { sound } from './engine/AudioSynthesizer';
@@ -27,7 +27,8 @@ import { platformSDK } from './engine/PlatformSDK';
 import { imagePreloader } from './engine/ImagePreloader';
 import { saveManager } from './engine/SaveManager';
 import { tutorial, type TutorialScreen } from './engine/TutorialManager';
-import { normalizeLang, setLang } from './i18n';
+import { normalizeLang, setLang, getLang, t, type Lang } from './i18n';
+import { applyStaticI18n } from './i18n/dom';
 import { buildTutorialSteps } from './game/TutorialSteps';
 
 imagePreloader.preloadAll();
@@ -98,6 +99,15 @@ const btnModalAction = document.getElementById('btn-modal-action') as HTMLButton
 
 // Main UI Render Pipeline
 function renderUI() {
+  // Tell the platform whether the player is duelling right now. Decided before the branches
+  // below, because the outcome branches launch an interstitial and Yandex wants gameplay
+  // reported as stopped before an ad opens, not after.
+  if (gameState.screenState === 'BATTLE' && gameState.phase === 'BATTLE') {
+    platformSDK.gameplayStart();
+  } else {
+    platformSDK.gameplayStop();
+  }
+
   // Screen Switcher
   [screenMainMenu, screenWorldMap, screenMetaShop, screenBattle].forEach(s => s.classList.remove('active'));
 
@@ -126,7 +136,10 @@ function renderUI() {
 
   // Header Stats
   chipsDisplay.innerText = `${gameState.player.chips} $`;
-  stageDisplay.innerText = `Локация ${gameState.currentLocationIndex + 1} | Босс ${gameState.currentBossIndex + 1}`;
+  stageDisplay.innerText = t('ui.header.stageValue', {
+    loc: gameState.currentLocationIndex + 1,
+    boss: gameState.currentBossIndex + 1
+  });
 }
 
 // Render Battle Table UI
@@ -147,7 +160,11 @@ function renderBattleUI() {
   dealerName.innerText = gameState.dealer.name;
   const dealerHpPct = Math.max(0, (gameState.dealer.hp / gameState.dealer.maxHp) * 100);
   dealerHpFill.style.width = `${dealerHpPct}%`;
-  dealerHpText.innerText = `HP: ${formatHp(gameState.dealer.hp)} / ${formatHp(gameState.dealer.maxHp)} | 🛡️ БРОНЯ: ${formatHp(gameState.dealer.armor)}`;
+  dealerHpText.innerText = t('ui.battle.hp', {
+    cur: formatHp(gameState.dealer.hp),
+    max: formatHp(gameState.dealer.maxHp),
+    armor: formatHp(gameState.dealer.armor)
+  });
   dealerDialogue.innerText = `"${gameState.dealer.dialogue}"`;
 
   // Render Combat Log
@@ -168,11 +185,15 @@ function renderBattleUI() {
   // Player
   const playerHpPct = Math.max(0, (gameState.player.hp / gameState.player.maxHp) * 100);
   playerHpFill.style.width = `${playerHpPct}%`;
-  playerHpText.innerText = `HP: ${formatHp(gameState.player.hp)} / ${formatHp(gameState.player.maxHp)} | 🛡️ БРОНЯ: ${formatHp(gameState.player.armor)}`;
+  playerHpText.innerText = t('ui.battle.hp', {
+    cur: formatHp(gameState.player.hp),
+    max: formatHp(gameState.player.maxHp),
+    armor: formatHp(gameState.player.armor)
+  });
 
   // Turn
   const isPlayerTurn = gameState.turn === 'PLAYER' && gameState.phase === 'BATTLE';
-  turnIndicator.innerText = isPlayerTurn ? 'ВАШ ХОД' : 'ХОД ДИЛЛЕРА';
+  turnIndicator.innerText = isPlayerTurn ? t('ui.battle.turn.player') : t('ui.battle.turn.dealer');
   turnIndicator.style.color = isPlayerTurn ? 'var(--neon-green)' : 'var(--neon-red)';
 
   btnShootDealer.disabled = !isPlayerTurn;
@@ -181,7 +202,7 @@ function renderBattleUI() {
   // Multiplier Badge
   if (gameState.damageMultiplier > 1) {
     multiplierBadge.style.display = 'block';
-    multiplierBadge.innerText = `МУЛЬТИПЛИКАТОР УРОНА: x${gameState.damageMultiplier}`;
+    multiplierBadge.innerText = t('ui.battle.multiplier', { mult: gameState.damageMultiplier });
   } else {
     multiplierBadge.style.display = 'none';
   }
@@ -267,7 +288,7 @@ function renderBattleUI() {
       tooltipTitle.innerText = `${item.name}`;
       tooltipDesc.innerText = playable
         ? item.description
-        : `Множитель х${gameState.damageMultiplier} уже активен. Карта останется на руках — сыграйте её после выстрела.`;
+        : t('ui.card.locked.tip', { mult: gameState.damageMultiplier });
 
       const rect = cardEl.getBoundingClientRect();
       const appRect = document.getElementById('app')!.getBoundingClientRect();
@@ -324,18 +345,18 @@ function renderBattleUI() {
     // way out; the modal has no close control and would otherwise trap the player.
     if (btnIntermissionMap) btnIntermissionMap.style.display = won ? 'none' : '';
 
-    modalTitle.innerText = won ? '🎓 ТРЕНИРОВКА ПРОЙДЕНА' : '🎓 ТРЕНИРОВКА ОКОНЧЕНА';
+    modalTitle.innerText = won ? t('ui.train.win.title') : t('ui.train.lose.title');
     modalDesc.innerHTML = won
       ? `<div style="background: rgba(0,255,102,0.1); border: 1.5px solid var(--neon-green); border-radius: 10px; padding: 14px; margin: 12px 0;">
-           <div style="font-size: 1.05rem; color: var(--neon-green); font-weight: 800;">ILSHMONSTER повержен — вы разобрались с правилами.</div>
+           <div style="font-size: 1.05rem; color: var(--neon-green); font-weight: 800;">${t('ui.train.win.head')}</div>
          </div>
-         <div style="color: var(--text-dim); font-size: 0.9rem;">Фишки и прогресс за спарринг не начисляются. Настоящие деньги ждут на Карте Мира.</div>`
+         <div style="color: var(--text-dim); font-size: 0.9rem;">${t('ui.train.win.body')}</div>`
       : `<div style="background: rgba(255,42,109,0.08); border: 1.5px solid var(--neon-red); border-radius: 10px; padding: 14px; margin: 12px 0;">
-           <div style="font-size: 1.05rem; color: var(--neon-red); font-weight: 800;">В тренировке проигрыш ничего не стоит.</div>
+           <div style="font-size: 1.05rem; color: var(--neon-red); font-weight: 800;">${t('ui.train.lose.head')}</div>
          </div>
-         <div style="color: var(--text-dim); font-size: 0.9rem;">Ни фишек, ни прогресса вы не потеряли. Можно попробовать ещё раз.</div>`;
+         <div style="color: var(--text-dim); font-size: 0.9rem;">${t('ui.train.lose.body')}</div>`;
 
-    btnModalAction.innerText = won ? 'На Карту Мира 🌍' : 'Ещё раз 🎓';
+    btnModalAction.innerText = won ? t('ui.final.toMap') : t('ui.train.again');
     btnModalAction.onclick = () => {
       modalOverlay.classList.remove('active');
       if (won) {
@@ -368,17 +389,17 @@ function renderBattleUI() {
     lastEncounterReward = totalReward;
 
 
-    modalTitle.innerText = `🎉 ПОБЕДА! ГОТОВНОСТЬ К БОССУ ${nextBossNum}`;
+    modalTitle.innerText = t('ui.win.title', { n: nextBossNum });
     modalDesc.innerHTML = `
       <div style="background: rgba(5, 217, 232, 0.1); border: 1.5px solid var(--neon-cyan); border-radius: 10px; padding: 14px; margin: 12px 0; text-align: center;">
         <div style="font-size: 1.15rem; color: var(--neon-cyan); font-weight: 800; margin-bottom: 6px;">
-          💰 ВЫИГРАШ ЗА ДУЭЛЬ: <span style="color: var(--gold); text-shadow: 0 0 10px rgba(255,183,3,0.5);">+${totalReward} $</span>
+          ${t('ui.win.reward')} <span style="color: var(--gold); text-shadow: 0 0 10px rgba(255,183,3,0.5);">+${totalReward} $</span>
         </div>
         <div style="font-size: 1rem; color: var(--text-main);">
-          🏦 ТЕКУЩИЙ ОБЩИЙ БАЛАНС: <strong style="color: var(--neon-green); font-size: 1.1rem;">${gameState.player.chips} $</strong>
+          ${t('ui.win.balance')} <strong style="color: var(--neon-green); font-size: 1.1rem;">${gameState.player.chips} $</strong>
         </div>
       </div>
-      <div style="color: var(--text-dim); font-size: 0.9rem;">Зайдите в Мета-Прокачку характеристик или продолжайте путь!</div>
+      <div style="color: var(--text-dim); font-size: 0.9rem;">${t('ui.win.hint')}</div>
     `;
 
     // Every win can be doubled. It used to be offered only after clearing a whole
@@ -387,21 +408,21 @@ function renderBattleUI() {
       {
         btnAdDoubleChips.style.display = 'inline-block';
         btnAdDoubleChips.disabled = false;
-        btnAdDoubleChips.innerText = '📺 Удвоить выигрыш (2x Фишек)!';
+        btnAdDoubleChips.innerText = t('ui.win.double');
         btnAdDoubleChips.onclick = () => {
           platformSDK.showRewardedVideo(() => {
             gameState.player.chips += lastEncounterReward;
             sound.playCoinChime();
             gameState.requestSave();
             btnAdDoubleChips.style.display = 'none';
-            if (gameState.onFloatingText) gameState.onFloatingText(`💰 +${lastEncounterReward}$ (2x ДЖЕКПОТ!)`, 'CHIPS', '#ffb703');
+            if (gameState.onFloatingText) gameState.onFloatingText(t('ui.float.double', { chips: lastEncounterReward }), 'CHIPS', '#ffb703');
             chipsDisplay.innerText = `${gameState.player.chips} $`;
-          });
+          }, () => reportAdUnavailable('CHIPS'));
         };
       }
     }
 
-    btnModalAction.innerText = `К Боссу ${nextBossNum} ➔`;
+    btnModalAction.innerText = t('ui.win.next', { n: nextBossNum });
     btnModalAction.onclick = () => {
       modalOverlay.classList.remove('active');
       showBossIntroModal(gameState.currentLocationIndex, gameState.currentBossIndex);
@@ -414,17 +435,17 @@ function renderBattleUI() {
     const consolation = defeatReward(gameState.currentLocationIndex, gameState.currentBossIndex);
     lastEncounterReward = consolation;
 
-    modalTitle.innerText = '💀 ПОРАЖЕНИЕ В ДУЭЛИ';
+    modalTitle.innerText = t('ui.lose.title');
     modalDesc.innerHTML = `
       <div style="background: rgba(255, 42, 109, 0.1); border: 1.5px solid var(--neon-red); border-radius: 10px; padding: 14px; margin: 12px 0; text-align: center;">
         <div style="font-size: 1.15rem; color: var(--neon-red); font-weight: 800; margin-bottom: 6px;">
-          🩹 КОМПЕНСАЦИЯ ЗА РИСК: <span style="color: var(--gold); text-shadow: 0 0 10px rgba(255,183,3,0.5);">+${consolation} $</span>
+          ${t('ui.lose.comp')} <span style="color: var(--gold); text-shadow: 0 0 10px rgba(255,183,3,0.5);">+${consolation} $</span>
         </div>
         <div style="font-size: 1rem; color: var(--text-main);">
-          🏦 ТЕКУЩИЙ ОБЩИЙ БАЛАНС: <strong style="color: var(--neon-green); font-size: 1.1rem;">${gameState.player.chips} $</strong>
+          ${t('ui.win.balance')} <strong style="color: var(--neon-green); font-size: 1.1rem;">${gameState.player.chips} $</strong>
         </div>
       </div>
-      <div style="color: var(--text-dim); font-size: 0.9rem;">Вы вернётесь к Боссу ${prevBossNum}. Второй шанс или Мета-Прокачка — решать вам.</div>
+      <div style="color: var(--text-dim); font-size: 0.9rem;">${t('ui.lose.hint', { n: prevBossNum })}</div>
     `;
 
     // No doubling on a defeat. Offering it here while withholding it from ordinary wins is
@@ -439,14 +460,14 @@ function renderBattleUI() {
             modalOverlay.classList.remove('active');
             btnAdRevive.style.display = 'none';
             gameState.revivePlayerWith20PercentHp();
-          });
+          }, () => reportAdUnavailable('PLAYER'));
         };
       } else {
         btnAdRevive.style.display = 'none';
       }
     }
 
-    btnModalAction.innerText = `К Боссу ${prevBossNum} ⚔️`;
+    btnModalAction.innerText = t('ui.lose.retry', { n: prevBossNum });
     shopGrid.innerHTML = '';
     btnModalAction.onclick = () => {
       modalOverlay.classList.remove('active');
@@ -457,19 +478,19 @@ function renderBattleUI() {
   } else if (gameState.screenState === 'VICTORY') {
     if (btnAdDoubleChips) btnAdDoubleChips.style.display = 'none';
     if (btnAdRevive) btnAdRevive.style.display = 'none';
-    modalTitle.innerText = '🏆 ВСЕ 15 БОССОВ ПОВЕРЖЕНЫ!';
+    modalTitle.innerText = t('ui.final.title');
     modalDesc.innerHTML = `
       <div style="background: rgba(0, 255, 102, 0.1); border: 1.5px solid var(--neon-green); border-radius: 10px; padding: 14px; margin: 12px 0; text-align: center;">
         <div style="font-size: 1.2rem; color: var(--neon-green); font-weight: 800; margin-bottom: 6px;">
-          👑 ФИНАЛЬНЫЙ ДЖЕКПОТ ЗАБРАН!
+          ${t('ui.final.jackpot')}
         </div>
         <div style="font-size: 1.1rem; color: var(--text-main);">
-          🏦 ИТОГОВЫЙ БАЛАНС ИМПЕРИИ: <strong style="color: var(--gold); font-size: 1.2rem;">${gameState.player.chips} $</strong>
+          ${t('ui.final.balance')} <strong style="color: var(--gold); font-size: 1.2rem;">${gameState.player.chips} $</strong>
         </div>
       </div>
-      <div>Вы обыграли все 5 локаций и стали легендой подполья!</div>
+      <div>${t('ui.final.hint')}</div>
     `;
-    btnModalAction.innerText = 'На Карту Мира 🌍';
+    btnModalAction.innerText = t('ui.final.toMap');
     shopGrid.innerHTML = '';
     btnModalAction.onclick = () => {
       modalOverlay.classList.remove('active');
@@ -503,18 +524,13 @@ function showBossIntroModal(locIdx: number, bossIdx: number) {
 
   // Ad Buff Button & Scaled Rewards
   const btnBossAdBuff = document.getElementById('btn-boss-ad-buff') as HTMLButtonElement;
-  const adBuffLabel = document.getElementById('ad-buff-label');
   const adBuffVal = (2 + locIdx) * 10; // Loc 1: +20 HP/Shield, Loc 2: +30, ... Loc 5: +60
-
-  if (adBuffLabel) {
-    adBuffLabel.innerText = `+${adBuffVal} HP и +${adBuffVal} Щита`;
-  }
 
   if (btnBossAdBuff) {
     btnBossAdBuff.disabled = false;
     btnBossAdBuff.style.opacity = '1';
     btnBossAdBuff.style.cursor = 'pointer';
-    btnBossAdBuff.innerHTML = `📺 Смотреть рекламу: <span id="ad-buff-label">+${adBuffVal} HP и +${adBuffVal} Щита</span>`;
+    btnBossAdBuff.innerText = t('ui.boss.adBuff', { v: adBuffVal });
 
     btnBossAdBuff.onclick = () => {
       platformSDK.showRewardedVideo(() => {
@@ -522,10 +538,10 @@ function showBossIntroModal(locIdx: number, bossIdx: number) {
         btnBossAdBuff.disabled = true;
         btnBossAdBuff.style.opacity = '0.6';
         btnBossAdBuff.style.cursor = 'default';
-        btnBossAdBuff.innerHTML = `✅ БАФФ АКТИВИРОВАН! (+${adBuffVal} HP / +${adBuffVal} Щит)`;
+        btnBossAdBuff.innerText = t('ui.boss.adBuff.done', { v: adBuffVal });
         sound.playCoinChime();
-        if (gameState.onFloatingText) gameState.onFloatingText(`📺 РЕКЛАМА: +${adBuffVal} HP И +${adBuffVal} ЩИТА!`, 'PLAYER', '#00ff66');
-      });
+        if (gameState.onFloatingText) gameState.onFloatingText(t('ui.float.adBuff', { v: adBuffVal }), 'PLAYER', '#00ff66');
+      }, () => reportAdUnavailable('PLAYER'));
     };
   }
 
@@ -535,9 +551,9 @@ function showBossIntroModal(locIdx: number, bossIdx: number) {
     bossIntroAvatar.innerText = boss.avatar;
   }
   bossIntroName.innerText = boss.name;
-  bossIntroTitle.innerText = boss.loreTitle || '«Босс Сезона»';
-  bossIntroDesc.innerText = boss.loreDesc || 'Опытный противник подпольного казино.';
-  bossIntroAbility.innerText = boss.specialAbility || 'Агрессивный стиль игры и тактический просчет.';
+  bossIntroTitle.innerText = boss.loreTitle || t('ui.boss.title.fallback');
+  bossIntroDesc.innerText = boss.loreDesc || t('ui.boss.desc.fallback');
+  bossIntroAbility.innerText = boss.specialAbility || t('ui.boss.ability.fallback');
 
   const btnBossIntroClose = document.getElementById('btn-boss-intro-close')!;
   btnBossIntroClose.onclick = () => {
@@ -574,14 +590,14 @@ function renderWorldMap() {
       const isCompleted = gameState.completedBosses[locIdx][bIdx];
       const isTarget = isUnlocked && !isCompleted && (bIdx === 0 || gameState.completedBosses[locIdx][bIdx - 1]);
       
-      let statusBadge = '🔒 ЗАКРЫТ';
+      let statusBadge = t('ui.map.locked');
       let btnStyle = 'background: rgba(40,40,60,0.6); color: #888; border: 1px solid #444;';
-      
+
       if (isCompleted) {
-        statusBadge = '✅ ПОБЕЖДЕН (Фарм)';
+        statusBadge = t('ui.map.completed');
         btnStyle = 'background: rgba(0, 255, 102, 0.15); color: var(--neon-green); border: 1px solid var(--neon-green);';
       } else if (isTarget) {
-        statusBadge = '⚔️ ТЕКУЩИЙ ВЫЗОВ';
+        statusBadge = t('ui.map.current');
         btnStyle = 'background: linear-gradient(135deg, var(--neon-red), #b0003a); color: #fff; border: none; box-shadow: 0 0 12px rgba(255,42,109,0.5);';
       }
 
@@ -645,8 +661,12 @@ function syncAdChipsButton() {
   btnMetaAdChips.style.opacity = available ? '1' : '0.5';
   btnMetaAdChips.style.cursor = available ? 'pointer' : 'not-allowed';
   btnMetaAdChips.innerText = available
-    ? `📺 Реклама: +${gameState.getAdChipsReward()} $  (осталось ${remaining} из ${AD_CHIPS_MAX_IN_WINDOW})`
-    : `⏳ Лимит рекламы исчерпан — ещё через ${formatCountdown(nextAvailableInMs)}`;
+    ? t('ui.meta.ad.available', {
+        reward: gameState.getAdChipsReward(),
+        left: remaining,
+        max: AD_CHIPS_MAX_IN_WINDOW
+      })
+    : t('ui.meta.ad.exhausted', { time: formatCountdown(nextAvailableInMs) });
 }
 
 function startAdChipsTicker() {
@@ -674,14 +694,17 @@ btnMetaAdChips?.addEventListener('click', () => {
       if (amount > 0) {
         sound.playCoinChime();
         if (gameState.onFloatingText) {
-          gameState.onFloatingText(`+${amount} $ (РЕКЛАМА 📺)`, 'CHIPS', '#ffb703');
+          gameState.onFloatingText(t('ui.float.adChips', { chips: amount }), 'CHIPS', '#ffb703');
         }
       }
       gameState.notifyUpdate();
       syncAdChipsButton();
     },
     // No fill, offline, or the player closed it early — the window stays untouched.
-    () => syncAdChipsButton()
+    () => {
+      syncAdChipsButton();
+      reportAdUnavailable('CHIPS');
+    }
   );
 });
 
@@ -701,26 +724,26 @@ function renderMetaShop() {
   const metaItems = [
     {
       id: 'baseMaxHp',
-      name: 'Базовое Здоровье (+20 HP)',
+      name: t('ui.meta.hp.name'),
       icon: '❤️',
-      desc: 'Постоянно увеличивает максимум HP на +20 единиц.',
-      val: `${gameState.metaUpgrades.baseMaxHp} Max HP`,
+      desc: t('ui.meta.hp.desc'),
+      val: t('ui.meta.hp.val', { v: gameState.metaUpgrades.baseMaxHp }),
       cost: hpCost
     },
     {
       id: 'baseArmor',
-      name: 'Кибер-Броня (+10 Shield)',
+      name: t('ui.meta.armor.name'),
       icon: '🛡️',
-      desc: 'Постоянный щит на каждый бой, поглощающий урон.',
-      val: `${gameState.metaUpgrades.baseArmor} Щит`,
+      desc: t('ui.meta.armor.desc'),
+      val: t('ui.meta.armor.val', { v: gameState.metaUpgrades.baseArmor }),
       cost: armorCost
     },
     {
       id: 'baseDamageBonus',
-      name: 'Усилитель Патронов (+5 Урона)',
+      name: t('ui.meta.dmg.name'),
       icon: '⚡',
-      desc: 'Увеличивает базовый урон всех боевых патронов.',
-      val: `+${gameState.metaUpgrades.baseDamageBonus * 5} Урона`,
+      desc: t('ui.meta.dmg.desc'),
+      val: t('ui.meta.dmg.val', { v: gameState.metaUpgrades.baseDamageBonus * 5 }),
       cost: dmgCost
     },
   ];
@@ -735,7 +758,7 @@ function renderMetaShop() {
       <small style="color: var(--text-dim); text-align: center; min-height: 38px;">${item.desc}</small>
       <div style="font-size: 0.85rem; color: var(--neon-purple); font-weight: 700;">${item.val}</div>
       <button class="btn-primary" ${!canAfford ? 'disabled' : ''} style="margin-top: 6px; padding: 8px 16px; font-size: 0.9rem; ${!canAfford ? 'opacity: 0.4; cursor: not-allowed; filter: grayscale(1);' : ''}">
-        Купить: ${item.cost} $
+        ${t('ui.meta.buy', { cost: item.cost })}
       </button>
     `;
 
@@ -759,8 +782,10 @@ function renderMetaShop() {
     const loc = LOCATIONS[gameState.currentLocationIndex];
     const rawBoss = loc?.bosses[gameState.currentBossIndex];
     const boss = rawBoss ? localizedBoss(rawBoss) : undefined;
-    const bossName = boss ? boss.name : `Боссу ${gameState.currentBossIndex + 1}`;
-    btnMetaNextBoss.innerText = `⚔️ В БОЙ (К ${bossName}) ➔`;
+    // Named, not declined: "В БОЙ: <имя>" sidesteps the dative that Russian would want
+    // around the boss name and that Turkish would want as a suffix on it.
+    const bossName = boss ? boss.name : t('ui.meta.bossFallback', { n: gameState.currentBossIndex + 1 });
+    btnMetaNextBoss.innerText = t('ui.meta.nextBoss', { boss: bossName });
     btnMetaNextBoss.onclick = () => {
       showBossIntroModal(gameState.currentLocationIndex, gameState.currentBossIndex);
     };
@@ -770,7 +795,7 @@ function renderMetaShop() {
 // Global Event Listeners & Navigation
 function syncSoundButton() {
   const isMuted = sound.isMuted;
-  btnSoundToggle.innerText = isMuted ? '🔇 ВЫКЛ' : '🔊 ЗВУК';
+  btnSoundToggle.innerText = isMuted ? t('ui.header.sound.off') : t('ui.header.sound.on');
   (btnSoundToggle as HTMLElement).style.color = isMuted ? 'var(--neon-red)' : 'var(--neon-cyan)';
   (btnSoundToggle as HTMLElement).style.borderColor = isMuted ? 'var(--neon-red)' : 'var(--neon-cyan)';
 }
@@ -958,11 +983,11 @@ gameState.onDealerTargeting = (target) => {
   const targetAvatarElement = target === 'PLAYER' ? playerAvatar : dealerAvatar;
 
   if (target === 'PLAYER') {
-    dealerIntentText.innerText = '🎯 ДИЛЛЕР ЦЕЛИТСЯ В ВАС...';
+    dealerIntentText.innerText = t('ui.battle.intent.player');
     dealerIntentBanner.className = 'dealer-intent-banner';
     targetReticle.className = 'target-reticle';
   } else {
-    dealerIntentText.innerText = '🛡️ ДИЛЛЕР ЦЕЛИТСЯ В СЕБЯ...';
+    dealerIntentText.innerText = t('ui.battle.intent.self');
     dealerIntentBanner.className = 'dealer-intent-banner self-target';
     targetReticle.className = 'target-reticle self-target';
   }
@@ -992,25 +1017,66 @@ gameState.onClearDealerFX = () => {
 // Bind GameState Update Callback
 gameState.onUpdateUI = renderUI;
 
+// Numbers the static guide copy quotes. They come from the balance constants rather than
+// from the markup so the guide cannot drift away from what the game actually pays.
+const STATIC_I18N_PARAMS = {
+  chips: BLANK_SELF_SHOT_CHIPS,
+  share: Math.round(DEFEAT_SHARE * 100)
+};
+
+function applyLang(lang: Lang) {
+  setLang(lang);
+  applyStaticI18n(STATIC_I18N_PARAMS);
+}
+
+/**
+ * Resolves the language from the first source that actually named one.
+ *
+ * A source that named a language we do not ship resolves to English, not Russian. Yandex
+ * checks on review that the game follows the locale it was launched in, and a player whose
+ * platform is set to German is served far better by English than by a language they cannot
+ * read. Russian is the answer only when nobody named anything at all — a standalone build
+ * opened with no platform, no ?lang= and no browser preference.
+ */
+function pickLang(...sources: (string | null | undefined)[]): Lang {
+  const spoken = sources.find(s => !!s);
+  if (!spoken) return 'ru';
+  return normalizeLang(spoken) ?? 'en';
+}
+
+/** Shown when an ad cannot be served, so a dead button never just sits there doing nothing. */
+function reportAdUnavailable(target: 'PLAYER' | 'CHIPS' = 'CHIPS') {
+  if (gameState.onFloatingText) {
+    gameState.onFloatingText(t('ui.ad.unavailable'), target, '#ff2a6d');
+  }
+}
+
 // Boot: bring the platform up first so the save load can reach cloud storage, then paint.
 // Nothing here is allowed to keep the player staring at an empty screen, so a failure at
 // any step falls through to a fresh game rather than aborting.
 async function boot() {
+  // The menu is already on screen — index.html paints before any of this runs — so the
+  // language is decided twice. First a guess from what the browser told us, because
+  // waiting for the SDK would leave a Turkish player looking at a Russian menu for as
+  // long as it takes to answer (~1 s in a frame, up to the 6 s timeout when it doesn't).
+  const urlLang = new URLSearchParams(location.search).get('lang');
+  const browserLang = typeof navigator !== 'undefined' ? navigator.language : null;
+  applyLang(pickLang(urlLang, browserLang));
+
   try {
     await platformSDK.init();
   } catch (err) {
     console.warn('[Boot] Platform init failed, continuing standalone', err);
   }
 
-  // Language before anything reads text. The platform's choice always wins — Yandex and VK
-  // require the game to follow the locale they launched it in. Only when nobody told us
-  // (standalone build, local server) does ?lang= apply, which is what makes it possible to
-  // proof-read every translation on the real release bundle without touching platform behaviour.
-  const platformLang = normalizeLang(platformSDK.getLanguage());
-  const urlLang = normalizeLang(new URLSearchParams(location.search).get('lang'));
-  const browserLang = normalizeLang(typeof navigator !== 'undefined' ? navigator.language : null);
-  const lang = platformLang ?? urlLang ?? browserLang ?? 'ru';
-  setLang(lang);
+  // Then the real answer. The platform's choice always wins — Yandex and VK require the
+  // game to follow the locale they launched it in, and Yandex checks it on review. Only
+  // when nobody told us (standalone build, local server) does ?lang= apply, which is what
+  // makes it possible to proof-read every translation on the real release bundle without
+  // touching platform behaviour.
+  const platformLang = platformSDK.getLanguage();
+  const lang = pickLang(platformLang, urlLang, browserLang);
+  if (lang !== getLang()) applyLang(lang);
   console.log('[Boot] Language:', lang, '(platform:', platformLang, 'url:', urlLang, ')');
 
   try {

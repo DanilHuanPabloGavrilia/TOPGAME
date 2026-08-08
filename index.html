@@ -18,21 +18,24 @@
     <header class="header-bar">
       <div class="game-title">⚡ DEALER'S GAMBIT</div>
       <div class="stats-group">
+        <!-- The values here (100 $, 1-1) are digits in every language and renderUI
+             overwrites both on its first pass, so neither carries a key. -->
         <div class="stat-item">
-          <span>ФИШКИ:</span>
+          <span data-i18n="ui.header.chips">ФИШКИ:</span>
           <span id="chips-display" class="chips-value">100 $</span>
         </div>
         <div class="stat-item">
-          <span>ЛОКАЦИЯ / БОСС:</span>
+          <span data-i18n="ui.header.stage">ЛОКАЦИЯ / БОСС:</span>
           <span id="stage-display" class="stage-value">1-1</span>
         </div>
-        <button id="btn-open-guide-header" style="background: transparent; border: 1px solid var(--neon-yellow); color: var(--neon-yellow); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-weight: 700;">
+        <button id="btn-open-guide-header" data-i18n="ui.header.guide" style="background: transparent; border: 1px solid var(--neon-yellow); color: var(--neon-yellow); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-weight: 700;">
           📖 РУКОВОДСТВО
         </button>
+        <!-- syncSoundButton owns this one: its label depends on the mute state. -->
         <button id="btn-sound-toggle" style="background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); border-radius: 6px; padding: 4px 10px; cursor: pointer;">
           🔊 ЗВУК
         </button>
-        <button id="btn-header-back" style="background: rgba(255, 42, 109, 0.15); border: 1px solid var(--neon-red); color: var(--neon-red); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-weight: 700;">
+        <button id="btn-header-back" data-i18n="ui.header.back" style="background: rgba(255, 42, 109, 0.15); border: 1px solid var(--neon-red); color: var(--neon-red); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-weight: 700;">
           ◀ НАЗАД
         </button>
       </div>
@@ -42,13 +45,13 @@
     <div id="screen-main-menu" class="screen-panel active">
       <div class="main-menu-box">
         <h1 class="hero-title">⚡ DEALER'S GAMBIT</h1>
-        <p class="hero-subtitle">Кибер-Оккультная Дуэль в 5 Локациях & 15 Боссах</p>
-        
+        <p class="hero-subtitle" data-i18n="ui.menu.subtitle">Кибер-Оккультная Дуэль в 5 Локациях & 15 Боссах</p>
+
         <div class="menu-buttons">
-          <button id="btn-start-game" class="btn-primary btn-large">
+          <button id="btn-start-game" class="btn-primary btn-large" data-i18n="ui.menu.play">
             🎮 ИГРАТЬ (КАРТА МИРА)
           </button>
-          <button id="btn-open-meta-shop" class="btn-secondary btn-large">
+          <button id="btn-open-meta-shop" class="btn-secondary btn-large" data-i18n="ui.menu.meta">
             🦾 МЕТА-ПРОКАЧКА ХАРАКТЕРИСТИК
           </button>
         </div>
@@ -58,17 +61,17 @@
     <!-- WORLD MAP SCREEN -->
     <div id="screen-world-map" class="screen-panel">
       <div class="map-box">
-        <h2 class="modal-title">🗺️ КАРТА МИРА (5 ЛОКАЦИЙ & 15 БОССОВ)</h2>
-        <p style="color: var(--text-dim); margin-bottom: 16px;">
+        <h2 class="modal-title" data-i18n="ui.map.title">🗺️ КАРТА МИРА (5 ЛОКАЦИЙ & 15 БОССОВ)</h2>
+        <p style="color: var(--text-dim); margin-bottom: 16px;" data-i18n="ui.map.subtitle">
           Выбирайте любую открытую локацию для прохождения или фарма неоновых фишек!
         </p>
 
         <!-- Top Action Buttons -->
         <div style="display: flex; gap: 14px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap;">
-          <button id="btn-map-meta-shop" class="btn-primary" style="padding: 12px 26px; font-size: 1.05rem; box-shadow: 0 0 20px rgba(5, 217, 232, 0.4);">
+          <button id="btn-map-meta-shop" class="btn-primary" data-i18n="ui.map.meta" style="padding: 12px 26px; font-size: 1.05rem; box-shadow: 0 0 20px rgba(5, 217, 232, 0.4);">
             🦾 Прокачка Характеристик
           </button>
-          <button id="btn-map-back-menu" class="btn-secondary" style="padding: 12px 20px;">
+          <button id="btn-map-back-menu" class="btn-secondary" data-i18n="ui.map.backMenu" style="padding: 12px 20px;">
             ⬅️ В Главное Меню
           </button>
         </div>
@@ -82,8 +85,8 @@
     <!-- META SHOP SCREEN -->
     <div id="screen-meta-shop" class="screen-panel">
       <div class="meta-shop-box">
-        <h2 class="modal-title">🦾 МЕТА-МАГАЗИН БАЗОВЫХ УЛУЧШЕНИЙ</h2>
-        <p style="color: var(--text-dim); margin-bottom: 20px;">
+        <h2 class="modal-title" data-i18n="ui.meta.title">🦾 МЕТА-МАГАЗИН БАЗОВЫХ УЛУЧШЕНИЙ</h2>
+        <p style="color: var(--text-dim); margin-bottom: 20px;" data-i18n="ui.meta.subtitle">
           Постоянные улучшения сохраняются навсегда даже при поражениях!
         </p>
 
@@ -92,19 +95,21 @@
         </div>
 
         <div style="text-align: center; margin-top: 14px;">
-          <button id="btn-meta-ad-chips" class="btn-primary" style="background: linear-gradient(135deg, #ffb703, #e67e22); border: none; padding: 12px 22px; font-size: 0.95rem; font-weight: 800; box-shadow: 0 0 14px rgba(255, 183, 3, 0.4); cursor: pointer;">
+          <!-- syncAdChipsButton owns the label: it counts down the ad window. -->
+          <button id="btn-meta-ad-chips" class="btn-primary" data-i18n="ui.meta.ad.idle" style="background: linear-gradient(135deg, #ffb703, #e67e22); border: none; padding: 12px 22px; font-size: 0.95rem; font-weight: 800; box-shadow: 0 0 14px rgba(255, 183, 3, 0.4); cursor: pointer;">
             📺 Реклама за фишки
           </button>
         </div>
 
         <div style="display: flex; gap: 16px; justify-content: center; margin-top: 24px; flex-wrap: wrap;">
-          <button id="btn-meta-back-map" class="btn-secondary">
+          <button id="btn-meta-back-map" class="btn-secondary" data-i18n="ui.meta.backMap">
             🗺️ На Карту Мира
           </button>
           <!-- Only surfaces while the guided tutorial is running; renderMetaShop keeps it in sync. -->
-          <button id="btn-meta-training" class="btn-secondary" style="display: none; border-color: var(--neon-yellow); color: var(--neon-yellow);">
+          <button id="btn-meta-training" class="btn-secondary" data-i18n="ui.meta.training" style="display: none; border-color: var(--neon-yellow); color: var(--neon-yellow);">
             🎓 Тренировочный бой
           </button>
+          <!-- renderMetaShop owns the label: it names the boss you are headed for. -->
           <button id="btn-meta-next-boss" class="btn-primary" style="padding: 14px 28px; font-size: 1.05rem;">
             ⚔️ В БОЙ (К Боссу) ➔
           </button>
@@ -144,7 +149,7 @@
 
           <!-- Dealer Item Card Showcase Overlay -->
           <div id="dealer-card-showcase" class="dealer-card-showcase" style="display: none;">
-            <div class="showcase-badge">🎴 ДИЛЛЕР ИСПОЛЬЗУЕТ ПРЕДМЕТ</div>
+            <div class="showcase-badge" data-i18n="ui.battle.showcaseBadge">🎴 ДИЛЛЕР ИСПОЛЬЗУЕТ ПРЕДМЕТ</div>
             <div id="showcase-card-icon" class="showcase-icon">🔍</div>
             <div id="showcase-card-name" class="showcase-name">ЛУПА</div>
             <div id="showcase-card-desc" class="showcase-desc">Показывает текущий патрон в стволе</div>
@@ -163,7 +168,7 @@
           </div>
 
           <div class="chamber-display" style="flex-direction: column; gap: 8px;">
-            <div style="font-size: 0.75rem; color: var(--neon-yellow); font-weight: 800; letter-spacing: 1px;">🔻 СТВОЛ (ТЕКУЩИЙ ПАТРОН)</div>
+            <div style="font-size: 0.75rem; color: var(--neon-yellow); font-weight: 800; letter-spacing: 1px;" data-i18n="ui.battle.chamberLabel">🔻 СТВОЛ (ТЕКУЩИЙ ПАТРОН)</div>
             <div id="revolver-drum" class="revolver-drum">
               <div class="drum-spindle"></div>
               <div id="bullet-indicators" class="drum-chambers">
@@ -177,20 +182,23 @@
 
           <!-- Combat Log: who shot whom, and with what -->
           <div class="combat-log">
-            <div class="combat-log-title">📋 ХРОНИКА ДУЭЛИ</div>
+            <div class="combat-log-title" data-i18n="ui.battle.logTitle">📋 ХРОНИКА ДУЭЛИ</div>
             <div id="combat-log-entries" class="combat-log-entries">
               <!-- Entries injected dynamically -->
             </div>
           </div>
 
           <div class="action-controls">
+            <!-- Tagged on the inner divs, not the buttons: textContent on a button would
+                 take its second line with it. The payout in the hint is filled from
+                 BLANK_SELF_SHOT_CHIPS, so the button cannot promise the wrong number. -->
             <button id="btn-shoot-dealer" class="btn-action btn-shoot-dealer">
-              <div>🎯 Выстрел в Диллера</div>
-              <div style="font-size: 0.65rem; opacity: 0.8; margin-top: 4px; font-family: 'Fira Code', monospace; font-weight: 400;">(Ход передается врагу)</div>
+              <div data-i18n="ui.battle.shootDealer">🎯 Выстрел в Диллера</div>
+              <div style="font-size: 0.65rem; opacity: 0.8; margin-top: 4px; font-family: 'Fira Code', monospace; font-weight: 400;" data-i18n="ui.battle.shootDealer.hint">(Ход передается врагу)</div>
             </button>
             <button id="btn-shoot-self" class="btn-action btn-shoot-self">
-              <div>🛡️ Выстрел в Себя</div>
-              <div style="font-size: 0.65rem; opacity: 0.9; margin-top: 4px; font-family: 'Fira Code', monospace; font-weight: 700; color: #ffe375;">(Холостой = +25$ & Повторный Ход!)</div>
+              <div data-i18n="ui.battle.shootSelf">🛡️ Выстрел в Себя</div>
+              <div style="font-size: 0.65rem; opacity: 0.9; margin-top: 4px; font-family: 'Fira Code', monospace; font-weight: 700; color: #ffe375;" data-i18n="ui.battle.shootSelf.hint">(Холостой = +25$ & Повторный Ход!)</div>
             </button>
           </div>
         </section>
@@ -201,7 +209,7 @@
             <div class="char-info">
               <div id="player-avatar" class="avatar-box" style="border-color: var(--neon-cyan);">👤</div>
               <div class="char-details">
-                <h3 style="color: var(--neon-cyan);">ИГРОК (ВЫ)</h3>
+                <h3 style="color: var(--neon-cyan);" data-i18n="ui.battle.player">ИГРОК (ВЫ)</h3>
                 <div class="hp-bar-container">
                   <div id="player-hp-fill" class="hp-bar-fill" style="width: 100%; background: linear-gradient(90deg, #05d9e8, #0077b6);"></div>
                 </div>
@@ -209,7 +217,7 @@
               </div>
             </div>
             <div style="font-size: 0.85rem; color: var(--text-dim);">
-              ХОД: <strong id="turn-indicator" style="color: var(--neon-green);">ВАШ ХОД</strong>
+              <span data-i18n="ui.battle.turnLabel">ХОД:</span> <strong id="turn-indicator" style="color: var(--neon-green);">ВАШ ХОД</strong>
             </div>
           </div>
 
@@ -235,13 +243,13 @@
           <button id="btn-ad-double-chips" class="btn-primary" style="background: linear-gradient(135deg, #00ff66, #009944); border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: 800; display: none; cursor: pointer; color: #000;">
             📺 Удвоить выигрыш (2x Фишек)!
           </button>
-          <button id="btn-ad-revive" class="btn-primary" style="background: linear-gradient(135deg, #ff2a6d, #b0003a); border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: 800; display: none; cursor: pointer; color: #fff; box-shadow: 0 0 14px rgba(255,42,109,0.5);">
+          <button id="btn-ad-revive" class="btn-primary" data-i18n="ui.modal.revive" style="background: linear-gradient(135deg, #ff2a6d, #b0003a); border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: 800; display: none; cursor: pointer; color: #fff; box-shadow: 0 0 14px rgba(255,42,109,0.5);">
             ⚡ Второй Шанс (+20% HP) — Продолжить Бой ⚔️
           </button>
-          <button id="btn-intermission-meta" class="btn-secondary" style="font-size: 0.9rem; padding: 10px 18px;">
+          <button id="btn-intermission-meta" class="btn-secondary" data-i18n="ui.modal.meta" style="font-size: 0.9rem; padding: 10px 18px;">
             🦾 Мета-Прокачка
           </button>
-          <button id="btn-intermission-map" class="btn-secondary" style="font-size: 0.9rem; padding: 10px 18px;">
+          <button id="btn-intermission-map" class="btn-secondary" data-i18n="ui.modal.map" style="font-size: 0.9rem; padding: 10px 18px;">
             🗺️ Карта Мира
           </button>
           <button id="btn-modal-action" class="btn-primary" style="font-size: 1rem; padding: 12px 24px;">
@@ -255,7 +263,7 @@
     <div id="modal-boss-intro" class="modal-overlay">
       <div class="modal-box" style="max-width: 600px; border-color: var(--neon-red); position: relative;">
         <button id="btn-boss-intro-close" class="modal-close-btn">✖</button>
-        <div style="font-size: 0.85rem; color: var(--neon-purple); font-weight: 800; letter-spacing: 2px;">ДОСЬЕ СЛЕДУЮЩЕГО БОССА</div>
+        <div style="font-size: 0.85rem; color: var(--neon-purple); font-weight: 800; letter-spacing: 2px;" data-i18n="ui.boss.dossier">ДОСЬЕ СЛЕДУЮЩЕГО БОССА</div>
         <div id="boss-intro-avatar" class="avatar-box" style="width: 80px; height: 80px; font-size: 2.6rem; margin: 10px auto;">🤖</div>
         <h2 id="boss-intro-name" class="modal-title" style="color: var(--neon-red); font-size: 1.8rem;">Диллер "Марков"</h2>
         <div id="boss-intro-title" style="color: var(--gold); font-size: 1rem; font-weight: 700; margin-top: -10px;">«Легенда Подполья»</div>
@@ -263,16 +271,17 @@
         <div style="background: rgba(10, 12, 22, 0.9); border: 1px solid var(--panel-border); padding: 16px; border-radius: 10px; text-align: left; font-size: 0.9rem; margin: 10px 0;">
           <p id="boss-intro-desc" style="color: var(--text-main); margin-bottom: 10px;">Описание босса...</p>
           <div style="color: var(--neon-yellow); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-            <span>⚠️ ОСОБЕННОСТЬ:</span>
+            <span data-i18n="ui.boss.abilityLabel">⚠️ ОСОБЕННОСТЬ:</span>
             <span id="boss-intro-ability" style="color: var(--text-main); font-weight: 400;">Характеристики и опасности</span>
           </div>
         </div>
 
         <div style="display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+          <!-- showBossIntroModal owns the label: the buff scales with the location. -->
           <button id="btn-boss-ad-buff" class="btn-primary" style="background: linear-gradient(135deg, #ffb703, #e67e22); border: none; padding: 12px 20px; font-size: 0.95rem; font-weight: 800; box-shadow: 0 0 16px rgba(255, 183, 3, 0.4); cursor: pointer;">
-            📺 Смотреть рекламу: <span id="ad-buff-label">+20 HP и +20 Щита</span>
+            📺 Смотреть рекламу: +20 HP и +20 Щита
           </button>
-          <button id="btn-boss-intro-fight" class="btn-action btn-shoot-dealer" style="padding: 14px 28px; font-size: 1.1rem;">
+          <button id="btn-boss-intro-fight" class="btn-action btn-shoot-dealer" data-i18n="ui.boss.fight" style="padding: 14px 28px; font-size: 1.1rem;">
             ⚔️ НАЧАТЬ ДУЭЛЬ!
           </button>
         </div>
@@ -283,37 +292,37 @@
     <div id="modal-guide" class="modal-overlay">
       <div class="modal-box" style="max-width: 700px; border-color: var(--neon-yellow); position: relative; text-align: left;">
         <button id="btn-guide-close" class="modal-close-btn" style="border-color: var(--neon-yellow); color: var(--neon-yellow);">✖</button>
-        <h2 class="modal-title" style="color: var(--neon-yellow); text-align: center; font-size: 1.8rem;">📖 РУКОВОДСТВО & ЛОР ИГРЫ</h2>
-        
+        <h2 class="modal-title" style="color: var(--neon-yellow); text-align: center; font-size: 1.8rem;" data-i18n="ui.guide.title">📖 РУКОВОДСТВО & ЛОР ИГРЫ</h2>
+
         <div style="overflow-y: auto; max-height: 480px; padding-right: 10px; display: flex; flex-direction: column; gap: 14px; font-size: 0.9rem; color: var(--text-main);">
-          
+
           <div style="background: rgba(10,12,24,0.8); padding: 14px; border-radius: 8px; border: 1px solid var(--neon-purple);">
-            <h3 style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif; margin-bottom: 6px;">🌃 КРАТКИЙ ЛОР</h3>
-            <p>Вы очнулись в подпольном Кибер-Казино 2088 года. Городом правят 15 синдикатов и ИИ-диллеров. Единственный способ завоевать свободу и главный банк — пройти 5 Локаций, победить всех 15 боссов и взломать Ядро Пустоты.</p>
+            <h3 style="color: var(--neon-purple); font-family: 'Orbitron', sans-serif; margin-bottom: 6px;" data-i18n="ui.guide.lore.title">🌃 КРАТКИЙ ЛОР</h3>
+            <p data-i18n="ui.guide.lore.body">Вы очнулись в подпольном Кибер-Казино 2088 года. Городом правят 15 синдикатов и ИИ-диллеров. Единственный способ завоевать свободу и главный банк — пройти 5 Локаций, победить всех 15 боссов и взломать Ядро Пустоты.</p>
           </div>
 
           <div style="background: rgba(10,12,24,0.8); padding: 14px; border-radius: 8px; border: 1px solid var(--neon-cyan);">
-            <h3 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; margin-bottom: 6px;">🎯 СУТЬ И ПРАВИЛА ДУЭЛИ</h3>
-            <p style="margin-bottom: 6px;">1. В барабан заряжается известное количество <strong>Боевых 🔴</strong> и <strong>Холостых 🔵</strong> патронов.</p>
-            <p style="margin-bottom: 6px;">2. Выстрел по врагу наносит урон, но <strong>завершает ваш ход</strong>.</p>
-            <p style="margin-bottom: 6px;">3. <strong>🔥 СЕКРЕТ ПОБЕДЫ (Выстрел в Себя)</strong>: Если вы выстрелите в себя <strong>ХОЛОСТЫМ</strong> патроном, вы получите <strong>+$25 фишек</strong> и <strong>ПОДТВЕРЖДЕННЫЙ ПОВТОРНЫЙ ХОД</strong>!</p>
-            <p style="margin-bottom: 6px;">4. <strong>🎴 КАРТЫ-ПРЕДМЕТЫ</strong>: В процессе боя у вас в руке появляются карты (Лупа, Ножовка, Сигарета, Хак-чип и др.). Кликните на карту в свой ход, чтобы применить её (узнать патрон, удвоить урон x2, пополнить HP или инвертировать заряд)!</p>
+            <h3 style="color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; margin-bottom: 6px;" data-i18n="ui.guide.rules.title">🎯 СУТЬ И ПРАВИЛА ДУЭЛИ</h3>
+            <p style="margin-bottom: 6px;" data-i18n-html="ui.guide.rules.1">1. В барабан заряжается известное количество <strong>Боевых 🔴</strong> и <strong>Холостых 🔵</strong> патронов.</p>
+            <p style="margin-bottom: 6px;" data-i18n-html="ui.guide.rules.2">2. Выстрел по врагу наносит урон, но <strong>завершает ваш ход</strong>.</p>
+            <p style="margin-bottom: 6px;" data-i18n-html="ui.guide.rules.3">3. <strong>🔥 СЕКРЕТ ПОБЕДЫ (Выстрел в Себя)</strong>: Если вы выстрелите в себя <strong>ХОЛОСТЫМ</strong> патроном, вы получите <strong>+25$ фишек</strong> и <strong>ПОДТВЕРЖДЕННЫЙ ПОВТОРНЫЙ ХОД</strong>!</p>
+            <p style="margin-bottom: 6px;" data-i18n-html="ui.guide.rules.4">4. <strong>🎴 КАРТЫ-ПРЕДМЕТЫ</strong>: В процессе боя у вас в руке появляются карты (Лупа, Ножовка, Сигарета, Хак-чип и др.). Кликните на карту в свой ход, чтобы применить её (узнать патрон, умножить урон, пополнить HP или инвертировать заряд)!</p>
           </div>
 
           <div style="background: rgba(10,12,24,0.8); padding: 14px; border-radius: 8px; border: 1px solid var(--gold);">
-            <h3 style="color: var(--gold); font-family: 'Orbitron', sans-serif; margin-bottom: 6px;">💡 СТРАТЕГИЯ ПРОГРЕССА И ФАРМА</h3>
-            <p style="margin-bottom: 6px;">• <strong>Проиграли боссу? Не страшно!</strong> При поражении вам выплачивается <strong>+70$ компенсации</strong> за проявленный риск.</p>
-            <p style="margin-bottom: 6px;">• Вы всегда можете перейти в <strong>Мета-Магазин</strong> и прокачать <strong>Max HP (+20 HP)</strong>, <strong>Кибер-Броню</strong> или <strong>Базовый Урон</strong>.</p>
-            <p>• Вы всегда можете с <strong>Карты Мира</strong> вернуться к прошлым уже побежденным боссам, легко профармить еще 200-300$, качнуться до максимума и хлопнуть сложного босса!</p>
+            <h3 style="color: var(--gold); font-family: 'Orbitron', sans-serif; margin-bottom: 6px;" data-i18n="ui.guide.progress.title">💡 СТРАТЕГИЯ ПРОГРЕССА И ФАРМА</h3>
+            <p style="margin-bottom: 6px;" data-i18n-html="ui.guide.progress.1">• <strong>Проиграли боссу? Не страшно!</strong> При поражении вам выплачивается <strong>15% от награды за этого босса</strong> — компенсация за проявленный риск.</p>
+            <p style="margin-bottom: 6px;" data-i18n-html="ui.guide.progress.2">• Вы всегда можете перейти в <strong>Мета-Магазин</strong> и прокачать <strong>Max HP (+20 HP)</strong>, <strong>Кибер-Броню</strong> или <strong>Базовый Урон</strong>.</p>
+            <p data-i18n-html="ui.guide.progress.3">• Вы всегда можете с <strong>Карты Мира</strong> вернуться к прошлым уже побежденным боссам, профармить фишки, качнуться до максимума и хлопнуть сложного босса!</p>
           </div>
 
         </div>
 
         <div style="display: flex; gap: 12px; justify-content: center; margin-top: 10px; flex-wrap: wrap;">
-          <button id="btn-guide-tutorial" class="btn-primary" style="background: linear-gradient(135deg, #f6c90e, #e67e22);">
+          <button id="btn-guide-tutorial" class="btn-primary" data-i18n="ui.guide.tutorial" style="background: linear-gradient(135deg, #f6c90e, #e67e22);">
             🎓 ПОКАЗАТЬ НА ПРАКТИКЕ
           </button>
-          <button id="btn-guide-start" class="btn-secondary">
+          <button id="btn-guide-start" class="btn-secondary" data-i18n="ui.guide.start">
             ПОНЯТНО! В БОЙ 🚀
           </button>
         </div>
@@ -321,23 +330,26 @@
     </div>
 
     <!-- DYNAMIC FLOATING CARD TOOLTIP -->
+    <!-- Left empty: renderBattleUI fills both lines from the hovered card before the
+         tooltip is ever shown, so placeholder copy here would only be a second, stale
+         source for text nobody sees. -->
     <div id="card-tooltip" class="card-tooltip">
-      <div id="tooltip-title" class="tooltip-title">🎴 Название Карты</div>
-      <div id="tooltip-desc" class="tooltip-desc">Полное описание предмета и его эффект...</div>
+      <div id="tooltip-title" class="tooltip-title"></div>
+      <div id="tooltip-desc" class="tooltip-desc"></div>
     </div>
     <!-- CONFIRMATION EXIT MODAL -->
     <div id="modal-confirm-exit" class="modal-overlay">
       <div class="modal-box" style="max-width: 500px; border-color: var(--neon-yellow);">
         <div style="font-size: 2.5rem;">⚠️</div>
-        <h2 class="modal-title" style="color: var(--neon-yellow); font-size: 1.5rem;">ПОКИНУТЬ ТЕКУЩИЙ БОЙ?</h2>
-        <p style="color: var(--text-main); font-size: 0.95rem; line-height: 1.4;">
+        <h2 class="modal-title" style="color: var(--neon-yellow); font-size: 1.5rem;" data-i18n="ui.exit.title">ПОКИНУТЬ ТЕКУЩИЙ БОЙ?</h2>
+        <p style="color: var(--text-main); font-size: 0.95rem; line-height: 1.4;" data-i18n-html="ui.exit.body">
           Вы находитесь в бою. Если вы выйдете в главное меню или на карту мира, <strong>все несохраненные данные раунда будут утеряны</strong>. Вы точно уверены?
         </p>
         <div style="display: flex; gap: 14px; justify-content: center; margin-top: 10px;">
-          <button id="btn-confirm-exit-cancel" class="btn-secondary" style="padding: 10px 20px;">
+          <button id="btn-confirm-exit-cancel" class="btn-secondary" data-i18n="ui.exit.cancel" style="padding: 10px 20px;">
             Отмена (Продолжить Бой)
           </button>
-          <button id="btn-confirm-exit-ok" class="btn-primary" style="background: linear-gradient(135deg, #ff2a6d, #b0003a); padding: 10px 20px;">
+          <button id="btn-confirm-exit-ok" class="btn-primary" data-i18n="ui.exit.ok" style="background: linear-gradient(135deg, #ff2a6d, #b0003a); padding: 10px 20px;">
             Да, Выйти 🌍
           </button>
         </div>
