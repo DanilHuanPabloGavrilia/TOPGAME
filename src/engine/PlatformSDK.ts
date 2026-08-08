@@ -4,6 +4,8 @@
 // be bundled. vk-bridge is an npm dependency, imported dynamically only when the page is
 // actually running inside VK, so a Yandex or standalone build never downloads it.
 
+import { sound } from './AudioSynthesizer';
+
 declare global {
   interface Window {
     YaGames?: any;
@@ -213,11 +215,17 @@ class PlatformSDK {
     // An ad on screen is not gameplay. The render loop restarts it once the player is back
     // in a duel, so nothing here has to remember to.
     this.gameplayStop();
+    // The game must not talk over the ad's own audio. Suspension is separate from the
+    // player's mute setting, so the sound button still reads the way they left it.
+    sound.setSuspended(true);
     this.clearAdWatchdog();
     this.adWatchdog = setTimeout(() => {
       console.warn('[SDK] Ad never opened within timeout, releasing lock');
       this.adWatchdog = null;
       this.isAdShowing = false;
+      // This path releases the lock without going through endAd(), so the sound has to be
+      // let back in here too — otherwise an ad that never opened leaves the game mute.
+      sound.setSuspended(false);
       if (onTimeout) onTimeout();
     }, AD_OPEN_TIMEOUT_MS);
   }
@@ -230,6 +238,7 @@ class PlatformSDK {
   private endAd(): void {
     this.clearAdWatchdog();
     this.isAdShowing = false;
+    sound.setSuspended(false);
   }
 
   private clearAdWatchdog(): void {

@@ -28,6 +28,8 @@
   margin: 0;
   padding: 0;
   user-select: none;
+  /* Suppresses the long-press callout on iOS, which the contextmenu event does not reach. */
+  -webkit-touch-callout: none;
 }
 
 .gold-pulse {

@@ -792,6 +792,18 @@ function renderMetaShop() {
   }
 }
 
+// The platform requires the game to fall silent when the page goes to the background —
+// a switched tab or a minimised window. Suspension is separate from the player's own mute
+// setting, so the sound button still reads the way they left it when they come back.
+document.addEventListener('visibilitychange', () => {
+  sound.setSuspended(document.visibilityState === 'hidden');
+});
+
+// No browser context menu over the game: a right click or a long press on a card would
+// otherwise open it mid-duel. Long press on iOS also needs -webkit-touch-callout in the
+// stylesheet, which this event alone does not cover.
+document.getElementById('app')?.addEventListener('contextmenu', e => e.preventDefault());
+
 // Global Event Listeners & Navigation
 function syncSoundButton() {
   const isMuted = sound.isMuted;

@@ -18,6 +18,12 @@ class AudioSynthesizer {
   private activeReloadSources: (AudioBufferSourceNode | HTMLAudioElement)[] = [];
   public isMuted: boolean = false;
 
+  // Silence forced by circumstance rather than by the player: an ad is on screen, or the
+  // page went to the background. Kept apart from isMuted because the sound button renders
+  // and persists that one — folding the two together would flip the button under the
+  // player and save the wrong preference.
+  private isSuspended: boolean = false;
+
   private soundFiles: Record<SoundKey, string> = {
     shot: shotUrl,
     blank: blankUrl,
@@ -63,6 +69,40 @@ class AudioSynthesizer {
   /** Restores the persisted mute preference without toggling. */
   public setMuted(muted: boolean): void {
     this.isMuted = muted;
+  }
+
+  /**
+   * Silences the game without touching the player's own setting: required while an ad plays
+   * and while the page sits in the background.
+   *
+   * Suspending the AudioContext is not enough on its own — a sound already in flight keeps
+   * going — so anything currently playing is stopped as well.
+   */
+  public setSuspended(suspended: boolean): void {
+    if (this.isSuspended === suspended) return;
+    this.isSuspended = suspended;
+
+    if (suspended) {
+      this.stopAll();
+      void this.ctx?.suspend();
+    } else if (this.ctx?.state === 'suspended') {
+      void this.ctx.resume();
+    }
+  }
+
+  /** Cuts every sound currently playing, on both the Web Audio and HTMLAudio paths. */
+  private stopAll(): void {
+    this.stopReload();
+    Object.values(this.audioPool).forEach(pool => {
+      pool?.forEach(el => {
+        try {
+          el.pause();
+          el.currentTime = 0;
+        } catch {
+          // A pool element that was never played throws on currentTime; nothing to stop.
+        }
+      });
+    });
   }
 
   private async fetchAll(): Promise<void> {
@@ -144,7 +184,7 @@ class AudioSynthesizer {
   }
 
   private playBufferOrFallback(key: SoundKey, volume: number = 0.85): boolean {
-    if (this.isMuted) return true;
+    if (this.isMuted || this.isSuspended) return true;
     this.init();
 
     // 1. Instant 0ms latency Web Audio API AudioBuffer playback
@@ -194,7 +234,7 @@ class AudioSynthesizer {
 
   // Play Revolver Click / Spin
   playClick() {
-    if (this.isMuted) return;
+    if (this.isMuted || this.isSuspended) return;
     this.init();
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
@@ -394,6 +434,11 @@ class AudioSynthesizer {
 
   // Play Coin Chime
   playCoinChime() {
+    // The only synth voice with no sampled counterpart, so it never passed through
+    // playBufferOrFallback and never saw a mute check: muting the game still let the coin
+    // ring. Worse once ads suspend audio — init() below resumes a suspended AudioContext,
+    // so this one call could unmute the game in the middle of an ad.
+    if (this.isMuted || this.isSuspended) return;
     this.init();
     if (!this.ctx) return;
     const now = this.ctx.currentTime;
