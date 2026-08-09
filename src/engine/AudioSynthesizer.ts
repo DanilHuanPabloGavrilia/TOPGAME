@@ -23,6 +23,7 @@ class AudioSynthesizer {
   // and persists that one — folding the two together would flip the button under the
   // player and save the wrong preference.
   private isSuspended: boolean = false;
+  private gestureResumeArmed: boolean = false;
 
   private soundFiles: Record<SoundKey, string> = {
     shot: shotUrl,
@@ -85,9 +86,46 @@ class AudioSynthesizer {
     if (suspended) {
       this.stopAll();
       void this.ctx?.suspend();
-    } else if (this.ctx?.state === 'suspended') {
-      void this.ctx.resume();
+      return;
     }
+
+    this.resumeContext();
+  }
+
+  /**
+   * Brings the AudioContext back after a suspension.
+   *
+   * Mobile browsers refuse resume() outside a user gesture, and an ad callback or a
+   * visibilitychange is not one. A refusal there would leave the game silent for the rest
+   * of the session with nothing to hint why — so if the context is still suspended shortly
+   * after, the retry is parked on the next tap, which always is a gesture.
+   */
+  private resumeContext(): void {
+    if (!this.ctx || this.ctx.state !== 'suspended') return;
+
+    this.ctx.resume().catch(() => this.resumeOnNextGesture());
+    // resume() can also resolve without the state actually changing, so check rather than
+    // trust the promise.
+    setTimeout(() => {
+      if (!this.isSuspended && this.ctx?.state === 'suspended') this.resumeOnNextGesture();
+    }, 400);
+  }
+
+  private resumeOnNextGesture(): void {
+    if (this.gestureResumeArmed) return;
+    this.gestureResumeArmed = true;
+
+    const retry = () => {
+      this.gestureResumeArmed = false;
+      window.removeEventListener('touchstart', retry);
+      window.removeEventListener('click', retry);
+      window.removeEventListener('keydown', retry);
+      if (!this.isSuspended && this.ctx?.state === 'suspended') void this.ctx.resume();
+    };
+
+    window.addEventListener('touchstart', retry, { passive: true });
+    window.addEventListener('click', retry);
+    window.addEventListener('keydown', retry);
   }
 
   /** Cuts every sound currently playing, on both the Web Audio and HTMLAudio paths. */

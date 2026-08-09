@@ -140,7 +140,11 @@ body {
   display: none;
   flex: 1;
   width: 100%;
-  height: 100%;
+  /* Not height:100%. The panel is a flex child sitting under the header, so a full-height
+     panel makes the column header + viewport tall — #app clips the difference, and on a
+     landscape phone the overflowing part was the player's hand. flex:1 already asks for
+     exactly the space the header leaves; min-height:0 lets it actually shrink to that. */
+  min-height: 0;
   position: relative;
   z-index: 10;
 }
@@ -296,13 +300,23 @@ body {
   gap: 8px;
   position: relative;
   z-index: 10;
-  overflow: hidden;
+  /* Scroll rather than clip. #app is locked to the viewport height, so anything the table
+     cannot fit was simply unreachable before — with no way to scroll to it. On a desktop
+     this never engages; on a short screen it is the difference between having a hand and
+     not having one. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Grid and flex children default to min-width:auto, which means they refuse to shrink
    below their content. Without this the hand widens the whole row instead of scrolling
-   inside it, and the overflow rules below never get a chance to fire. */
-.game-table > * { min-width: 0; }
+   inside it, and the overflow rules below never get a chance to fire.
+   min-height has exactly the same default and bites the same way vertically: the 1fr row
+   refuses to shrink below its content, so it pushes the player's hand past the bottom of
+   a clipped #app. On a landscape phone that put the cards permanently out of reach. */
+.game-table > * { min-width: 0; min-height: 0; }
 
 .dealer-zone {
   display: flex;
@@ -1159,12 +1173,68 @@ body {
 
 /* Very small or landscape phones: the vertical budget is the binding constraint. */
 @media (max-height: 560px), (max-width: 380px) {
+  /* Flex column instead of grid here. Grid rows — 1fr or auto alike — redistribute inside a
+     fixed-height container, so the hand got compressed to a sliver with the 80px cards
+     clipped inside it and unclickable. Flex children pinned to flex:0 0 auto keep their
+     real height and let the table scroll instead of squeezing anything. */
+  .game-table {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+  }
+
+  .game-table > * { flex: 0 0 auto; }
+
+  [data-i18n="ui.battle.chamberLabel"] { display: none; }
+
   .revolver-drum { width: 84px; height: 84px; }
   .item-card { width: 60px; height: 80px; }
   .item-card-icon-img { width: 26px; height: 26px; }
   .combat-log { display: none; }
   .hero-title { font-size: 1.4rem; }
   .btn-action { min-height: 42px; font-size: 0.66rem; }
+}
+
+/* Landscape phone: no vertical room, but plenty of width going to waste. Stacking the hand
+   under the table needs ~465px of height against ~289 available, so it is put beside the
+   cylinder instead and the whole turn fits on screen with nothing to scroll. */
+@media (max-height: 560px) and (orientation: landscape) {
+  .game-table {
+    display: grid;
+    grid-template-columns: 1fr minmax(150px, 210px);
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    column-gap: 10px;
+  }
+
+  .dealer-zone { grid-column: 1 / -1; grid-row: 1; }
+  .table-center { grid-column: 1; grid-row: 2; }
+
+  .player-zone {
+    grid-column: 2;
+    grid-row: 2;
+    height: 100%;
+    justify-content: flex-start;
+  }
+
+  /* The hand wraps into the column and scrolls inside it rather than widening the grid.
+     Cards and the player header are trimmed so a full five-card hand shows as two rows
+     without scrolling — a hand you have to scroll to read is a hand you misplay. */
+  .cards-container {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .item-card { width: 52px; height: 68px; }
+  .item-card-icon-img { width: 22px; height: 22px; }
+  .card-name { font-size: 0.52rem; }
+
+  .player-header { padding: 2px 8px; }
+  .player-zone .avatar-box { width: 30px; height: 30px; font-size: 0.95rem; }
+  .player-zone .char-details h3 { font-size: 0.72rem; }
 }
 
 /* Coarse pointers get no hover affordances at all — they only cause stuck states. */
