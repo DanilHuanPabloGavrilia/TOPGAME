@@ -265,10 +265,12 @@
         <button id="btn-boss-intro-close" class="modal-close-btn">✖</button>
         <div style="font-size: 0.85rem; color: var(--neon-purple); font-weight: 800; letter-spacing: 2px;" data-i18n="ui.boss.dossier">ДОСЬЕ СЛЕДУЮЩЕГО БОССА</div>
         <div id="boss-intro-avatar" class="avatar-box" style="width: 80px; height: 80px; font-size: 2.6rem; margin: 10px auto;">🤖</div>
-        <h2 id="boss-intro-name" class="modal-title" style="color: var(--neon-red); font-size: 1.8rem;">Диллер "Марков"</h2>
+        <!-- Sizes live in the stylesheet, not inline: an inline font-size outranks every
+             media query, which is how the boss name stayed 1.8rem on a phone. -->
+        <h2 id="boss-intro-name" class="modal-title" style="color: var(--neon-red);">Диллер "Марков"</h2>
         <div id="boss-intro-title" style="color: var(--gold); font-size: 1rem; font-weight: 700; margin-top: -10px;">«Легенда Подполья»</div>
         
-        <div style="background: rgba(10, 12, 22, 0.9); border: 1px solid var(--panel-border); padding: 16px; border-radius: 10px; text-align: left; font-size: 0.9rem; margin: 10px 0;">
+        <div class="boss-intro-body" style="background: rgba(10, 12, 22, 0.9); border: 1px solid var(--panel-border); padding: 16px; border-radius: 10px; text-align: left; font-size: 0.9rem; margin: 10px 0;">
           <p id="boss-intro-desc" style="color: var(--text-main); margin-bottom: 10px;">Описание босса...</p>
           <div style="color: var(--neon-yellow); font-weight: 700; display: flex; align-items: center; gap: 8px;">
             <span data-i18n="ui.boss.abilityLabel">⚠️ ОСОБЕННОСТЬ:</span>
@@ -276,7 +278,7 @@
           </div>
         </div>
 
-        <div style="display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+        <div class="boss-intro-actions" style="display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 10px; flex-wrap: wrap;">
           <!-- showBossIntroModal owns the label: the buff scales with the location. -->
           <button id="btn-boss-ad-buff" class="btn-primary" style="background: linear-gradient(135deg, #ffb703, #e67e22); border: none; padding: 12px 20px; font-size: 0.95rem; font-weight: 800; box-shadow: 0 0 16px rgba(255, 183, 3, 0.4); cursor: pointer;">
             📺 Смотреть рекламу: +20 HP и +20 Щита

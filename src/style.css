@@ -650,6 +650,7 @@ body {
   box-shadow: 0 0 50px rgba(5, 217, 232, 0.3); display: flex; flex-direction: column; gap: 20px;
 }
 .modal-title { font-family: 'Orbitron', 'Fira Code', monospace; font-size: 2.2rem; color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); }
+#boss-intro-name { font-size: 1.8rem; }
 
 .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 10px; }
 .shop-item-card {
@@ -1144,8 +1145,41 @@ body {
     gap: 12px;
   }
   .modal-title { font-size: 1.15rem; }
+  #boss-intro-name { font-size: 1.15rem; }
   .modal-box p,
   .modal-box div { font-size: 0.8rem; }
+
+  /* The dossier's buttons sat under a description long enough to push them off a short
+     screen, and the whole modal scrolled — so the way into the fight was out of sight.
+     The description goes last and scrolls inside itself; everything else, the two buttons
+     included, stays put above it. */
+  #modal-boss-intro .modal-box { gap: 6px; padding: 12px 14px; }
+  #modal-boss-intro .boss-intro-actions { gap: 8px; margin-top: 2px; }
+
+  /* Inline styles on these two outrank the stylesheet, so the override has to shout. */
+  #btn-boss-intro-fight { padding: 9px 16px !important; font-size: 0.85rem !important; }
+  #btn-boss-ad-buff { padding: 8px 12px !important; font-size: 0.75rem !important; }
+
+  #modal-boss-intro .boss-intro-body {
+    order: 1;
+    /* Takes the leftover room but never gives up more than this: squeezed to a single line
+       the description is present in name only, and reading the boss is the point of the
+       screen. Anything past the floor scrolls inside the box. */
+    flex: 1 1 auto;
+    min-height: 84px;
+    max-height: 40vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 2px 0 0;
+    padding: 8px 10px;
+  }
+
+  #modal-boss-intro .avatar-box {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.4rem !important;
+    margin: 2px auto !important;
+  }
   .modal-box .btn-primary,
   .modal-box .btn-secondary { padding: 11px 16px; font-size: 0.82rem; }
 

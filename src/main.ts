@@ -140,6 +140,15 @@ function renderUI() {
     tutorial.changeScreen(gameState.screenState as TutorialScreen);
   }
 
+  // The Guide belongs to the part of the session where the player is still finding their
+  // feet. Inside a duel it is dead weight, and on a phone it was worse than that: it pushed
+  // the Back button off the right edge of the header, so there was no visible way out of a
+  // fight. Hidden during battle, the header fits and Back is reachable again.
+  const btnGuideHeader = document.getElementById('btn-open-guide-header');
+  if (btnGuideHeader) {
+    btnGuideHeader.style.display = gameState.screenState === 'BATTLE' ? 'none' : '';
+  }
+
   // Header Stats
   chipsDisplay.innerText = `${gameState.player.chips} $`;
   stageDisplay.innerText = t('ui.header.stageValue', {
