@@ -97,6 +97,12 @@ const modalDesc = document.getElementById('modal-desc')!;
 const shopGrid = document.getElementById('shop-grid')!;
 const btnModalAction = document.getElementById('btn-modal-action') as HTMLButtonElement;
 
+// Matches the stylesheet's short-screen breakpoint. Held as a MediaQueryList rather than
+// re-measured per frame, and listened to so turning the phone repaints the dealer's hand
+// instead of leaving whichever form was drawn last.
+const compactDealerHand = window.matchMedia('(max-height: 560px), (max-width: 380px)');
+compactDealerHand.addEventListener('change', () => gameState.notifyUpdate());
+
 // Main UI Render Pipeline
 function renderUI() {
   // Tell the platform whether the player is duelling right now. Decided before the branches
@@ -174,13 +180,29 @@ function renderBattleUI() {
   }
 
   // Dealer Hand Cards (Static, no bobbing/movement)
+  //
+  // A boss with a full hand draws nine 30px backs — over 300px of a phone's width, and the
+  // strip refuses to shrink, so it squeezed everything beside it. How many cards the
+  // opponent holds is the tactical fact; nine identical rectangles are just the decorative
+  // way of saying it. Below the short-screen breakpoint they collapse to a count.
   dealerCardsContainer.innerHTML = '';
-  gameState.dealer.hand.forEach(() => {
-    const card = document.createElement('div');
-    card.style.cssText = 'width: 30px; height: 42px; background: linear-gradient(135deg, #1f112b, #ff2a6d); border: 1px solid var(--neon-red); border-radius: 6px; display: flex; justify-content: center; align-items: center; font-size: 0.85rem; box-shadow: 0 0 8px rgba(255, 42, 109, 0.3);';
-    card.innerText = '🎴';
-    dealerCardsContainer.appendChild(card);
-  });
+  const cardCount = gameState.dealer.hand.length;
+
+  if (compactDealerHand.matches) {
+    if (cardCount > 0) {
+      const badge = document.createElement('div');
+      badge.style.cssText = 'display: flex; align-items: center; gap: 3px; padding: 3px 8px; border: 1px solid var(--neon-red); border-radius: 8px; background: rgba(255, 42, 109, 0.12); font-size: 0.78rem; font-weight: 700; color: var(--neon-red); white-space: nowrap;';
+      badge.innerText = `🎴 ×${cardCount}`;
+      dealerCardsContainer.appendChild(badge);
+    }
+  } else {
+    gameState.dealer.hand.forEach(() => {
+      const card = document.createElement('div');
+      card.style.cssText = 'width: 30px; height: 42px; background: linear-gradient(135deg, #1f112b, #ff2a6d); border: 1px solid var(--neon-red); border-radius: 6px; display: flex; justify-content: center; align-items: center; font-size: 0.85rem; box-shadow: 0 0 8px rgba(255, 42, 109, 0.3);';
+      card.innerText = '🎴';
+      dealerCardsContainer.appendChild(card);
+    });
+  }
 
   // Player
   const playerHpPct = Math.max(0, (gameState.player.hp / gameState.player.maxHp) * 100);

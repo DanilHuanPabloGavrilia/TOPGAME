@@ -1193,6 +1193,27 @@ body {
   .combat-log { display: none; }
   .hero-title { font-size: 1.4rem; }
   .btn-action { min-height: 42px; font-size: 0.66rem; }
+
+  /* The dealer zone must not be able to grow. Everything below it — the cylinder, the
+     buttons, the hand — lives on what it leaves behind, so a variable-height dealer zone
+     means a hand that moves and eventually disappears. Two lines of dialogue at most, and
+     a hard ceiling on the block regardless of what anyone puts in it later. */
+  .dealer-zone {
+    max-height: 84px;
+    overflow: hidden;
+    padding: 6px 12px;
+  }
+
+  .dealer-dialogue {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-width: 110px;
+  }
+
+  /* The count badge replaces the strip; it must never win width against the dialogue. */
+  #dealer-cards-container { flex: 0 0 auto; min-width: 0; }
 }
 
 /* Landscape phone: no vertical room, but plenty of width going to waste. Stacking the hand
@@ -1235,6 +1256,26 @@ body {
   .player-header { padding: 2px 8px; }
   .player-zone .avatar-box { width: 30px; height: 30px; font-size: 0.95rem; }
   .player-zone .char-details h3 { font-size: 0.72rem; }
+
+  /* Landscape has the width the dialogue needed, so it stays hidden here rather than
+     clamped: two lines still cost ~40px of a ~180px budget, and the hand needs them more
+     than the boss needs a voice. Everything it reported is on screen anyway — the damage
+     as a floating number and an HP bar, live vs blank as the screen flash and the coloured
+     chamber, whose turn it is in the indicator below. */
+  .dealer-dialogue { display: none; }
+
+  .dealer-zone { max-height: 76px; }
+
+  /* In a 210px column space-between pushed the turn indicator out past the panel and into
+     the screen edge. Stacked under the name it has the full column width instead. */
+  .player-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  .player-header > div:last-child { font-size: 0.7rem; }
+  .player-header .char-info { width: 100%; min-width: 0; }
 }
 
 /* Coarse pointers get no hover affordances at all — they only cause stuck states. */

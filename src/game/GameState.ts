@@ -513,7 +513,12 @@ export class GameState {
     // the first — and the card is not spent, it stays in hand until the shot clears the buff.
     if (!this.canUseItem(item)) {
       if (user === 'PLAYER') {
-        this.dealer.dialogue = t('booster.locked', { mult: this.damageMultiplier });
+        const refusal = t('booster.locked', { mult: this.damageMultiplier });
+        this.dealer.dialogue = refusal;
+        // Also as floating text, because this is the one message the player needs when
+        // nothing appears to happen. On a phone both other channels are gone: the card
+        // tooltip is hidden there, and so is the dialogue.
+        if (this.onFloatingText) this.onFloatingText(refusal, 'PLAYER', '#ffb703');
         this.notifyUpdate();
       }
       return;
@@ -548,7 +553,14 @@ export class GameState {
         if (currIdx < this.chamber.bullets.length) {
           const ejected = this.chamber.bullets[currIdx];
           this.chamber.currentIndex++;
-          this.dealer.dialogue = t(user === 'PLAYER' ? 'card.energy.player' : 'card.energy.dealer', { bullet: t(ejected === 'LIVE' ? 'bullet.live' : 'bullet.blank') });
+          const ejectedName = t(ejected === 'LIVE' ? 'bullet.live' : 'bullet.blank');
+          this.dealer.dialogue = t(user === 'PLAYER' ? 'card.energy.player' : 'card.energy.dealer', { bullet: ejectedName });
+          // Which round left the chamber is recorded nowhere else — the spent slot just dims
+          // and knownBullets is not set for it. Without this the card's whole result is lost
+          // wherever the dialogue is not shown.
+          if (user === 'PLAYER' && this.onFloatingText) {
+            this.onFloatingText(ejectedName, 'PLAYER', ejected === 'LIVE' ? '#ff2a6d' : '#05d9e8');
+          }
           if (this.chamber.currentIndex >= this.chamber.bullets.length) {
             this.reloadChamber();
           }
