@@ -627,10 +627,16 @@ function renderWorldMap() {
         ? `<img src="${boss.avatarUrl}" class="world-map-boss-img" alt="${boss.name}" />`
         : boss.avatar;
 
+      // One line per boss: portrait and name, nothing else. The HP figure and the status
+      // caption both went — the three states already read off the button's own colour
+      // (green beaten, red current, grey locked), and dropping the second line is what
+      // lets a location's bosses fit without the card growing.
+      //
+      // The caption survives as the button's title so the state is still available to a
+      // screen reader and on hover, where it costs no room.
       bossesHTML += `
-        <button class="btn-boss-select" data-loc="${locIdx}" data-boss="${bIdx}" ${(!isCompleted && !isTarget) ? 'disabled' : ''} style="font-family: 'Orbitron', sans-serif; padding: 10px 16px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s ease; ${btnStyle}">
-          <div style="display: flex; align-items: center; gap: 6px;">${avatarHTML} <strong>${boss.name}</strong> (HP: ${boss.hp})</div>
-          <div style="font-size: 0.7rem; font-family: 'Fira Code', monospace; margin-top: 3px;">${statusBadge}</div>
+        <button class="btn-boss-select" data-loc="${locIdx}" data-boss="${bIdx}" ${(!isCompleted && !isTarget) ? 'disabled' : ''} title="${statusBadge}" style="font-family: 'Orbitron', sans-serif; padding: 10px 16px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s ease; ${btnStyle}">
+          <div style="display: flex; align-items: center; gap: 6px;">${avatarHTML} <strong>${boss.name}</strong></div>
         </button>
       `;
     });
