@@ -15,12 +15,17 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 // Item icons render at 42x42, so 128 covers them with room to spare.
 const TARGETS = [
   { from: 'assets-source/images/bosses', to: 'src/assets/images/bosses', size: 256 },
-  { from: 'assets-source/images/items', to: 'src/assets/images/items', size: 128 }
+  { from: 'assets-source/images/items', to: 'src/assets/images/items', size: 128 },
+  // Shot effects are drawn onto the FX canvas additively, so the black around the glow adds
+  // nothing to the picture and is pure archive weight — trim it off (two thirds of the burst
+  // master was empty). 'inside' rather than 'cover' because these are not square: the beam is
+  // a wide strip and a centre crop would cut its tip off.
+  { from: 'assets-source/images/fx', to: 'src/assets/images/fx', size: 512, glow: true }
 ];
 
 const QUALITY = 82;
 
-async function optimizeDir({ from, to, size }) {
+async function optimizeDir({ from, to, size, glow }) {
   const srcDir = join(ROOT, from);
   const outDir = join(ROOT, to);
   await mkdir(outDir, { recursive: true });
@@ -33,8 +38,15 @@ async function optimizeDir({ from, to, size }) {
     const srcPath = join(srcDir, file);
     const outPath = join(outDir, `${parse(file).name}.webp`);
 
-    const buffer = await sharp(srcPath)
-      .resize(size, size, { fit: 'cover' })
+    const pipeline = sharp(srcPath);
+    // The threshold has to clear the vignette the generator leaves around the glow, which is
+    // near-black but not black. Too low and nothing is trimmed; too high and the faint outer
+    // halo goes with it, which is the part that makes the effect read as light rather than a
+    // decal. 12 was measured against the burst master: 1024x1024 -> 608x605, halo intact.
+    if (glow) pipeline.trim({ background: '#000000', threshold: 12 });
+
+    const buffer = await pipeline
+      .resize(size, size, { fit: glow ? 'inside' : 'cover', withoutEnlargement: true })
       .webp({ quality: QUALITY, effort: 6 })
       .toBuffer();
 

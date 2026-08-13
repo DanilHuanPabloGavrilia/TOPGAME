@@ -43,7 +43,11 @@ const gameState = new GameState();
 // Dev-only handle for poking at a duel from the console. Vite strips this from the
 // production build, so nothing is exposed to players.
 if (import.meta.env.DEV) {
-  (window as unknown as { gameState: GameState }).gameState = gameState;
+  const w = window as unknown as { gameState: GameState; particles: ParticleSystem };
+  w.gameState = gameState;
+  // The FX layer too, so a shot effect can be replayed on its own without spending a round
+  // — and so its geometry can be asserted from a test harness rather than eyeballed.
+  w.particles = particles;
 }
 
 // DOM Screens
@@ -1015,6 +1019,27 @@ const dealerIntentBanner = document.getElementById('dealer-intent-banner')!;
 const dealerIntentText = document.getElementById('dealer-intent-text')!;
 const targetReticle = document.getElementById('target-reticle')!;
 const playerAvatar = document.getElementById('player-avatar')!;
+
+// Bind GameState Shot FX Callback
+gameState.onShotFx = ({ shooter, victim, live }) => {
+  // Measured at the moment of the shot rather than cached: the table is a grid that
+  // reflows between portrait, landscape and desktop, and the avatars move with it.
+  const centreOf = (el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  };
+
+  const from = centreOf(shooter === 'PLAYER' ? playerAvatar : dealerAvatar);
+
+  if (!live) {
+    particles.spawnShot('BLANK', from.x, from.y);
+  } else if (shooter === victim) {
+    particles.spawnShot('FLASH', from.x, from.y);
+  } else {
+    const to = centreOf(victim === 'PLAYER' ? playerAvatar : dealerAvatar);
+    particles.spawnShot('BEAM', from.x, from.y, to.x, to.y);
+  }
+};
 
 // Bind GameState Dealer Showcase Card Callback
 gameState.onDealerShowcaseCard = (card) => {

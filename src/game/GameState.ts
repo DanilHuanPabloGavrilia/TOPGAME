@@ -161,6 +161,12 @@ export class GameState {
   onUpdateUI?: () => void;
   onFloatingText?: (text: string, target: 'DEALER' | 'PLAYER' | 'CHIPS', color: string) => void;
   onScreenFlash?: (type: 'live' | 'blank') => void;
+  /**
+   * The shot itself, as opposed to the screen shake onScreenFlash drives. Kept separate
+   * because this one needs to know who fired at whom: the effect is drawn between two
+   * avatars, and a round put into your own head has no distance to cross.
+   */
+  onShotFx?: (shot: { shooter: GameTurn; victim: GameTurn; live: boolean }) => void;
   onDealerShowcaseCard?: (card: ItemCard) => void;
   onDealerTargeting?: (target: 'PLAYER' | 'DEALER') => void;
   onClearDealerFX?: () => void;
@@ -357,6 +363,7 @@ export class GameState {
 
     if (isLive) {
       if (this.onScreenFlash) this.onScreenFlash('live');
+      if (this.onShotFx) this.onShotFx({ shooter, victim, live: true });
       sound.playLiveShot();
 
       const baseDmg = shooter === 'PLAYER'
@@ -400,6 +407,7 @@ export class GameState {
     } else {
       // BLANK round
       if (this.onScreenFlash) this.onScreenFlash('blank');
+      if (this.onShotFx) this.onShotFx({ shooter, victim, live: false });
       sound.playBlankClick();
       this.damageMultiplier = 1;
 
