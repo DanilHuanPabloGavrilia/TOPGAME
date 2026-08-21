@@ -272,7 +272,7 @@ export const en: Dictionary = {
   'outcome.revive': '⚡ SECOND CHANCE! The player is back in the duel with +{hp} HP!',
 
   // ── Tutorial ───────────────────────────────────────────────────────────────
-  'tutorial.guide': 'Welcome to Dealer’s Gambit! If you forget the rules, the Guide is always up here in the header.',
+  'tutorial.guide': 'Welcome to Dealer\'s Gambit! If you forget the rules, the Guide is always up here in the header.',
   'tutorial.chips': 'These are your chips. You earn them in duels and spend them on permanent upgrades.',
   'tutorial.upgrades': 'This is where you raise your maximum health. Upgrades like this stay with you even after a defeat.',
   'tutorial.adChips': 'Short of chips for an upgrade? Watch an ad and get some. Three times per five minutes.',
@@ -289,7 +289,7 @@ export const en: Dictionary = {
   'tutorial.clickHint': '👆 Click the highlighted button',
 
   // ── Header ─────────────────────────────────────────────────────────────────
-  'ui.title': 'Dealer’s Gambit — a Cyber-Occult Roguelike',
+  'ui.title': 'Dealer\'s Gambit',
   'ui.header.chips': 'CHIPS:',
   'ui.header.stage': 'LOCATION / BOSS:',
   'ui.header.stageValue': 'Location {loc} | Boss {boss}',

@@ -274,7 +274,7 @@ export const uz: Dictionary = {
   'outcome.revive': '⚡ IKKINCHI IMKONIYAT! O‘yinchi +{hp} HP bilan duelga qaytdi!',
 
   // ── O‘qitish ───────────────────────────────────────────────────────────────
-  'tutorial.guide': 'Dealer’s Gambit’ga xush kelibsan! Qoidalarni unutsang, Qo‘llanma doim yuqorida, sarlavhada.',
+  'tutorial.guide': 'Dealer\'s Gambit’ga xush kelibsan! Qoidalarni unutsang, Qo‘llanma doim yuqorida, sarlavhada.',
   'tutorial.chips': 'Bular sizning fishkalaringiz. Ularni duellarda topasiz va doimiy yaxshilanishlarga sarflaysiz.',
   'tutorial.upgrades': 'Bu yerda maksimal salomatlikni oshirasiz. Bunday yaxshilanishlar mag‘lub bo‘lsangiz ham sizda qoladi.',
   'tutorial.adChips': 'Yaxshilashga fishka yetmayaptimi? Reklama ko‘rib fishka olish mumkin. Besh daqiqada uch marta.',
@@ -291,7 +291,7 @@ export const uz: Dictionary = {
   'tutorial.clickHint': '👆 Ajratib ko‘rsatilgan tugmani bosing',
 
   // ── Sarlavha paneli ────────────────────────────────────────────────────────
-  'ui.title': 'Dealer’s Gambit — Kiber-okkult roguelike',
+  'ui.title': 'Dealer\'s Gambit',
   'ui.header.chips': 'FISHKALAR:',
   'ui.header.stage': 'JOY / BOSS:',
   'ui.header.stageValue': '{loc}-joy | {boss}-boss',

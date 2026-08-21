@@ -836,10 +836,19 @@ document.addEventListener('visibilitychange', () => {
   sound.setSuspended(document.visibilityState === 'hidden');
 });
 
-// No browser context menu over the game: a right click or a long press on a card would
-// otherwise open it mid-duel. Long press on iOS also needs -webkit-touch-callout in the
-// stylesheet, which this event alone does not cover.
-document.getElementById('app')?.addEventListener('contextmenu', e => e.preventDefault());
+// No browser context menu, no selection, no dragging anywhere on the page.
+//
+// This was bound to #app, on the reasoning that #app is the game. It is not the whole page:
+// the letterboxing around it, the margins and the document itself are all outside that node,
+// and a right click landing there opened the menu over the game exactly as 1.6.2.7
+// describes. The document is the honest target — nothing here is a field a player types in,
+// and the markup contains no input, textarea or contenteditable at all.
+//
+// The stylesheet carries the other half (-webkit-user-select and friends, touch-callout,
+// user-drag); these handlers catch what CSS cannot, on engines that fire the event anyway.
+for (const type of ['contextmenu', 'selectstart', 'dragstart'] as const) {
+  document.addEventListener(type, e => e.preventDefault());
+}
 
 // Global Event Listeners & Navigation
 function syncSoundButton() {
@@ -1103,17 +1112,29 @@ function reportAdUnavailable(target: 'PLAYER' | 'CHIPS' = 'CHIPS') {
 // Boot: bring the platform up first so the save load can reach cloud storage, then paint.
 // Nothing here is allowed to keep the player staring at an empty screen, so a failure at
 // any step falls through to a fresh game rather than aborting.
+/**
+ * Hard ceiling on the platform handshake. Nothing here is expected to take this long —
+ * the SDK answers in about a second inside a frame — but the boot overlay hides the menu
+ * until this function returns, so an init that never settles would leave the game
+ * permanently unreachable behind a loading screen. That failure is worse than any it
+ * prevents, so the wait is bounded and boot carries on without the platform.
+ */
+const SDK_INIT_TIMEOUT_MS = 6000;
+
 async function boot() {
-  // The menu is already on screen — index.html paints before any of this runs — so the
-  // language is decided twice. First a guess from what the browser told us, because
-  // waiting for the SDK would leave a Turkish player looking at a Russian menu for as
-  // long as it takes to answer (~1 s in a frame, up to the 6 s timeout when it doesn't).
+  // The static markup is painted but sits behind the boot overlay, so the language is still
+  // decided twice: a guess first, so the menu is already correct when the overlay lifts,
+  // then the platform's answer. Without the first pass a Turkish player would be shown a
+  // Russian menu at the exact moment the game becomes reachable.
   const urlLang = new URLSearchParams(location.search).get('lang');
   const browserLang = typeof navigator !== 'undefined' ? navigator.language : null;
   applyLang(pickLang(urlLang, browserLang));
 
   try {
-    await platformSDK.init();
+    await Promise.race([
+      platformSDK.init(),
+      new Promise<void>(resolve => setTimeout(resolve, SDK_INIT_TIMEOUT_MS))
+    ]);
   } catch (err) {
     console.warn('[Boot] Platform init failed, continuing standalone', err);
   }
@@ -1136,6 +1157,31 @@ async function boot() {
 
   syncSoundButton();
   renderUI();
+
+  // The overlay comes down and the platform is told the game is playable — both from the
+  // finally block below, so the two happen on every path out of here, not only this one.
+  //
+  // The order is the requirement, not a preference. 1.19 asks for the signal at the moment
+  // the game is ready: every element interactive, no loading screen still up. Signalling
+  // first would report a game the player still cannot reach; revealing long before, which
+  // is what the bare markup did, let the first tap land before the signal went out. The
+  // review flagged the second.
 }
 
-void boot();
+// finally, not a plain call: the overlay hides the entire game, so whatever boot() throws,
+// it must still come down. A crash that leaves a loading screen up forever is a worse
+// outcome than any half-initialised state behind it — and the menu behind the overlay is
+// static markup that works on its own.
+void boot().catch(err => {
+  console.error('[Boot] failed', err);
+}).finally(() => {
+  const overlay = document.getElementById('boot-overlay');
+  if (overlay) {
+    overlay.classList.add('done');
+    // Removed from the document, not left faded. The class only starts a CSS fade, and a
+    // fade that never advances leaves a full-screen panel over the game — which is what a
+    // throttled tab does. Taking the node out is the part that is allowed to be load-bearing.
+    setTimeout(() => overlay.remove(), 300);
+  }
+  platformSDK.notifyGameReady();
+});

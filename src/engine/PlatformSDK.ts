@@ -22,52 +22,21 @@ function isVkContext(): boolean {
   }
 }
 
-// Yandex insists their SDK be served from their own domain, so it cannot be bundled. It is
-// injected here rather than sat in index.html as a blocking tag: on VK and abroad yandex.ru
-// is slow or unreachable, and a tag in <head> would hold up first paint until it timed out.
-/**
- * A dev server or the owner's local playtest build. The one place the SDK genuinely has
- * nothing to talk to: its postMessage handshake finds no parent and throws in a loop.
- */
+// The SDK used to be fetched from here. Requirement 1.19.1 rules that out: the script has
+// to be connected the way the documentation shows it, with a tag in the markup, before
+// YaGames.init() runs. It now lives in index.html and this module only consumes the global.
+//
+// What the tag does NOT decide is whether we then talk to it. Measured on the dev server:
+// the tag loads fine off-platform, init() succeeds, platform flips to YANDEX — and every
+// call after that throws "No parent to post message" in a loop, because the handshake has
+// no parent frame to reach. Rewarded ads and GameplayAPI break, and the console fills.
+// So the hostname gate survives, moved from loading to initialising: the script is loaded
+// exactly as documented everywhere, and only a local host declines to shake hands with it.
+// This matters beyond the dev server — the owner's playtest build runs the release bundle
+// top-level on 127.0.0.1, where import.meta.env.DEV is false.
 function isLocalHost(): boolean {
   const host = location.hostname;
   return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '';
-}
-
-const YANDEX_SDK_URL = 'https://yandex.ru/games/sdk/v2';
-
-// Long enough for a cold CDN on a bad phone connection, short enough that a player never
-// waits on a host that is simply not going to answer.
-const SDK_LOAD_TIMEOUT_MS = 6000;
-
-/**
- * Fetches the Yandex SDK. Resolves false — never rejects — when the script fails, times out
- * or loads without defining YaGames, so the caller can just fall through to standalone mode.
- */
-function loadYandexSdk(): Promise<boolean> {
-  if (window.YaGames) return Promise.resolve(true);
-
-  return new Promise(resolve => {
-    let settled = false;
-    const finish = (ok: boolean) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      // onload can fire for a script that never defined the global — check, don't assume.
-      resolve(ok && !!window.YaGames);
-    };
-
-    const timer = setTimeout(() => {
-      console.warn('[SDK] Yandex SDK did not load within timeout, continuing without it');
-      finish(false);
-    }, SDK_LOAD_TIMEOUT_MS);
-
-    const script = document.createElement('script');
-    script.src = YANDEX_SDK_URL;
-    script.onload = () => finish(true);
-    script.onerror = () => finish(false);
-    document.head.appendChild(script);
-  });
 }
 
 // Key for VK's key/value storage. Yandex stores the blob as an unnamed player-data object.
@@ -86,6 +55,7 @@ class PlatformSDK {
   private isAdShowing = false;
   private adWatchdog: ReturnType<typeof setTimeout> | null = null;
   private gameplayRunning = false;
+  private gameReadySent = false;
 
   async init(): Promise<void> {
     if (this.isInitialized) return;
@@ -106,21 +76,11 @@ class PlatformSDK {
       }
     }
 
-    // Try the Yandex Games SDK anywhere that is not a local server.
-    //
-    // This used to be gated on sitting inside an iframe, reasoning that a top-level window
-    // could only be a dev server. That is wrong for a deployed build: opened at its own URL
-    // — which is one way a build gets inspected — it never requested the SDK at all, so
-    // nothing reported a language and the game fell back to the browser's. Hostname is the
-    // honest test for "nobody out there to talk to"; framing is not.
-    //
-    // A local server is still skipped, and deliberately: the SDK's handshake has no parent
-    // to reach there, so it only floods the console, and the owner's playtest build runs
-    // top-level on 127.0.0.1. VK is skipped too — the bridge above is the integration there,
-    // and yandex.ru is the slow host worth not waiting on.
-    const tryYandex = !isLocalHost() && !isVkContext();
-
-    if (tryYandex && await loadYandexSdk()) {
+    // index.html carries the documented <script> tag, so by the time this runs window.YaGames
+    // either exists or the request failed — nothing left to wait for. VK is skipped because
+    // the bridge above is the integration there; a local host is skipped for the reason on
+    // isLocalHost above.
+    if (window.YaGames && !isVkContext() && !isLocalHost()) {
       try {
         this.ysdk = await window.YaGames.init();
         this.platform = 'YANDEX';
@@ -135,9 +95,7 @@ class PlatformSDK {
           console.warn('[SDK] getPlayer failed, cloud saves disabled', err);
         }
 
-        if (this.ysdk.features?.LoadingAPI?.ready) {
-          this.ysdk.features.LoadingAPI.ready();
-        }
+        // LoadingAPI.ready() deliberately does NOT fire here. See notifyGameReady().
         return;
       } catch (err) {
         console.warn('[SDK] Yandex Games init failed, fallback to local', err);
@@ -147,6 +105,29 @@ class PlatformSDK {
     this.platform = 'LOCAL';
     this.isInitialized = true;
     console.log('[SDK] Running in Local / Standalone Web Mode');
+  }
+
+  /**
+   * Tells the platform the game is playable. Separate from init() on purpose.
+   *
+   * The documentation asks for this at the moment the game is genuinely ready: every
+   * element interactive, no loading screen still on screen. Firing it from init() met
+   * neither condition — the menu was painted straight out of index.html and clickable from
+   * first paint, so the signal always trailed the first tap a player could make, and the
+   * save had not been read yet, so the chip count and unlocked locations were still wrong.
+   *
+   * Idempotent: the caller sits at the end of boot(), which nothing should run twice, but a
+   * second signal would be a protocol error rather than a no-op.
+   */
+  notifyGameReady(): void {
+    if (this.gameReadySent) return;
+    this.gameReadySent = true;
+
+    try {
+      this.ysdk?.features?.LoadingAPI?.ready?.();
+    } catch (err) {
+      console.warn('[SDK] LoadingAPI.ready failed', err);
+    }
   }
 
   public getIsAdShowing(): boolean {

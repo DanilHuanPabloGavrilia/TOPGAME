@@ -298,7 +298,7 @@ export const ru: Dictionary = {
   'tutorial.clickHint': '👆 Нажмите на подсвеченную кнопку',
 
   // ── Шапка ──────────────────────────────────────────────────────────────────
-  'ui.title': 'Dealer\'s Gambit — Кибер-Оккультный Рогалик',
+  'ui.title': 'Dealer\'s Gambit',
   'ui.header.chips': 'ФИШКИ:',
   'ui.header.stage': 'ЛОКАЦИЯ / БОСС:',
   'ui.header.stageValue': 'Локация {loc} | Босс {boss}',

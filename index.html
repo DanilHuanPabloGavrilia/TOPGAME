@@ -3,20 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dealer's Gambit — Кибер-Оккультный Рогалик</title>
+  <!-- The name, and nothing but the name. Requirement 5.1.3 wants it identical in the game
+       and in every field of the draft, and a tagline appended here reads as a different
+       name than the one registered in the console. -->
+  <title>Dealer's Gambit</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-  <!-- No external <script> here on purpose. The Yandex SDK must be served from their
-       domain, but a blocking tag in <head> makes yandex.ru a single point of failure for
-       first paint — costly on VK and abroad, where it is slow or unreachable. PlatformSDK
-       injects it at runtime instead, only inside a platform frame and under a timeout. -->
+
+  <!-- Yandex Games SDK.
+       This used to be injected from PlatformSDK at runtime, to keep yandex.ru off the
+       critical path for first paint. Requirement 1.19.1 does not allow that: the SDK has to
+       be connected the way the documentation shows, with a tag, before YaGames.init() runs.
+       The loading overlay below covers the wait, so nothing is lost by blocking here.
+       Off-platform this request simply fails and PlatformSDK falls through to LOCAL. -->
+  <script src="https://yandex.ru/games/sdk/v2"></script>
 </head>
 <body>
+  <!-- Covers the whole viewport until boot() finishes. Requirement 1.19 wants LoadingAPI
+       .ready() called at the moment the game becomes playable — with every element ready
+       and no loading screen still up. Before this overlay existed the menu painted straight
+       from the markup and was clickable while the SDK was still coming up, so the call
+       always trailed the first possible tap. Carries no words on purpose: it is on screen
+       before applyStaticI18n has run, and a hardcoded caption would be a string in one
+       language that no dictionary owns. -->
+  <div id="boot-overlay">
+    <div class="boot-name">Dealer's Gambit</div>
+    <div class="boot-bar"><span></span></div>
+  </div>
+
   <div id="app">
     <canvas id="fx-canvas"></canvas>
 
     <!-- Header Status Bar -->
     <header class="header-bar">
-      <div class="game-title">⚡ DEALER'S GAMBIT</div>
+      <!-- Exactly the registered name. The upper case is styling, applied in the stylesheet,
+           so the text itself stays the one string 5.1.3 asks for. -->
+      <div class="game-title">Dealer's Gambit</div>
       <div class="stats-group">
         <!-- The values here (100 $, 1-1) are digits in every language and renderUI
              overwrites both on its first pass, so neither carries a key. -->
@@ -44,7 +65,7 @@
     <!-- MAIN MENU SCREEN -->
     <div id="screen-main-menu" class="screen-panel active">
       <div class="main-menu-box">
-        <h1 class="hero-title">⚡ DEALER'S GAMBIT</h1>
+        <h1 class="hero-title">Dealer's Gambit</h1>
         <p class="hero-subtitle" data-i18n="ui.menu.subtitle">Кибер-Оккультная Дуэль в 5 Локациях & 15 Боссах</p>
 
         <div class="menu-buttons">

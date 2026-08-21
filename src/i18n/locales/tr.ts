@@ -272,7 +272,7 @@ export const tr: Dictionary = {
   'outcome.revive': '⚡ İKİNCİ ŞANS! Oyuncu +{hp} canla düelloya döndü!',
 
   // ── Eğitim ─────────────────────────────────────────────────────────────────
-  'tutorial.guide': 'Dealer’s Gambit’e hoş geldin! Kuralları unutursan Rehber her zaman yukarıda, başlıkta.',
+  'tutorial.guide': 'Dealer\'s Gambit’e hoş geldin! Kuralları unutursan Rehber her zaman yukarıda, başlıkta.',
   'tutorial.chips': 'Bunlar senin fişlerin. Düellolarda kazanır, kalıcı geliştirmelere harcarsın.',
   'tutorial.upgrades': 'Burada azami canını yükseltirsin. Bu tür geliştirmeler yenilsen bile sende kalır.',
   'tutorial.adChips': 'Geliştirmeye fişin yetmiyor mu? Reklam izleyip fiş alabilirsin. Beş dakikada üç kez.',
@@ -289,7 +289,7 @@ export const tr: Dictionary = {
   'tutorial.clickHint': '👆 Vurgulanan düğmeye bas',
 
   // ── Başlık ─────────────────────────────────────────────────────────────────
-  'ui.title': 'Dealer’s Gambit — Siber-Okült Roguelike',
+  'ui.title': 'Dealer\'s Gambit',
   'ui.header.chips': 'FİŞLER:',
   'ui.header.stage': 'MEKÂN / PATRON:',
   'ui.header.stageValue': 'Mekân {loc} | Patron {boss}',
