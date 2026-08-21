@@ -262,6 +262,12 @@ export class GameState {
     this.reloadChamber();
     this.dealerCardsThisTurn = 0;
     this.blankSelfShotPayouts = 0;
+    // Emptied, not carried over: the chronicle belongs to one duel, and the previous
+    // fight's shots were still sitting under the heading when the next one opened.
+    // Empty rather than an opening line, because that would be a sixth string to keep in
+    // five dictionaries for something the first action overwrites anyway. The sparring
+    // bout keeps its line — it is teaching, and it says the rounds are at half strength.
+    this.combatLog = [];
     // A new duel, so anything still sleeping inside the last one is now stale.
     this.duelEpoch++;
     this.phase = 'BATTLE';
