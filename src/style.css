@@ -40,9 +40,14 @@
   /* Suppresses the long-press callout on iOS, which the contextmenu event does not reach. */
   -webkit-touch-callout: none;
 
-  /* Long-pressing an image offers to save or copy it, which is the same "interaction with
-     an internal field" 1.6.1.8 is about, and dragging a card out of the table is its
-     desktop twin. Neither travels through the contextmenu event. */
+  /* Dragging a picture out of the table is what both selection findings actually were —
+     the desktop capture shows the boss portrait lifted with a "no drop" cursor, the iOS
+     one shows the same portrait lifted by a long press. Neither travels through the
+     contextmenu event, which is all the game used to prevent.
+     Every <img> also carries draggable="false" in the markup. That is not redundancy for
+     its own sake: on iOS the long-press lift is a native gesture that need not raise a DOM
+     dragstart at all, so the JS handler cannot be relied on there, and the attribute stops
+     it a layer earlier than any of this. */
   -webkit-user-drag: none;
 }
 

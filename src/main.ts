@@ -167,7 +167,7 @@ function renderBattleUI() {
   // Dealer. Read the portrait off the dealer we are actually fighting — indexing into
   // LOCATIONS showed the training partner whichever boss shared his slot on the map.
   if (gameState.dealer.avatarUrl) {
-    dealerAvatar.innerHTML = `<img src="${gameState.dealer.avatarUrl}" class="boss-avatar-img" alt="${gameState.dealer.name}" />`;
+    dealerAvatar.innerHTML = `<img src="${gameState.dealer.avatarUrl}" class="boss-avatar-img" alt="${gameState.dealer.name}" draggable="false" />`;
   } else {
     dealerAvatar.innerText = gameState.dealer.avatar;
   }
@@ -305,7 +305,7 @@ function renderBattleUI() {
 
     const imgSrc = imagePreloader.getItemImage(item.id, item.iconUrl || '');
     const iconHTML = item.iconUrl
-      ? `<img src="${imgSrc}" class="item-card-icon-img" alt="${item.name}" loading="eager" decoding="async" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" /><div class="card-icon" style="display:none;">${item.icon}</div>`
+      ? `<img src="${imgSrc}" class="item-card-icon-img" alt="${item.name}" draggable="false" loading="eager" decoding="async" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" /><div class="card-icon" style="display:none;">${item.icon}</div>`
       : `<div class="card-icon">${item.icon}</div>`;
 
     cardEl.innerHTML = `
@@ -577,7 +577,7 @@ function showBossIntroModal(locIdx: number, bossIdx: number) {
   }
 
   if (boss.avatarUrl) {
-    bossIntroAvatar.innerHTML = `<img src="${boss.avatarUrl}" class="boss-avatar-img" alt="${boss.name}" />`;
+    bossIntroAvatar.innerHTML = `<img src="${boss.avatarUrl}" class="boss-avatar-img" alt="${boss.name}" draggable="false" />`;
   } else {
     bossIntroAvatar.innerText = boss.avatar;
   }
@@ -633,7 +633,7 @@ function renderWorldMap() {
       }
 
       const avatarHTML = boss.avatarUrl
-        ? `<img src="${boss.avatarUrl}" class="world-map-boss-img" alt="${boss.name}" />`
+        ? `<img src="${boss.avatarUrl}" class="world-map-boss-img" alt="${boss.name}" draggable="false" />`
         : boss.avatar;
 
       // One line per boss: portrait and name, nothing else. The HP figure and the status
