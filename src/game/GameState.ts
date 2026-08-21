@@ -158,6 +158,46 @@ export class GameState {
   private isDealerProcessing = false;
   private dealerCardsThisTurn = 0;
 
+  /**
+   * Bumped whenever a duel begins or is abandoned. The dealer's turn is a coroutine that
+   * sleeps for seconds at a time, so between two of its awaits the player can walk out and
+   * start something else entirely. Comparing the epoch it started with against the current
+   * one is what makes every one of those wake-ups safe — checking the screen and the turn
+   * is not enough, because a new duel restores both to exactly what the stale turn expects.
+   */
+  private duelEpoch = 0;
+
+  /** A duel the player is actually looking at. Not the same as "phase is BATTLE". */
+  private duelIsLive(epoch?: number): boolean {
+    if (epoch !== undefined && epoch !== this.duelEpoch) return false;
+    return this.screenState === 'BATTLE' && this.phase === 'BATTLE';
+  }
+
+  /**
+   * Abandons the duel in progress. Leaving used to set the screen and nothing else, which
+   * left the dealer mid-turn with a live timer — so the shot went off, damage landed and a
+   * defeat could resolve on a screen the player had already left. The watchdog in
+   * notifyUpdate then re-armed the timer immediately, because it only asked whether the
+   * phase was BATTLE, and leaving never changed the phase.
+   */
+  abandonDuel(to: ScreenState = 'WORLD_MAP') {
+    this.duelEpoch++;
+
+    if (this.dealerTurnTimeout) {
+      clearTimeout(this.dealerTurnTimeout);
+      this.dealerTurnTimeout = null;
+    }
+    this.isDealerProcessing = false;
+    this.dealerCardsThisTurn = 0;
+
+    // The showcase card and the targeting reticle are drawn outside the battle screen's
+    // markup and would otherwise stay on top of wherever the player went.
+    if (this.onClearDealerFX) this.onClearDealerFX();
+
+    this.screenState = to;
+    this.notifyUpdate();
+  }
+
   onUpdateUI?: () => void;
   onFloatingText?: (text: string, target: 'DEALER' | 'PLAYER' | 'CHIPS', color: string) => void;
   onScreenFlash?: (type: 'live' | 'blank') => void;
@@ -222,6 +262,8 @@ export class GameState {
     this.reloadChamber();
     this.dealerCardsThisTurn = 0;
     this.blankSelfShotPayouts = 0;
+    // A new duel, so anything still sleeping inside the last one is now stale.
+    this.duelEpoch++;
     this.phase = 'BATTLE';
     this.turn = 'PLAYER';
     this.screenState = 'BATTLE';
@@ -259,6 +301,7 @@ export class GameState {
     this.dealerCardsThisTurn = 0;
     this.blankSelfShotPayouts = 0;
     this.combatLog = [`• ${t('log.trainingStart')}`];
+    this.duelEpoch++;
     this.phase = 'BATTLE';
     this.turn = 'PLAYER';
     this.screenState = 'BATTLE';
@@ -663,7 +706,7 @@ export class GameState {
   }
 
   async processDealerTurn() {
-    if (this.phase !== 'BATTLE' || this.turn !== 'DEALER') {
+    if (!this.duelIsLive() || this.turn !== 'DEALER') {
       this.isDealerProcessing = false;
       return;
     }
@@ -671,13 +714,17 @@ export class GameState {
     if (this.isDealerProcessing) return;
     this.isDealerProcessing = true;
 
+    // Captured once. Every wake-up below is checked against it, so a duel abandoned or
+    // restarted while this coroutine sleeps cannot be acted on by the turn it interrupted.
+    const epoch = this.duelEpoch;
     const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+    const stillPlaying = () => this.duelIsLive(epoch) && this.turn === 'DEALER';
 
     try {
       // 1. Initial thinking pause (1.0 seconds)
       await sleep(1000);
 
-      if (this.phase !== 'BATTLE' || this.turn !== 'DEALER') {
+      if (!stillPlaying()) {
         this.isDealerProcessing = false;
         return;
       }
@@ -713,6 +760,12 @@ export class GameState {
 
         if (this.onClearDealerFX) this.onClearDealerFX();
 
+        // This check did not exist. Walking out while the card was on screen still played it.
+        if (!stillPlaying()) {
+          this.isDealerProcessing = false;
+          return;
+        }
+
         this.dealerCardsThisTurn++;
         this.useItem(decision.itemIndex, 'DEALER');
         this.isDealerProcessing = false;
@@ -731,6 +784,12 @@ export class GameState {
 
         if (this.onClearDealerFX) this.onClearDealerFX();
 
+        // Nor did this one, and this is the shot the player reported hearing after leaving.
+        if (!stillPlaying()) {
+          this.isDealerProcessing = false;
+          return;
+        }
+
         this.isDealerProcessing = false;
         this.shootTarget(target);
       }
@@ -739,7 +798,9 @@ export class GameState {
       if (this.onClearDealerFX) this.onClearDealerFX();
       this.isDealerProcessing = false;
       this.dealerCardsThisTurn = 0;
-      this.shootTarget('PLAYER');
+      // The recovery shot has to obey the same rule as the deliberate one: a duel nobody is
+      // in must not resolve, least of all by firing at the player who walked away from it.
+      if (stillPlaying()) this.shootTarget('PLAYER');
     }
   }
 
@@ -975,8 +1036,13 @@ export class GameState {
 
     // Watchdog Auto-Recovery Failsafe:
     // If turn is DEALER, battle is active, and no timer is running or processing, schedule turn!
+    //
+    // duelIsLive rather than a bare phase check, and that distinction is the whole bug: the
+    // phase stays BATTLE when a player walks out of a duel, so this watchdog re-armed the
+    // dealer's timer on the very notifyUpdate that carried them to the world map. Cancelling
+    // the timer on the way out was useless while this line put it straight back.
     if (
-      this.phase === 'BATTLE' &&
+      this.duelIsLive() &&
       this.turn === 'DEALER' &&
       !this.dealerTurnTimeout &&
       !this.isDealerProcessing

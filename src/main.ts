@@ -956,8 +956,9 @@ document.getElementById('btn-confirm-exit-cancel')?.addEventListener('click', ()
 
 document.getElementById('btn-confirm-exit-ok')?.addEventListener('click', () => {
   modalConfirmExit.classList.remove('active');
-  gameState.screenState = 'WORLD_MAP';
-  gameState.notifyUpdate();
+  // abandonDuel, not a screen assignment: the dealer may be mid-turn behind this modal,
+  // and setting the screen alone left his timer running to fire on the world map.
+  gameState.abandonDuel('WORLD_MAP');
 });
 
 btnShootDealer.addEventListener('click', () => {
