@@ -8,8 +8,13 @@ it was. Storefront copy drifts from the game exactly the way an archive drifts f
 code, and the fix is the same: one written source, versioned next to what it describes.
 
 **The name is `Dealer's Gambit`.** One string, all languages, every field, and the same
-inside the game — `<title>`, the header, the menu and all five dictionaries. Requirement
-5.1.3 compares them against each other, and the review found five variants.
+inside the game — `<title>`, the main menu, the header on a desktop and all five
+dictionaries. Requirement 5.1.3 compares them against each other, and the review found five
+variants.
+
+Below 768px the header drops its copy of the name, because the row cannot hold it and the
+Back button at the same time. That is a rendering decision, not a second name: nothing shows
+a different string, and on a phone the name is still on the menu and in the tab title.
 
 ## Numbers that must match the game
 
