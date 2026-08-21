@@ -45,10 +45,18 @@
           <span data-i18n="ui.header.chips">ФИШКИ:</span>
           <span id="chips-display" class="chips-value">100 $</span>
         </div>
-        <div class="stat-item">
+        <div class="stat-item stat-stage">
           <span data-i18n="ui.header.stage">ЛОКАЦИЯ / БОСС:</span>
           <span id="stage-display" class="stage-value">1-1</span>
         </div>
+      </div>
+
+      <!-- Navigation lives outside .stats-group, and that is the whole point. The group
+           scrolls sideways when it runs out of room, and these three used to scroll with it:
+           on a landscape phone Back ended up 285px past the right edge, reachable only by
+           dragging a header nobody thinks to drag. Out here they never scroll and never
+           shrink; if anything has to give, it is the stats. -->
+      <div class="header-controls">
         <button id="btn-open-guide-header" data-i18n="ui.header.guide" style="background: transparent; border: 1px solid var(--neon-yellow); color: var(--neon-yellow); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-weight: 700;">
           📖 РУКОВОДСТВО
         </button>

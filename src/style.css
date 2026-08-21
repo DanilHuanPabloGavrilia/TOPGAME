@@ -189,6 +189,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  /* Matches the gap that used to sit between the stage readout and the guide button back
+     when both lived in .stats-group. Without it, splitting the group welds them together. */
+  gap: 20px;
   padding: 10px 24px;
   background: rgba(10, 12, 22, 0.95);
   border-bottom: 1px solid var(--panel-border);
@@ -212,6 +215,20 @@ body {
   gap: 20px;
   align-items: center;
   font-size: 1rem;
+  /* Splitting the controls out of this group gave .header-bar a third child, and
+     space-between then parked the stats in the middle of the header instead of beside the
+     buttons where they had always been. The auto margin eats the free space on the left so
+     the old grouping — name at one end, everything else at the other — survives. */
+  margin-left: auto;
+}
+
+/* Guide, sound and back. Held apart from .stats-group so that running out of width can
+   never take them off screen — see the comment on the element in index.html. */
+.header-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .stat-item {
@@ -1127,14 +1144,20 @@ body {
     gap: 6px;
     flex-wrap: nowrap;
   }
-  .game-title {
-    font-size: 0.8rem;
-    letter-spacing: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 30%;
-  }
+  /* Two things leave the header here, and which two was decided by measuring rather than
+     taste. At 420px of width the header wanted 667px of content for 404px of room:
+     title 121, chips 78, stage 226, guide 114, sound 61, back 67.
+
+     The stage readout is a third of that on its own, and it repeats what the world map and
+     the battle screen already say. The title is the next largest, and the name is on the
+     main menu, in the tab title and in every dictionary — the header is not where a player
+     reads it. Truncating it instead was rejected: "DEALER'S GAM…" is a different string
+     from the registered name, and that is the requirement the review failed on.
+
+     What is left — chips and all three controls — comes to 320px and fits with room over. */
+  .game-title { display: none; }
+  .stat-stage { display: none; }
+  .header-controls { gap: 6px; }
   .stats-group {
     gap: 6px;
     font-size: 0.7rem;
@@ -1297,6 +1320,12 @@ body {
 
 /* Very small or landscape phones: the vertical budget is the binding constraint. */
 @media (max-height: 560px), (max-width: 380px) {
+  /* The chip counter loses its caption. At 320px the three controls take 253 of the 304
+     usable pixels, leaving 45 for a readout that wants 78 — and the figure is gold and
+     ends in $, so nothing about it needs the word in front. Measured: 33px of overflow
+     before, 0 after. */
+  .stat-item span[data-i18n] { display: none; }
+
   /* Flex column instead of grid here. Grid rows — 1fr or auto alike — redistribute inside a
      fixed-height container, so the hand got compressed to a sliver with the 80px cards
      clipped inside it and unclickable. Flex children pinned to flex:0 0 auto keep their
