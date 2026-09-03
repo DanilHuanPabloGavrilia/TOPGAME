@@ -212,8 +212,8 @@ export const tr: Dictionary = {
   'log.live': '(🔴 Gerçek -{dmg} can)',
   'log.blank': '(🔵 Kuru sıkı 0 can)',
   'log.blank.paid': '(🔵 Kuru sıkı +{chips}$)',
-  'log.reflected.dealer': '(🪞 Krupiye’ye yansıdı -{dmg} can)',
-  'log.reflected.player': '(🪞 Sana yansıdı -{dmg} can)',
+  'log.reflected.dealer': '(🛡️ Krupiye’ye yansıdı -{dmg} can)',
+  'log.reflected.player': '(🛡️ Sana yansıdı -{dmg} can)',
   'log.card.player': '“{card}” kartını oynadın',
   'log.card.dealer': 'Krupiye “{card}” kartını oynadı',
   'log.revive': 'İkinci Şans kullanıldı! +{hp} can geri geldi!',
@@ -255,13 +255,13 @@ export const tr: Dictionary = {
   'card.overdrive2': '⚡ AŞIRI GÜÇ 2.0 (x{mult} hasar) devrede!',
   'card.magnet.player': '🧲 Mıknatıs, Krupiye’nin elinden “{card}” kartını çekti!',
   'card.magnet.dealer': '🧲 Krupiye mıknatısla elinden “{card}” kartını çekti!',
-  'card.xray.player': '🩺 Röntgen Tarayıcı silindirdeki TÜM mermileri açığa çıkardı!',
-  'card.xray.dealer': '🩺 Krupiye silindiri taradı. Artık bütün dizilimi görüyor.',
+  'card.xray.player': '🔬 Röntgen Tarayıcı silindirdeki TÜM mermileri açığa çıkardı!',
+  'card.xray.dealer': '🔬 Krupiye silindiri taradı. Artık bütün dizilimi görüyor.',
   'card.nullifier.player': '🚫 Nötrleyici çarpanı sıfırladı ve Krupiye’nin “{card}” kartını yaktı!',
   'card.nullifier.dealer': '🚫 Krupiye çarpanı sıfırladı ve senin “{card}” kartını yaktı!',
   'card.nullifier.empty': '🚫 Nötrleyici hasar çarpanını sıfırladı!',
-  'shield.reflected.dealer': '🪞 AYNA KALKAN! Mermi Krupiye’ye yansıdı: -{dmg} can!',
-  'shield.reflected.player': '🪞 KRUPİYENİN AYNA KALKANI! Mermi sana yansıdı: -{dmg} can!',
+  'shield.reflected.dealer': '🛡️ AYNA KALKAN! Mermi Krupiye’ye yansıdı: -{dmg} can!',
+  'shield.reflected.player': '🛡️ KRUPİYENİN AYNA KALKANI! Mermi sana yansıdı: -{dmg} can!',
 
   // ── Sonuç ──────────────────────────────────────────────────────────────────
   'outcome.training.win': '🎓 Antrenman tamamlandı! Artık burada oyunun nasıl oynandığını biliyorsun.',
@@ -301,19 +301,19 @@ export const tr: Dictionary = {
   // ── Ana menü ───────────────────────────────────────────────────────────────
   'ui.menu.subtitle': '5 Mekân ve 15 Patron boyunca Siber-Okült Düello',
   'ui.menu.play': '🎮 OYNA (DÜNYA HARİTASI)',
-  'ui.menu.meta': '🦾 KARAKTER GELİŞTİRME',
+  'ui.menu.meta': '⚙️ KARAKTER GELİŞTİRME',
 
   // ── Dünya haritası ─────────────────────────────────────────────────────────
   'ui.map.title': '🗺️ DÜNYA HARİTASI (5 MEKÂN VE 15 PATRON)',
   'ui.map.subtitle': 'Açık olan herhangi bir mekânı seç: ister tamamla, ister neon fiş topla!',
-  'ui.map.meta': '🦾 Karakter Geliştirme',
+  'ui.map.meta': '⚙️ Karakter Geliştirme',
   'ui.map.backMenu': '⬅️ Ana Menüye',
   'ui.map.locked': '🔒 KİLİTLİ',
   'ui.map.completed': '✅ YENİLDİ (Farm)',
   'ui.map.current': '⚔️ SIRADAKİ MEYDAN OKUMA',
 
   // ── Geliştirme dükkânı ─────────────────────────────────────────────────────
-  'ui.meta.title': '🦾 META DÜKKÂN — TEMEL GELİŞTİRMELER',
+  'ui.meta.title': '⚙️ META DÜKKÂN — TEMEL GELİŞTİRMELER',
   'ui.meta.subtitle': 'Kalıcı geliştirmeler yenilsen bile sonsuza dek sende kalır!',
   'ui.meta.backMap': '🗺️ Dünya Haritasına',
   'ui.meta.training': '🎓 Antrenman maçı',
@@ -351,6 +351,10 @@ export const tr: Dictionary = {
   'ui.battle.intent.self': '🛡️ KRUPİYE KENDİNE NİŞAN ALIYOR...',
   'ui.card.locked.tip': 'x{mult} çarpanı zaten etkin. Kart elinde kalır — atıştan sonra oyna.',
 
+  'ui.card.use': 'Kartı kullan',
+
+  'ui.card.cancel': 'İptal',
+
   // ── Patron dosyası ─────────────────────────────────────────────────────────
   'ui.boss.dossier': 'SIRADAKİ PATRONUN DOSYASI',
   'ui.boss.abilityLabel': '⚠️ ÖZELLİK:',
@@ -363,7 +367,7 @@ export const tr: Dictionary = {
 
   // ── Düello sonucu ──────────────────────────────────────────────────────────
   'ui.modal.revive': '⚡ İkinci Şans (+%20 HP) — Düelloya Devam ⚔️',
-  'ui.modal.meta': '🦾 Karakter Geliştirme',
+  'ui.modal.meta': '⚙️ Karakter Geliştirme',
   'ui.modal.map': '🗺️ Dünya Haritası',
   'ui.win.title': '🎉 ZAFER! {n}. PATRONA HAZIRSIN',
   'ui.win.reward': '💰 DÜELLO KAZANCI:',
@@ -372,7 +376,7 @@ export const tr: Dictionary = {
   'ui.win.double': '📺 Kazancı ikiye katla (2x Fiş)!',
   'ui.win.next': '{n}. Patrona ➔',
   'ui.lose.title': '💀 DÜELLODA YENİLGİ',
-  'ui.lose.comp': '🩹 RİSK TAZMİNATI:',
+  'ui.lose.comp': '💰 RİSK TAZMİNATI:',
   'ui.lose.hint': '{n}. patrona döneceksin. İkinci Şans mı, Karakter Geliştirme mi — sen bilirsin.',
   'ui.lose.retry': '{n}. Patrona ⚔️',
   'ui.final.title': '🏆 15 PATRONUN HEPSİ DEVRİLDİ!',

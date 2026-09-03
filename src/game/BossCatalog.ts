@@ -200,7 +200,7 @@ export const LOCATIONS: LocationDefinition[] = [
       {
         id: 'DROID_UNIT_7',
         name: 'boss.DROID_UNIT_7.name',
-        avatar: '🦾',
+        avatar: '⚙️',
         avatarUrl: kiraAvatar,
         hp: 690,
         armor: 200,

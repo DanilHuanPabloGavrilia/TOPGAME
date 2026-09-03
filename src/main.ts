@@ -30,6 +30,56 @@ import { tutorial, type TutorialScreen } from './engine/TutorialManager';
 import { normalizeLang, setLang, getLang, t, type Lang } from './i18n';
 import { applyStaticI18n } from './i18n/dom';
 import { buildTutorialSteps } from './game/TutorialSteps';
+import type { ItemCard } from './game/Types';
+
+/**
+ * A card's icon: the painted artwork, with its emoji behind it in case the image fails.
+ *
+ * Shared rather than written twice, because the two places that draw a card had drifted
+ * apart — the hand used the artwork, the dealer's showcase used the emoji alone. One of
+ * those emoji (the saw, U+1FA9A) was added to Unicode in 2020, and the machine the game
+ * was reviewed on had no glyph for it, so the showcase drew a box with a question mark.
+ * Whatever is drawn, both places now draw the same thing.
+ */
+function cardIconHTML(item: ItemCard, imgClass: string): string {
+  if (!item.iconUrl) return `<div class="card-icon">${item.icon}</div>`;
+
+  const src = imagePreloader.getItemImage(item.id, item.iconUrl);
+  return `<img src="${src}" class="${imgClass}" alt="${item.name}" draggable="false" loading="eager" decoding="async" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" /><div class="card-icon" style="display:none;">${item.icon}</div>`;
+}
+
+// --- Card detail sheet (touch layouts) -------------------------------------------------
+
+/**
+ * The card the sheet is currently offering to play. The id is kept alongside the index
+ * because the hand is rebuilt on every render: acting on a stale index would play whatever
+ * card had since taken that slot, which is a worse bug than the one being fixed.
+ */
+let pendingCard: { index: number; id: string } | null = null;
+
+function closeCardDetail() {
+  pendingCard = null;
+  document.getElementById('card-detail')?.classList.remove('active');
+}
+
+function openCardDetail(item: ItemCard, index: number, playable: boolean) {
+  const sheet = document.getElementById('card-detail');
+  if (!sheet) return;
+
+  pendingCard = playable ? { index, id: item.id } : null;
+
+  document.getElementById('card-detail-icon')!.innerHTML = cardIconHTML(item, 'card-detail-icon-img');
+  document.getElementById('card-detail-name')!.innerText = item.name;
+  // A card that cannot be played says why, in the words the desktop tooltip already uses.
+  document.getElementById('card-detail-desc')!.innerText = playable
+    ? item.description
+    : `${item.description}\n\n${t('ui.card.locked.tip', { mult: gameState.damageMultiplier })}`;
+
+  const useBtn = document.getElementById('card-detail-use') as HTMLButtonElement | null;
+  if (useBtn) useBtn.style.display = playable ? '' : 'none';
+
+  sheet.classList.add('active');
+}
 
 imagePreloader.preloadAll();
 
@@ -101,6 +151,13 @@ const btnModalAction = document.getElementById('btn-modal-action') as HTMLButton
 // re-measured per frame, and listened to so turning the phone repaints the dealer's hand
 // instead of leaving whichever form was drawn last.
 const compactDealerHand = window.matchMedia('(max-height: 560px), (max-width: 380px)');
+
+/**
+ * Where a card is too small to carry its own description. The same breakpoint the
+ * stylesheet uses to hide .card-desc and the hover tooltip, so the two cannot disagree
+ * about whether a player can read what a card does.
+ */
+const compactCards = window.matchMedia('(max-width: 768px)');
 compactDealerHand.addEventListener('change', () => gameState.notifyUpdate());
 
 // Main UI Render Pipeline
@@ -112,6 +169,9 @@ function renderUI() {
     platformSDK.gameplayStart();
   } else {
     platformSDK.gameplayStop();
+    // The sheet belongs to a live duel. Left open it would sit over the outcome modal —
+    // they share a z-index, and this one wins on DOM order.
+    closeCardDetail();
   }
 
   // Screen Switcher
@@ -303,13 +363,8 @@ function renderBattleUI() {
     const playable = gameState.canUseItem(item);
     cardEl.className = playable ? 'item-card' : 'item-card locked';
 
-    const imgSrc = imagePreloader.getItemImage(item.id, item.iconUrl || '');
-    const iconHTML = item.iconUrl
-      ? `<img src="${imgSrc}" class="item-card-icon-img" alt="${item.name}" draggable="false" loading="eager" decoding="async" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" /><div class="card-icon" style="display:none;">${item.icon}</div>`
-      : `<div class="card-icon">${item.icon}</div>`;
-
     cardEl.innerHTML = `
-      ${iconHTML}
+      ${cardIconHTML(item, 'item-card-icon-img')}
       <div class="card-name" style="margin-top: 4px;">${item.name}</div>
       <div class="card-desc">${item.description}</div>
     `;
@@ -340,6 +395,15 @@ function renderBattleUI() {
 
     cardEl.addEventListener('click', () => {
       hideTooltip();
+
+      // On a touch layout the tap reads the card rather than playing it. Playing takes a
+      // second, deliberate press inside the sheet — which is the only place the
+      // description exists there, and the review failed the game for its absence.
+      if (compactCards.matches) {
+        openCardDetail(item, idx, isPlayerTurn && playable);
+        return;
+      }
+
       if (isPlayerTurn && playable) {
         const rect = cardEl.getBoundingClientRect();
         particles.spawnBurst(rect.left + rect.width / 2, rect.top, '#05d9e8', 20);
@@ -454,13 +518,19 @@ function renderBattleUI() {
     }
 
     btnModalAction.innerText = t('ui.win.next', { n: nextBossNum });
+    // The ad runs on this press, not on the modal opening. Requirement 4.4 wants ads in a
+    // logical pause and behind a player action; the review caught the opposite, on a duel
+    // that ended by itself when the dealer shot himself — the modal appeared and the ad
+    // opened with it, having asked nobody. "Between levels, when the player presses Next"
+    // is the documentation's own example, and this is that press.
     btnModalAction.onclick = () => {
       modalOverlay.classList.remove('active');
-      showBossIntroModal(gameState.currentLocationIndex, gameState.currentBossIndex);
+      platformSDK.showInterstitialAd(() => {
+        showBossIntroModal(gameState.currentLocationIndex, gameState.currentBossIndex);
+      });
     };
     shopGrid.innerHTML = '';
     modalOverlay.classList.add('active');
-    platformSDK.showInterstitialAd();
   } else if (gameState.phase === 'GAMEOVER') {
     const prevBossNum = gameState.currentBossIndex + 1;
     const consolation = defeatReward(gameState.currentLocationIndex, gameState.currentBossIndex);
@@ -500,12 +570,14 @@ function renderBattleUI() {
 
     btnModalAction.innerText = t('ui.lose.retry', { n: prevBossNum });
     shopGrid.innerHTML = '';
+    // Same rule as the victory branch above: the ad follows the press, not the defeat.
     btnModalAction.onclick = () => {
       modalOverlay.classList.remove('active');
-      showBossIntroModal(gameState.currentLocationIndex, gameState.currentBossIndex);
+      platformSDK.showInterstitialAd(() => {
+        showBossIntroModal(gameState.currentLocationIndex, gameState.currentBossIndex);
+      });
     };
     modalOverlay.classList.add('active');
-    platformSDK.showInterstitialAd();
   } else if (gameState.screenState === 'VICTORY') {
     if (btnAdDoubleChips) btnAdDoubleChips.style.display = 'none';
     if (btnAdRevive) btnAdRevive.style.display = 'none';
@@ -954,6 +1026,36 @@ document.getElementById('btn-confirm-exit-cancel')?.addEventListener('click', ()
   modalConfirmExit.classList.remove('active');
 });
 
+// --- Card detail sheet: bound once, not per card ---------------------------------------
+
+document.getElementById('card-detail-cancel')?.addEventListener('click', closeCardDetail);
+
+// Tapping the dimmed area outside the sheet dismisses it, the way every other sheet on a
+// phone behaves. The check keeps a press on the sheet itself from closing it.
+document.getElementById('card-detail')?.addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeCardDetail();
+});
+
+document.getElementById('card-detail-use')?.addEventListener('click', () => {
+  const pending = pendingCard;
+  closeCardDetail();
+  if (!pending) return;
+
+  if (gameState.turn !== 'PLAYER' || gameState.phase !== 'BATTLE') return;
+
+  // The hand may have been rebuilt while the sheet was open, so the slot is re-checked
+  // against the card that was actually offered rather than trusted.
+  const card = gameState.player.hand[pending.index];
+  if (!card || card.id !== pending.id || !gameState.canUseItem(card)) return;
+
+  const btn = document.getElementById('card-detail-use');
+  if (btn) {
+    const r = btn.getBoundingClientRect();
+    particles.spawnBurst(r.left + r.width / 2, r.top, '#05d9e8', 20);
+  }
+  gameState.useItem(pending.index, 'PLAYER');
+});
+
 document.getElementById('btn-confirm-exit-ok')?.addEventListener('click', () => {
   modalConfirmExit.classList.remove('active');
   // abandonDuel, not a screen assignment: the dealer may be mid-turn behind this modal,
@@ -1028,7 +1130,12 @@ const playerAvatar = document.getElementById('player-avatar')!;
 
 // Bind GameState Dealer Showcase Card Callback
 gameState.onDealerShowcaseCard = (card) => {
-  if (showcaseCardIcon) showcaseCardIcon.innerText = card.icon;
+  // The painted icon, not the emoji. This showed card.icon alone, so the one place the
+  // dealer's card is displayed large was the one place that never used the artwork the
+  // game ships for it — and the review caught it: the saw's emoji is U+1FA9A, added to
+  // Unicode in 2020, and a machine without that glyph draws a box with a question mark.
+  // The emoji stays as the fallback, exactly as it works for the cards in hand.
+  if (showcaseCardIcon) showcaseCardIcon.innerHTML = cardIconHTML(card, 'showcase-icon-img');
   if (showcaseCardName) showcaseCardName.innerText = card.name;
   if (showcaseCardDesc) showcaseCardDesc.innerText = card.description;
 

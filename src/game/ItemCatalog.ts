@@ -81,7 +81,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
   SAW: {
     id: 'SAW',
     name: 'item.SAW.name',
-    icon: '🪚',
+    icon: '🔪',
     iconUrl: sawIcon,
     description: 'item.booster.desc'
   },
@@ -130,7 +130,7 @@ export const ALL_ITEMS: Record<ItemId, ItemCard> = {
   XRAY: {
     id: 'XRAY',
     name: 'item.XRAY.name',
-    icon: '🩺',
+    icon: '🔬',
     iconUrl: xrayIcon,
     description: 'item.XRAY.desc'
   },

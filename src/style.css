@@ -1006,6 +1006,70 @@ body {
   margin: 4px 0;
 }
 
+.showcase-icon-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 10px;
+  display: block;
+}
+
+/* Card detail sheet. Opens on a tap where the card is too small to carry its own
+   description — see the element in index.html. */
+.card-detail-box {
+  max-width: 340px;
+  padding: 20px 22px;
+  gap: 12px;
+  border-color: var(--neon-yellow);
+  box-shadow: 0 0 40px rgba(246, 201, 14, 0.3);
+  /* A landscape phone is ~300px tall in total, so the sheet has to stay inside it and let
+     a long description scroll rather than push the buttons off the bottom. */
+  max-height: 88%;
+  overflow-y: auto;
+}
+
+.card-detail-icon-img {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
+}
+
+.card-detail-icon .card-icon { font-size: 3rem; }
+
+.card-detail-name {
+  font-family: 'Orbitron', 'Fira Code', monospace;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px rgba(246, 201, 14, 0.5);
+}
+
+.card-detail-desc {
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.card-detail-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.card-detail-actions button {
+  padding: 12px 22px;
+  font-size: 0.9rem;
+  /* The tap target stays at the guideline even where the sheet is cramped. */
+  min-height: 44px;
+}
+
 .showcase-name {
   font-family: 'Orbitron', 'Fira Code', monospace;
   font-size: 1.2rem;

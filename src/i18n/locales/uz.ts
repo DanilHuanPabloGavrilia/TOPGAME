@@ -214,8 +214,8 @@ export const uz: Dictionary = {
   'log.live': '(🔴 Jangovar -{dmg} HP)',
   'log.blank': '(🔵 Bo‘sh o‘q 0 HP)',
   'log.blank.paid': '(🔵 Bo‘sh o‘q +{chips}$)',
-  'log.reflected.dealer': '(🪞 Dillerga qaytdi -{dmg} HP)',
-  'log.reflected.player': '(🪞 Sizga qaytdi -{dmg} HP)',
+  'log.reflected.dealer': '(🛡️ Dillerga qaytdi -{dmg} HP)',
+  'log.reflected.player': '(🛡️ Sizga qaytdi -{dmg} HP)',
   'log.card.player': 'Siz «{card}» kartasini o‘ynadingiz',
   'log.card.dealer': 'Diller «{card}» kartasini o‘ynadi',
   'log.revive': 'Ikkinchi Imkoniyat ishga tushdi! +{hp} HP tiklandi!',
@@ -257,13 +257,13 @@ export const uz: Dictionary = {
   'card.overdrive2': '⚡ OVERDRAYV 2.0 (x{mult} zarar) yoqildi!',
   'card.magnet.player': '🧲 Magnit Dillerning qo‘lidan «{card}» kartasini tortib oldi!',
   'card.magnet.dealer': '🧲 Diller magnit bilan sizdan «{card}» kartasini tortib oldi!',
-  'card.xray.player': '🩺 Rentgen skaner barabandagi BARCHA o‘qlarni ochdi!',
-  'card.xray.dealer': '🩺 Diller barabanni skanerladi. Endi u butun joylashuvni ko‘radi.',
+  'card.xray.player': '🔬 Rentgen skaner barabandagi BARCHA o‘qlarni ochdi!',
+  'card.xray.dealer': '🔬 Diller barabanni skanerladi. Endi u butun joylashuvni ko‘radi.',
   'card.nullifier.player': '🚫 Nullifikator ko‘paytiruvchini bekor qilib, Dillerning «{card}» kartasini yoqdi!',
   'card.nullifier.dealer': '🚫 Diller ko‘paytiruvchini bekor qilib, sizning «{card}» kartangizni yoqdi!',
   'card.nullifier.empty': '🚫 Nullifikator zarar ko‘paytiruvchisini bekor qildi!',
-  'shield.reflected.dealer': '🪞 OYNA QALQON! O‘q Dillerga qaytdi: -{dmg} HP!',
-  'shield.reflected.player': '🪞 DILLERNING OYNA QALQONI! O‘q sizga qaytdi: -{dmg} HP!',
+  'shield.reflected.dealer': '🛡️ OYNA QALQON! O‘q Dillerga qaytdi: -{dmg} HP!',
+  'shield.reflected.player': '🛡️ DILLERNING OYNA QALQONI! O‘q sizga qaytdi: -{dmg} HP!',
 
   // ── Jang natijasi ──────────────────────────────────────────────────────────
   'outcome.training.win': '🎓 Mashg‘ulot yakunlandi! Endi bu yerda qanday o‘ynashni bilasan.',
@@ -303,19 +303,19 @@ export const uz: Dictionary = {
   // ── Bosh menyu ─────────────────────────────────────────────────────────────
   'ui.menu.subtitle': '5 joy va 15 boss bo‘ylab kiber-okkult duel',
   'ui.menu.play': '🎮 O‘YNASH (DUNYO XARITASI)',
-  'ui.menu.meta': '🦾 META-YANGILANISH',
+  'ui.menu.meta': '⚙️ META-YANGILANISH',
 
   // ── Dunyo xaritasi ─────────────────────────────────────────────────────────
   'ui.map.title': '🗺️ DUNYO XARITASI (5 JOY VA 15 BOSS)',
   'ui.map.subtitle': 'Ochiq turgan istalgan joyni tanlang: o‘ting yoki neon fishka yig‘ing!',
-  'ui.map.meta': '🦾 Meta-yangilanish',
+  'ui.map.meta': '⚙️ Meta-yangilanish',
   'ui.map.backMenu': '⬅️ Bosh menyuga',
   'ui.map.locked': '🔒 YOPIQ',
   'ui.map.completed': '✅ YENGILDI (Farm)',
   'ui.map.current': '⚔️ JORIY SINOV',
 
   // ── Meta-do‘kon ────────────────────────────────────────────────────────────
-  'ui.meta.title': '🦾 META-DO‘KON — ASOSIY YAXSHILANISHLAR',
+  'ui.meta.title': '⚙️ META-DO‘KON — ASOSIY YAXSHILANISHLAR',
   'ui.meta.subtitle': 'Doimiy yaxshilanishlar mag‘lub bo‘lsangiz ham abadiy sizda qoladi!',
   'ui.meta.backMap': '🗺️ Dunyo xaritasiga',
   'ui.meta.training': '🎓 Mashg‘ulot jangi',
@@ -353,6 +353,10 @@ export const uz: Dictionary = {
   'ui.battle.intent.self': '🛡️ DILLER O‘ZIGA NISHON OLMOQDA...',
   'ui.card.locked.tip': 'x{mult} ko‘paytirgichi allaqachon yoqilgan. Karta qo‘lingizda qoladi — otgandan keyin o‘ynang.',
 
+  'ui.card.use': 'Qo‘llash',
+
+  'ui.card.cancel': 'Bekor qilish',
+
   // ── Boss dosyesi ───────────────────────────────────────────────────────────
   'ui.boss.dossier': 'KEYINGI BOSSNING DOSYESI',
   'ui.boss.abilityLabel': '⚠️ XUSUSIYATI:',
@@ -365,7 +369,7 @@ export const uz: Dictionary = {
 
   // ── Duel yakuni ────────────────────────────────────────────────────────────
   'ui.modal.revive': '⚡ Ikkinchi imkoniyat (+20% HP) — jangni davom ettirish ⚔️',
-  'ui.modal.meta': '🦾 Meta-yangilanish',
+  'ui.modal.meta': '⚙️ Meta-yangilanish',
   'ui.modal.map': '🗺️ Dunyo xaritasi',
   'ui.win.title': '🎉 G‘ALABA! {n}-BOSSGA TAYYORSIZ',
   'ui.win.reward': '💰 DUEL YUTUG‘I:',
@@ -374,7 +378,7 @@ export const uz: Dictionary = {
   'ui.win.double': '📺 Yutuqni ikki barobar oshirish (2x fishka)!',
   'ui.win.next': '{n}-bossga ➔',
   'ui.lose.title': '💀 DUELDA MAG‘LUBIYAT',
-  'ui.lose.comp': '🩹 TAVAKKAL UCHUN TOVON:',
+  'ui.lose.comp': '💰 TAVAKKAL UCHUN TOVON:',
   'ui.lose.hint': '{n}-bossga qaytasiz. Ikkinchi imkoniyatmi yoki meta-yangilanishmi — o‘zingiz hal qiling.',
   'ui.lose.retry': '{n}-bossga ⚔️',
   'ui.final.title': '🏆 15 BOSSNING BARCHASI YIQILDI!',

@@ -212,8 +212,8 @@ export const en: Dictionary = {
   'log.live': '(🔴 Live -{dmg} HP)',
   'log.blank': '(🔵 Blank 0 HP)',
   'log.blank.paid': '(🔵 Blank +{chips}$)',
-  'log.reflected.dealer': '(🪞 Reflected -{dmg} HP onto the Dealer)',
-  'log.reflected.player': '(🪞 Reflected -{dmg} HP onto you)',
+  'log.reflected.dealer': '(🛡️ Reflected -{dmg} HP onto the Dealer)',
+  'log.reflected.player': '(🛡️ Reflected -{dmg} HP onto you)',
   'log.card.player': 'You played the card “{card}”',
   'log.card.dealer': 'The Dealer played the card “{card}”',
   'log.revive': 'Second Chance used! Restored +{hp} HP!',
@@ -255,13 +255,13 @@ export const en: Dictionary = {
   'card.overdrive2': '⚡ OVERDRIVE 2.0 (x{mult} damage) engaged!',
   'card.magnet.player': '🧲 The Magnet pulled the card “{card}” out of the Dealer’s hand!',
   'card.magnet.dealer': '🧲 The Dealer magneted the card “{card}” out of your hand!',
-  'card.xray.player': '🩺 The X-Ray Scanner revealed EVERY round in the cylinder!',
-  'card.xray.dealer': '🩺 The Dealer scanned the cylinder. He can see the whole layout now.',
+  'card.xray.player': '🔬 The X-Ray Scanner revealed EVERY round in the cylinder!',
+  'card.xray.dealer': '🔬 The Dealer scanned the cylinder. He can see the whole layout now.',
   'card.nullifier.player': '🚫 The Nullifier cleared the multiplier and burned the Dealer’s card “{card}”!',
   'card.nullifier.dealer': '🚫 The Dealer cleared the multiplier and burned your card “{card}”!',
   'card.nullifier.empty': '🚫 The Nullifier cleared the damage multiplier!',
-  'shield.reflected.dealer': '🪞 MIRROR SHIELD! The round is reflected onto the Dealer: -{dmg} HP!',
-  'shield.reflected.player': '🪞 THE DEALER’S MIRROR SHIELD! The round is reflected onto you: -{dmg} HP!',
+  'shield.reflected.dealer': '🛡️ MIRROR SHIELD! The round is reflected onto the Dealer: -{dmg} HP!',
+  'shield.reflected.player': '🛡️ THE DEALER’S MIRROR SHIELD! The round is reflected onto you: -{dmg} HP!',
 
   // ── Outcome ────────────────────────────────────────────────────────────────
   'outcome.training.win': '🎓 Training complete! Now you know how the game is played here.',
@@ -301,19 +301,19 @@ export const en: Dictionary = {
   // ── Main menu ──────────────────────────────────────────────────────────────
   'ui.menu.subtitle': 'A Cyber-Occult Duel across 5 Locations & 15 Bosses',
   'ui.menu.play': '🎮 PLAY (WORLD MAP)',
-  'ui.menu.meta': '🦾 META UPGRADES',
+  'ui.menu.meta': '⚙️ META UPGRADES',
 
   // ── World map ──────────────────────────────────────────────────────────────
   'ui.map.title': '🗺️ WORLD MAP (5 LOCATIONS & 15 BOSSES)',
   'ui.map.subtitle': 'Pick any unlocked location to clear it — or to farm neon chips!',
-  'ui.map.meta': '🦾 Meta Upgrades',
+  'ui.map.meta': '⚙️ Meta Upgrades',
   'ui.map.backMenu': '⬅️ To Main Menu',
   'ui.map.locked': '🔒 LOCKED',
   'ui.map.completed': '✅ BEATEN (Farm)',
   'ui.map.current': '⚔️ CURRENT CHALLENGE',
 
   // ── Meta shop ──────────────────────────────────────────────────────────────
-  'ui.meta.title': '🦾 META SHOP — BASE UPGRADES',
+  'ui.meta.title': '⚙️ META SHOP — BASE UPGRADES',
   'ui.meta.subtitle': 'Permanent upgrades stay with you forever, even through defeats!',
   'ui.meta.backMap': '🗺️ To the World Map',
   'ui.meta.training': '🎓 Sparring match',
@@ -351,6 +351,10 @@ export const en: Dictionary = {
   'ui.battle.intent.self': '🛡️ THE DEALER IS AIMING AT HIMSELF...',
   'ui.card.locked.tip': 'A x{mult} multiplier is already up. The card stays in your hand — play it after the shot.',
 
+  'ui.card.use': 'Use card',
+
+  'ui.card.cancel': 'Cancel',
+
   // ── Boss dossier ───────────────────────────────────────────────────────────
   'ui.boss.dossier': 'NEXT BOSS DOSSIER',
   'ui.boss.abilityLabel': '⚠️ SPECIALITY:',
@@ -363,7 +367,7 @@ export const en: Dictionary = {
 
   // ── Duel outcome ───────────────────────────────────────────────────────────
   'ui.modal.revive': '⚡ Second Chance (+20% HP) — Continue the Duel ⚔️',
-  'ui.modal.meta': '🦾 Meta Upgrades',
+  'ui.modal.meta': '⚙️ Meta Upgrades',
   'ui.modal.map': '🗺️ World Map',
   'ui.win.title': '🎉 VICTORY! READY FOR BOSS {n}',
   'ui.win.reward': '💰 DUEL WINNINGS:',
@@ -372,7 +376,7 @@ export const en: Dictionary = {
   'ui.win.double': '📺 Double the winnings (2x Chips)!',
   'ui.win.next': 'To Boss {n} ➔',
   'ui.lose.title': '💀 DEFEATED IN THE DUEL',
-  'ui.lose.comp': '🩹 RISK COMPENSATION:',
+  'ui.lose.comp': '💰 RISK COMPENSATION:',
   'ui.lose.hint': 'You return to Boss {n}. Second Chance or Meta Upgrades — your call.',
   'ui.lose.retry': 'To Boss {n} ⚔️',
   'ui.final.title': '🏆 ALL 15 BOSSES DEFEATED!',

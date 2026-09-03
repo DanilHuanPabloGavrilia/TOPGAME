@@ -81,7 +81,7 @@
             🎮 ИГРАТЬ (КАРТА МИРА)
           </button>
           <button id="btn-open-meta-shop" class="btn-secondary btn-large" data-i18n="ui.menu.meta">
-            🦾 МЕТА-ПРОКАЧКА ХАРАКТЕРИСТИК
+            ⚙️ МЕТА-ПРОКАЧКА ХАРАКТЕРИСТИК
           </button>
         </div>
       </div>
@@ -98,7 +98,7 @@
         <!-- Top Action Buttons -->
         <div style="display: flex; gap: 14px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap;">
           <button id="btn-map-meta-shop" class="btn-primary" data-i18n="ui.map.meta" style="padding: 12px 26px; font-size: 1.05rem; box-shadow: 0 0 20px rgba(5, 217, 232, 0.4);">
-            🦾 Прокачка Характеристик
+            ⚙️ Прокачка Характеристик
           </button>
           <button id="btn-map-back-menu" class="btn-secondary" data-i18n="ui.map.backMenu" style="padding: 12px 20px;">
             ⬅️ В Главное Меню
@@ -114,7 +114,7 @@
     <!-- META SHOP SCREEN -->
     <div id="screen-meta-shop" class="screen-panel">
       <div class="meta-shop-box">
-        <h2 class="modal-title" data-i18n="ui.meta.title">🦾 МЕТА-МАГАЗИН БАЗОВЫХ УЛУЧШЕНИЙ</h2>
+        <h2 class="modal-title" data-i18n="ui.meta.title">⚙️ МЕТА-МАГАЗИН БАЗОВЫХ УЛУЧШЕНИЙ</h2>
         <p style="color: var(--text-dim); margin-bottom: 20px;" data-i18n="ui.meta.subtitle">
           Постоянные улучшения сохраняются навсегда даже при поражениях!
         </p>
@@ -276,7 +276,7 @@
             ⚡ Второй Шанс (+20% HP) — Продолжить Бой ⚔️
           </button>
           <button id="btn-intermission-meta" class="btn-secondary" data-i18n="ui.modal.meta" style="font-size: 0.9rem; padding: 10px 18px;">
-            🦾 Мета-Прокачка
+            ⚙️ Мета-Прокачка
           </button>
           <button id="btn-intermission-map" class="btn-secondary" data-i18n="ui.modal.map" style="font-size: 0.9rem; padding: 10px 18px;">
             🗺️ Карта Мира
@@ -367,6 +367,24 @@
     <div id="card-tooltip" class="card-tooltip">
       <div id="tooltip-title" class="tooltip-title"></div>
       <div id="tooltip-desc" class="tooltip-desc"></div>
+    </div>
+
+    <!-- What a card does, on a touch screen. The card itself is 60x80 there and cannot
+         carry three lines of description, and the tooltip beside it has no hover to open
+         it — so the two ways a desktop player reads a card were both shut on a phone, and
+         the review failed the game for it: the information is needed to play at all.
+         A tap opens this instead of playing the card, and playing it takes a second,
+         deliberate press. renderBattleUI fills every field; only the buttons carry keys. -->
+    <div id="card-detail" class="modal-overlay card-detail">
+      <div class="modal-box card-detail-box">
+        <div id="card-detail-icon" class="card-detail-icon"></div>
+        <div id="card-detail-name" class="card-detail-name"></div>
+        <div id="card-detail-desc" class="card-detail-desc"></div>
+        <div class="card-detail-actions">
+          <button id="card-detail-cancel" class="btn-secondary" data-i18n="ui.card.cancel">Отмена</button>
+          <button id="card-detail-use" class="btn-primary" data-i18n="ui.card.use">Применить</button>
+        </div>
+      </div>
     </div>
     <!-- CONFIRMATION EXIT MODAL -->
     <div id="modal-confirm-exit" class="modal-overlay">
