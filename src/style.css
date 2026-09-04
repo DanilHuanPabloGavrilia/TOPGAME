@@ -1452,6 +1452,23 @@ body {
 
   .game-table { padding: 2px 10px; gap: 2px; }
 
+  /* Both strips cap at 34px, and their contents have to actually fit inside that or the
+     cap simply clips them — which it was doing, taking the top off "Диллер Кибер-Марков"
+     and off "ИГРОК (ВЫ)". The name, the bar and the figures come to 27px; the 14px of gaps
+     between them were the overflow. */
+  .dealer-zone .char-details,
+  .player-header .char-details { gap: 0; line-height: 1.1; }
+  .dealer-zone .char-details > *,
+  .player-header .char-details > * { margin: 0; }
+  .dealer-zone .hp-bar-container,
+  .player-header .hp-bar-container { margin: 1px 0; }
+  /* The HP figures are a <small>, and an inline box is laid out against the line-height of
+     whatever contains it — 16px here, for text drawn at 7.7px. That leftover leading was
+     nine of the fourteen pixels that pushed the strip past its cap. As blocks they are the
+     height of their own text. */
+  #dealer-hp-text,
+  #player-hp-text { display: block; line-height: 1.1; }
+
   .dealer-zone { max-height: 34px; padding: 1px 8px; }
   .dealer-zone .avatar-box { width: 20px; height: 20px; font-size: 0.7rem; }
   .dealer-zone .char-details h3 { font-size: 0.55rem; }
@@ -1462,6 +1479,23 @@ body {
      everything it reported is on screen anyway: damage as a floating number and an HP bar,
      live against blank as the screen flash and the coloured chamber. */
   .dealer-dialogue { display: none; }
+
+  /* "Диллер целится в вас" sat 65px above the cylinder at desktop type, which on a 322px
+     screen put it off the top edge entirely — measured at -12px. Brought down against the
+     cylinder and cut to fit the width it has. */
+  .dealer-intent-banner {
+    top: -22px;
+    font-size: 0.5rem;
+    padding: 3px 10px;
+    border-width: 1px;
+    border-radius: 12px;
+    max-width: 90vw;
+    box-shadow: 0 0 14px rgba(255, 42, 109, 0.5);
+  }
+
+  /* The reticle is sized for a desktop avatar. Against a 20px one on a phone it drew a
+     76px ring that hung off the bottom of the screen. */
+  .target-reticle { width: 44px; height: 44px; }
 
   /* The cylinder takes everything the strips gave up. */
   .chamber-display { padding: 2px 10px; gap: 2px; }
@@ -1496,12 +1530,20 @@ body {
     padding: 2px 2px 3px;
     justify-content: flex-start;
   }
-  .item-card .card-desc { flex: 1 1 auto; min-height: 0; }
   .item-card-icon-img { width: 22px; height: 22px; }
   .card-name { font-size: 0.44rem; margin-bottom: 0; line-height: 1.05; }
-  /* 1.15 put four lines a pixel past the box and clipped the last one — which on a
-     multiplier card is the multiplier itself, the only number that matters on it. */
-  .card-desc { display: -webkit-box; font-size: 0.42rem; line-height: 1.08; -webkit-line-clamp: 4; }
+  /* min-height, not flex-grow. An element with -webkit-line-clamp takes its height from the
+     clamp and will not grow into spare space however the flex is set — so a card whose name
+     wrapped to two lines ("Овердрайв 2.0", "Щит-Зеркало") gave its description two lines
+     while eight pixels sat unused at the bottom of the card. Three lines are reserved
+     outright; the card is 70px and has the room. */
+  .card-desc {
+    display: -webkit-box;
+    font-size: 0.42rem;
+    line-height: 1.08;
+    -webkit-line-clamp: 4;
+    min-height: 24px;
+  }
 }
 
 /* Coarse pointers get no hover affordances at all — they only cause stuck states. */

@@ -1081,9 +1081,12 @@ gameState.onDealerTargeting = (target) => {
     targetReticle.className = 'target-reticle self-target';
   }
 
-  // Position reticle centered directly over target avatar
+  // Position reticle centered directly over target avatar.
+  // Measured against #app, not the table: the player's avatar sits below the hand on a
+  // phone, outside the table, and a reticle placed from inside it stretched the scrollable
+  // area by 31px whenever the dealer took aim.
   const avatarRect = targetAvatarElement.getBoundingClientRect();
-  const centerSection = document.querySelector('.table-center') as HTMLElement;
+  const centerSection = document.getElementById('app');
   const centerRect = centerSection ? centerSection.getBoundingClientRect() : { left: 0, top: 0 };
 
   const x = avatarRect.left + avatarRect.width / 2 - centerRect.left;

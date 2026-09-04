@@ -33,6 +33,18 @@
   <div id="app">
     <canvas id="fx-canvas"></canvas>
 
+    <!-- The targeting reticle, over the whole screen rather than inside the table.
+         It is absolutely positioned onto whichever avatar the dealer is aiming at, and the
+         player's avatar now sits below the hand — outside the table it used to be measured
+         against. From in there it stretched the scrollable area by 31px every time the
+         dealer took aim. #app is the full screen and clips its own overflow. -->
+    <div id="target-reticle" class="target-reticle" style="display: none;">
+      <div class="reticle-ring"></div>
+      <div class="reticle-crosshair-h"></div>
+      <div class="reticle-crosshair-v"></div>
+      <div class="reticle-center-dot"></div>
+    </div>
+
     <!-- Header Status Bar -->
     <header class="header-bar">
       <!-- Exactly the registered name. The upper case is styling, applied in the stylesheet,
@@ -184,13 +196,6 @@
             <div id="showcase-card-desc" class="showcase-desc">Показывает текущий патрон в стволе</div>
           </div>
 
-          <!-- Avatar Target Reticle Overlay -->
-          <div id="target-reticle" class="target-reticle" style="display: none;">
-            <div class="reticle-ring"></div>
-            <div class="reticle-crosshair-h"></div>
-            <div class="reticle-crosshair-v"></div>
-            <div class="reticle-center-dot"></div>
-          </div>
 
           <div id="multiplier-badge" class="multiplier-badge" style="display: none;">
             МУЛЬТИПЛИКАТОР УРОНА: x2
