@@ -1021,61 +1021,6 @@ body {
   display: block;
 }
 
-/* Card detail sheet. Opens on a tap where the card is too small to carry its own
-   description — see the element in index.html. */
-.card-detail-box {
-  max-width: 340px;
-  padding: 20px 22px;
-  gap: 12px;
-  border-color: var(--neon-yellow);
-  box-shadow: 0 0 40px rgba(246, 201, 14, 0.3);
-  /* A landscape phone is ~300px tall in total, so the sheet has to stay inside it and let
-     a long description scroll rather than push the buttons off the bottom. */
-  max-height: 88%;
-  overflow-y: auto;
-}
-
-.card-detail-icon-img {
-  width: 68px;
-  height: 68px;
-  object-fit: contain;
-  border-radius: 12px;
-  display: block;
-  margin: 0 auto;
-}
-
-.card-detail-icon .card-icon { font-size: 3rem; }
-
-.card-detail-name {
-  font-family: 'Orbitron', 'Fira Code', monospace;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--neon-yellow);
-  text-shadow: 0 0 10px rgba(246, 201, 14, 0.5);
-}
-
-.card-detail-desc {
-  font-size: 0.92rem;
-  line-height: 1.4;
-  color: var(--text-main);
-  background: rgba(0, 0, 0, 0.4);
-  padding: 10px 12px;
-  border-radius: 8px;
-}
-
-.card-detail-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.card-detail-actions button {
-  padding: 12px 22px;
-  font-size: 0.9rem;
-  /* The tap target stays at the guideline even where the sheet is cramped. */
-  min-height: 44px;
-}
 
 .showcase-name {
   font-family: 'Orbitron', 'Fira Code', monospace;
@@ -1320,9 +1265,18 @@ body {
     animation: none;
   }
   .item-card:hover { transform: none; }
-  .item-card-icon-img { width: 32px; height: 32px; }
+  .item-card-icon-img { width: 26px; height: 26px; }
   .card-name { font-size: 0.5rem !important; line-height: 1.1 !important; }
-  .card-desc { display: none; }
+
+  /* The description stays on the card. It used to be hidden here, and the hover tooltip
+     was hidden too, which left a player on a phone with an icon and a name and no way to
+     learn what anything did — the review failed the game for exactly that. Portrait has
+     the height to spare, so the card simply gets taller. */
+  .card-desc {
+    display: -webkit-box;
+    font-size: 0.46rem;
+    -webkit-line-clamp: 4;
+  }
 
   .player-header { padding: 4px 10px; }
 
@@ -1428,7 +1382,9 @@ body {
   [data-i18n="ui.battle.chamberLabel"] { display: none; }
 
   .revolver-drum { width: 84px; height: 84px; }
-  .item-card { width: 60px; height: 80px; }
+  /* Taller than it was, to carry the description. Portrait has the room: the table ended
+     268px above the bottom of a 740px screen. */
+  .item-card { width: 66px; height: 104px; }
   .item-card-icon-img { width: 26px; height: 26px; }
   .combat-log { display: none; }
   .hero-title { font-size: 1.4rem; }
@@ -1463,7 +1419,11 @@ body {
   .game-table {
     display: grid;
     grid-template-columns: 1fr minmax(150px, 210px);
-    grid-template-rows: auto 1fr;
+    /* Three rows: the dealer, the table beside the hand, and the player's own line across
+       the bottom. The player used to be a panel in the right column, where it took 74 of
+       the 188px the hand had to live in — on a real phone that left three of five cards
+       on screen. */
+    grid-template-rows: auto 1fr auto;
     align-items: start;
     column-gap: 10px;
   }
@@ -1471,39 +1431,77 @@ body {
   .dealer-zone { grid-column: 1 / -1; grid-row: 1; }
   .table-center { grid-column: 1; grid-row: 2; }
 
-  /* The HP panel was moved under the shoot buttons here and then moved back, because the
-     reason for moving it did not survive measurement. It was meant to free room for card
-     descriptions on the card itself; the freed room is height, and what a description
-     needs is width. In this 210px column the longest one (71 characters, Kazakh) is cut
-     off at 8px type unless the cards go to two per row — and then only two of five are on
-     screen. Both states are the finding the review already raised. The description lives
-     in the tap sheet instead, and this column stays as it was.
-     Measured before the move: the hand already showed 5 of 5 here. */
-  .player-zone {
-    grid-column: 2;
-    grid-row: 2;
-    height: 100%;
-    justify-content: flex-start;
+  /* The panel dissolves so its two halves can go where they belong: the hand keeps the
+     right column to itself, and the player's own numbers become a flat line along the
+     bottom. display:contents rather than moving the markup, so the rule lives inside this
+     media query and neither the desktop nor the portrait layout is touched. */
+  .player-zone { display: contents; }
+
+  /* One line, full width, no panel around it. It carries an avatar, a name, an HP bar, the
+     figures and whose turn it is — none of which needs a box of its own on a screen this
+     size, and the box was costing the hand two of its five cards. */
+  .player-header {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 10px;
+    background: none;
+    border: none;
+    border-top: 1px solid rgba(5, 217, 232, 0.25);
+    border-radius: 0;
   }
+
+  /* Everything on the player line sits on one baseline so the line stays about 32px. The
+     hand needs those pixels more than the player needs a second row. */
+  .player-header { min-height: 0; }
+  .player-header { flex-wrap: nowrap; }
+  .player-header .char-info { flex: 1 1 auto; min-width: 0; gap: 8px; }
+  .player-header .char-details { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; }
+  /* "ИГРОК (ВЫ)" goes: the avatar beside it already says whose line this is, and its 58px
+     were the difference between one row and two. A second row here costs the hand a whole
+     row of cards. */
+  .player-header .char-details h3 { display: none; }
+  .player-header .hp-bar-container { flex: 0 1 80px; min-width: 40px; }
+  .player-header #player-hp-text { white-space: nowrap; font-size: 0.58rem; }
+  .player-header > div:last-child { font-size: 0.62rem; white-space: nowrap; }
+  .player-zone .avatar-box { width: 24px; height: 24px; font-size: 0.8rem; }
+
+  /* The cylinder gives up 14px so the row above the player line can hold the table. It is
+     still the largest thing on the left and still reads as a cylinder. */
+  .revolver-drum { width: 70px; height: 70px; }
+  .chamber-display { padding: 4px 10px; gap: 4px; }
 
   /* The hand wraps into the column and scrolls inside it rather than widening the grid.
      Cards and the player header are trimmed so a full five-card hand shows as two rows
      without scrolling — a hand you have to scroll to read is a hand you misplay. */
   .cards-container {
+    /* The whole right column, now that nothing shares it. */
+    grid-column: 2;
+    grid-row: 2;
+    align-self: stretch;
+    height: auto;
+    min-height: 0;
     flex-wrap: wrap;
+    align-content: flex-start;
     justify-content: center;
     gap: 5px;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
-  .item-card { width: 52px; height: 68px; }
-  .item-card-icon-img { width: 22px; height: 22px; }
-  .card-name { font-size: 0.52rem; }
+  .table-center { min-height: 0; }
 
-  .player-header { padding: 2px 8px; }
-  .player-zone .avatar-box { width: 30px; height: 30px; font-size: 0.95rem; }
-  .player-zone .char-details h3 { font-size: 0.72rem; }
+  /* Cards carry their own description again, which is the whole point of the room the
+     player line gave back. Three to a row, and tall enough for icon, name and text. */
+  /* 62x70 holds three cards to a row and two rows in the column, which is the whole hand.
+     Inside it the icon and the padding give the description the pixels it needs: a
+     two-line card name leaves the text 19px otherwise, and the longest of them wants 32. */
+  .item-card { width: 62px; height: 70px; padding: 2px; }
+  .item-card-icon-img { width: 14px; height: 14px; }
+  .card-name { font-size: 0.46rem; margin-bottom: 0; }
+  .card-desc { display: -webkit-box; font-size: 0.44rem; -webkit-line-clamp: 5; }
 
   /* Landscape has the width the dialogue needed, so it stays hidden here rather than
      clamped: two lines still cost ~40px of a ~180px budget, and the hand needs them more
@@ -1514,16 +1512,10 @@ body {
 
   .dealer-zone { max-height: 76px; }
 
-  /* In a 210px column space-between pushed the turn indicator out past the panel and into
-     the screen edge. Stacked under the name it has the full column width instead. */
-  .player-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1px;
-  }
-
-  .player-header > div:last-child { font-size: 0.7rem; }
-  .player-header .char-info { width: 100%; min-width: 0; }
+  /* The turn indicator used to be stacked under the name, because the panel lived in the
+     210px column where space-between pushed it off the edge. The panel is a full-width
+     line along the bottom now, so it stays on one row — the rule that stacked it is gone
+     rather than overridden, since it sat after the new one and quietly won. */
 }
 
 /* Coarse pointers get no hover affordances at all — they only cause stuck states. */

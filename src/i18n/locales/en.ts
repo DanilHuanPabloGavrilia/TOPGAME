@@ -5,24 +5,24 @@ export const en: Dictionary = {
   'item.booster.desc': 'Next shot deals x{mult} damage.',
 
   'item.MAGNIFIER.name': 'Magnifier',
-  'item.MAGNIFIER.desc': 'Reveals the type of the next round in the cylinder.',
+  'item.MAGNIFIER.desc': 'Reveals the next round.',
   'item.SAW.name': 'Hacksaw',
   'item.ENERGY_DRINK.name': 'Energy Drink',
-  'item.ENERGY_DRINK.desc': 'Ejects the current round without firing.',
+  'item.ENERGY_DRINK.desc': 'Ejects the round, no shot.',
   'item.CIGARETTE.name': 'Cigarette',
-  'item.CIGARETTE.desc': 'Restores 10% of max health, but never less than 10.',
+  'item.CIGARETTE.desc': 'Heals 10% max HP (min 10).',
   'item.HACK_CHIP.name': 'Hack Chip',
-  'item.HACK_CHIP.desc': 'Flips the current round (Live ↔ Blank).',
+  'item.HACK_CHIP.desc': 'Round: Live ↔ Blank.',
   'item.MIRROR_SHIELD.name': 'Mirror Shield',
-  'item.MIRROR_SHIELD.desc': 'Reflects the next shot back at the shooter.',
+  'item.MIRROR_SHIELD.desc': 'Reflects the next shot.',
   'item.OVERDRIVE.name': 'Overdrive',
   'item.MAGNET.name': 'Magnet',
-  'item.MAGNET.desc': 'Steals a random card from the boss’s hand.',
+  'item.MAGNET.desc': 'Steals a card from the boss.',
   'item.XRAY.name': 'X-Ray Scanner',
-  'item.XRAY.desc': 'Reveals the type of EVERY round in the cylinder.',
+  'item.XRAY.desc': 'Reveals EVERY round.',
   'item.OVERDRIVE_2.name': 'Overdrive 2.0',
   'item.NULLIFIER.name': 'Nullifier',
-  'item.NULLIFIER.desc': 'Clears the damage multiplier and burns an opponent’s card.',
+  'item.NULLIFIER.desc': 'Clears multiplier, burns card.',
 
   // ── Locations ──────────────────────────────────────────────────────────────
   'loc.CYBER_BAR.name': '1. Underground Cyber Bar',
@@ -349,12 +349,7 @@ export const en: Dictionary = {
   'ui.battle.showcaseBadge': '🎴 THE DEALER PLAYS AN ITEM',
   'ui.battle.intent.player': '🎯 THE DEALER IS AIMING AT YOU...',
   'ui.battle.intent.self': '🛡️ THE DEALER IS AIMING AT HIMSELF...',
-  'ui.card.locked.tip': 'A x{mult} multiplier is already up. The card stays in your hand — play it after the shot.',
-
-  'ui.card.use': 'Use card',
-
-  'ui.card.cancel': 'Cancel',
-
+  'ui.card.locked.tip': 'A x{mult} multiplier is already up. The card stays in your hand — play it after the shot.',
   // ── Boss dossier ───────────────────────────────────────────────────────────
   'ui.boss.dossier': 'NEXT BOSS DOSSIER',
   'ui.boss.abilityLabel': '⚠️ SPECIALITY:',

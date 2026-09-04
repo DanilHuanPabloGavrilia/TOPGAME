@@ -7,24 +7,24 @@ export const uz: Dictionary = {
   'item.booster.desc': 'Keyingi otishning zarari — x{mult}.',
 
   'item.MAGNIFIER.name': 'Lupa',
-  'item.MAGNIFIER.desc': 'Barabandagi keyingi o‘qning turini ko‘rsatadi.',
+  'item.MAGNIFIER.desc': 'Keyingi o‘q turi.',
   'item.SAW.name': 'Arra',
   'item.ENERGY_DRINK.name': 'Energetik',
-  'item.ENERGY_DRINK.desc': 'Joriy o‘qni otmasdan chiqarib tashlaydi.',
+  'item.ENERGY_DRINK.desc': 'O‘qni otmasdan chiqaradi.',
   'item.CIGARETTE.name': 'Sigaret',
-  'item.CIGARETTE.desc': 'Maksimal salomatlikning 10% ini tiklaydi, ammo 10 dan kam emas.',
+  'item.CIGARETTE.desc': 'Maks. HP 10% (min. 10).',
   'item.HACK_CHIP.name': 'Hack-chip',
-  'item.HACK_CHIP.desc': 'Joriy o‘qni teskarisiga o‘zgartiradi (Jangovar ↔ Bo‘sh).',
+  'item.HACK_CHIP.desc': 'O‘q: Jangovar ↔ Bo‘sh.',
   'item.MIRROR_SHIELD.name': 'Oyna qalqon',
-  'item.MIRROR_SHIELD.desc': 'Keyingi otishni otgan odamga qaytaradi.',
+  'item.MIRROR_SHIELD.desc': 'Keyingi otishni qaytaradi.',
   'item.OVERDRIVE.name': 'Overdrayv',
   'item.MAGNET.name': 'Magnit',
-  'item.MAGNET.desc': 'Bossning qo‘lidan tasodifiy kartani o‘g‘irlaydi.',
+  'item.MAGNET.desc': 'Bossdan karta o‘g‘irlaydi.',
   'item.XRAY.name': 'Rentgen skaner',
-  'item.XRAY.desc': 'Barabandagi BARCHA o‘qlarning turini ko‘rsatadi.',
+  'item.XRAY.desc': 'BARCHA o‘qlar turi.',
   'item.OVERDRIVE_2.name': 'Overdrayv 2.0',
   'item.NULLIFIER.name': 'Nullifikator',
-  'item.NULLIFIER.desc': 'Zarar ko‘paytiruvchisini bekor qiladi va raqib kartasini yoqadi.',
+  'item.NULLIFIER.desc': 'Ko‘paytiruvchini yo‘qotadi.',
 
   // ── Joylar ─────────────────────────────────────────────────────────────────
   'loc.CYBER_BAR.name': '1. Yashirin kiber-bar',
@@ -351,12 +351,7 @@ export const uz: Dictionary = {
   'ui.battle.showcaseBadge': '🎴 DILLER BUYUM ISHLATMOQDA',
   'ui.battle.intent.player': '🎯 DILLER SIZGA NISHON OLMOQDA...',
   'ui.battle.intent.self': '🛡️ DILLER O‘ZIGA NISHON OLMOQDA...',
-  'ui.card.locked.tip': 'x{mult} ko‘paytirgichi allaqachon yoqilgan. Karta qo‘lingizda qoladi — otgandan keyin o‘ynang.',
-
-  'ui.card.use': 'Qo‘llash',
-
-  'ui.card.cancel': 'Bekor qilish',
-
+  'ui.card.locked.tip': 'x{mult} ko‘paytirgichi allaqachon yoqilgan. Karta qo‘lingizda qoladi — otgandan keyin o‘ynang.',
   // ── Boss dosyesi ───────────────────────────────────────────────────────────
   'ui.boss.dossier': 'KEYINGI BOSSNING DOSYESI',
   'ui.boss.abilityLabel': '⚠️ XUSUSIYATI:',

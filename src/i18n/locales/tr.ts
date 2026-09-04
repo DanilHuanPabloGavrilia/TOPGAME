@@ -5,24 +5,24 @@ export const tr: Dictionary = {
   'item.booster.desc': 'Sonraki atış x{mult} hasar verir.',
 
   'item.MAGNIFIER.name': 'Büyüteç',
-  'item.MAGNIFIER.desc': 'Silindirdeki sıradaki merminin türünü gösterir.',
+  'item.MAGNIFIER.desc': 'Sıradaki merminin türü.',
   'item.SAW.name': 'Testere',
   'item.ENERGY_DRINK.name': 'Enerji İçeceği',
-  'item.ENERGY_DRINK.desc': 'Mevcut mermiyi ateş etmeden çıkarır.',
+  'item.ENERGY_DRINK.desc': 'Mermiyi atmadan çıkarır.',
   'item.CIGARETTE.name': 'Sigara',
-  'item.CIGARETTE.desc': 'Azami canın %10’unu, en az 10 olmak üzere geri verir.',
+  'item.CIGARETTE.desc': 'Azami canın %10’u (min 10).',
   'item.HACK_CHIP.name': 'Hack Çipi',
-  'item.HACK_CHIP.desc': 'Mevcut mermiyi tersine çevirir (Gerçek ↔ Kuru sıkı).',
+  'item.HACK_CHIP.desc': 'Mermi: Gerçek ↔ Kuru sıkı.',
   'item.MIRROR_SHIELD.name': 'Ayna Kalkan',
-  'item.MIRROR_SHIELD.desc': 'Sonraki atışı ateş edene geri yansıtır.',
+  'item.MIRROR_SHIELD.desc': 'Sonraki atışı yansıtır.',
   'item.OVERDRIVE.name': 'Aşırı Güç',
   'item.MAGNET.name': 'Mıknatıs',
-  'item.MAGNET.desc': 'Patronun elinden rastgele bir kart çalar.',
+  'item.MAGNET.desc': 'Patrondan kart çalar.',
   'item.XRAY.name': 'Röntgen Tarayıcı',
-  'item.XRAY.desc': 'Silindirdeki TÜM mermilerin türünü gösterir.',
+  'item.XRAY.desc': 'TÜM mermilerin türü.',
   'item.OVERDRIVE_2.name': 'Aşırı Güç 2.0',
   'item.NULLIFIER.name': 'Nötrleyici',
-  'item.NULLIFIER.desc': 'Hasar çarpanını sıfırlar ve rakibin bir kartını yakar.',
+  'item.NULLIFIER.desc': 'Çarpanı sıfırlar, kart yakar.',
 
   // ── Mekânlar ───────────────────────────────────────────────────────────────
   'loc.CYBER_BAR.name': '1. Yeraltı Siber Barı',
@@ -349,12 +349,7 @@ export const tr: Dictionary = {
   'ui.battle.showcaseBadge': '🎴 KRUPİYE BİR EŞYA KULLANIYOR',
   'ui.battle.intent.player': '🎯 KRUPİYE SANA NİŞAN ALIYOR...',
   'ui.battle.intent.self': '🛡️ KRUPİYE KENDİNE NİŞAN ALIYOR...',
-  'ui.card.locked.tip': 'x{mult} çarpanı zaten etkin. Kart elinde kalır — atıştan sonra oyna.',
-
-  'ui.card.use': 'Kartı kullan',
-
-  'ui.card.cancel': 'İptal',
-
+  'ui.card.locked.tip': 'x{mult} çarpanı zaten etkin. Kart elinde kalır — atıştan sonra oyna.',
   // ── Patron dosyası ─────────────────────────────────────────────────────────
   'ui.boss.dossier': 'SIRADAKİ PATRONUN DOSYASI',
   'ui.boss.abilityLabel': '⚠️ ÖZELLİK:',

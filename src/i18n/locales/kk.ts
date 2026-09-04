@@ -5,24 +5,24 @@ export const kk: Dictionary = {
   'item.booster.desc': 'Келесі оқтың зақымы — х{mult}.',
 
   'item.MAGNIFIER.name': 'Ұлғайтқыш',
-  'item.MAGNIFIER.desc': 'Барабандағы келесі оқтың түрін көрсетеді.',
+  'item.MAGNIFIER.desc': 'Келесі оқтың түрі.',
   'item.SAW.name': 'Ара',
   'item.ENERGY_DRINK.name': 'Энергетик',
-  'item.ENERGY_DRINK.desc': 'Ағымдағы оқты атпай тастайды.',
+  'item.ENERGY_DRINK.desc': 'Оқты атпай тастайды.',
   'item.CIGARETTE.name': 'Темекі',
-  'item.CIGARETTE.desc': 'Ең жоғары денсаулықтың 10%-ын қалпына келтіреді, бірақ 10-нан кем емес.',
+  'item.CIGARETTE.desc': 'Макс. HP 10% (мин. 10).',
   'item.HACK_CHIP.name': 'Хак-чип',
-  'item.HACK_CHIP.desc': 'Ағымдағы оқты өзгертеді (Жауынгерлік ↔ Бос).',
+  'item.HACK_CHIP.desc': 'Оқ: Жауынгерлік ↔ Бос.',
   'item.MIRROR_SHIELD.name': 'Айна қалқан',
-  'item.MIRROR_SHIELD.desc': 'Келесі оқты атқан адамға қайтарады.',
+  'item.MIRROR_SHIELD.desc': 'Келесі оқты қайтарады.',
   'item.OVERDRIVE.name': 'Овердрайв',
   'item.MAGNET.name': 'Магнит',
-  'item.MAGNET.desc': 'Бостың қолынан кездейсоқ картаны ұрлайды.',
+  'item.MAGNET.desc': 'Бостан карта ұрлайды.',
   'item.XRAY.name': 'Рентген-сканер',
-  'item.XRAY.desc': 'Барабандағы БАРЛЫҚ оқтың түрін көрсетеді.',
+  'item.XRAY.desc': 'БАРЛЫҚ оқтың түрі.',
   'item.OVERDRIVE_2.name': 'Овердрайв 2.0',
   'item.NULLIFIER.name': 'Нуллификатор',
-  'item.NULLIFIER.desc': 'Зақым көбейткішін тастап, қарсыластың картасын өртейді.',
+  'item.NULLIFIER.desc': 'Көбейткішті, картаны жояды.',
 
   // ── Локациялар ─────────────────────────────────────────────────────────────
   'loc.CYBER_BAR.name': '1. Жасырын кибер-бар',
@@ -349,12 +349,7 @@ export const kk: Dictionary = {
   'ui.battle.showcaseBadge': '🎴 ДИЛЛЕР ЗАТ ҚОЛДАНЫП ЖАТЫР',
   'ui.battle.intent.player': '🎯 ДИЛЛЕР СІЗГЕ КӨЗДЕП ТҰР...',
   'ui.battle.intent.self': '🛡️ ДИЛЛЕР ӨЗІНЕ КӨЗДЕП ТҰР...',
-  'ui.card.locked.tip': 'x{mult} көбейткіші қосулы тұр. Карта қолыңызда қалады — атқаннан кейін ойнаңыз.',
-
-  'ui.card.use': 'Қолдану',
-
-  'ui.card.cancel': 'Болдырмау',
-
+  'ui.card.locked.tip': 'x{mult} көбейткіші қосулы тұр. Карта қолыңызда қалады — атқаннан кейін ойнаңыз.',
   // ── Босс досьесі ───────────────────────────────────────────────────────────
   'ui.boss.dossier': 'КЕЛЕСІ БОСТЫҢ ДОСЬЕСІ',
   'ui.boss.abilityLabel': '⚠️ ЕРЕКШЕЛІГІ:',

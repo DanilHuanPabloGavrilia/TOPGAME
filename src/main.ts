@@ -48,39 +48,6 @@ function cardIconHTML(item: ItemCard, imgClass: string): string {
   return `<img src="${src}" class="${imgClass}" alt="${item.name}" draggable="false" loading="eager" decoding="async" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" /><div class="card-icon" style="display:none;">${item.icon}</div>`;
 }
 
-// --- Card detail sheet (touch layouts) -------------------------------------------------
-
-/**
- * The card the sheet is currently offering to play. The id is kept alongside the index
- * because the hand is rebuilt on every render: acting on a stale index would play whatever
- * card had since taken that slot, which is a worse bug than the one being fixed.
- */
-let pendingCard: { index: number; id: string } | null = null;
-
-function closeCardDetail() {
-  pendingCard = null;
-  document.getElementById('card-detail')?.classList.remove('active');
-}
-
-function openCardDetail(item: ItemCard, index: number, playable: boolean) {
-  const sheet = document.getElementById('card-detail');
-  if (!sheet) return;
-
-  pendingCard = playable ? { index, id: item.id } : null;
-
-  document.getElementById('card-detail-icon')!.innerHTML = cardIconHTML(item, 'card-detail-icon-img');
-  document.getElementById('card-detail-name')!.innerText = item.name;
-  // A card that cannot be played says why, in the words the desktop tooltip already uses.
-  document.getElementById('card-detail-desc')!.innerText = playable
-    ? item.description
-    : `${item.description}\n\n${t('ui.card.locked.tip', { mult: gameState.damageMultiplier })}`;
-
-  const useBtn = document.getElementById('card-detail-use') as HTMLButtonElement | null;
-  if (useBtn) useBtn.style.display = playable ? '' : 'none';
-
-  sheet.classList.add('active');
-}
-
 imagePreloader.preloadAll();
 
 // Initialize Canvas Particles
@@ -152,12 +119,6 @@ const btnModalAction = document.getElementById('btn-modal-action') as HTMLButton
 // instead of leaving whichever form was drawn last.
 const compactDealerHand = window.matchMedia('(max-height: 560px), (max-width: 380px)');
 
-/**
- * Where a card is too small to carry its own description. The same breakpoint the
- * stylesheet uses to hide .card-desc and the hover tooltip, so the two cannot disagree
- * about whether a player can read what a card does.
- */
-const compactCards = window.matchMedia('(max-width: 768px)');
 compactDealerHand.addEventListener('change', () => gameState.notifyUpdate());
 
 // Main UI Render Pipeline
@@ -169,9 +130,6 @@ function renderUI() {
     platformSDK.gameplayStart();
   } else {
     platformSDK.gameplayStop();
-    // The sheet belongs to a live duel. Left open it would sit over the outcome modal —
-    // they share a z-index, and this one wins on DOM order.
-    closeCardDetail();
   }
 
   // Screen Switcher
@@ -396,14 +354,9 @@ function renderBattleUI() {
     cardEl.addEventListener('click', () => {
       hideTooltip();
 
-      // On a touch layout the tap reads the card rather than playing it. Playing takes a
-      // second, deliberate press inside the sheet — which is the only place the
-      // description exists there, and the review failed the game for its absence.
-      if (compactCards.matches) {
-        openCardDetail(item, idx, isPlayerTurn && playable);
-        return;
-      }
-
+      // One tap plays the card, on every layout. The sheet that used to intercept this tap
+      // existed because a phone had nowhere to show what a card did; the card carries its
+      // own description again, so asking twice buys nothing and costs the game its pace.
       if (isPlayerTurn && playable) {
         const rect = cardEl.getBoundingClientRect();
         particles.spawnBurst(rect.left + rect.width / 2, rect.top, '#05d9e8', 20);
@@ -1024,36 +977,6 @@ btnHeaderBack?.addEventListener('click', () => {
 
 document.getElementById('btn-confirm-exit-cancel')?.addEventListener('click', () => {
   modalConfirmExit.classList.remove('active');
-});
-
-// --- Card detail sheet: bound once, not per card ---------------------------------------
-
-document.getElementById('card-detail-cancel')?.addEventListener('click', closeCardDetail);
-
-// Tapping the dimmed area outside the sheet dismisses it, the way every other sheet on a
-// phone behaves. The check keeps a press on the sheet itself from closing it.
-document.getElementById('card-detail')?.addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeCardDetail();
-});
-
-document.getElementById('card-detail-use')?.addEventListener('click', () => {
-  const pending = pendingCard;
-  closeCardDetail();
-  if (!pending) return;
-
-  if (gameState.turn !== 'PLAYER' || gameState.phase !== 'BATTLE') return;
-
-  // The hand may have been rebuilt while the sheet was open, so the slot is re-checked
-  // against the card that was actually offered rather than trusted.
-  const card = gameState.player.hand[pending.index];
-  if (!card || card.id !== pending.id || !gameState.canUseItem(card)) return;
-
-  const btn = document.getElementById('card-detail-use');
-  if (btn) {
-    const r = btn.getBoundingClientRect();
-    particles.spawnBurst(r.left + r.width / 2, r.top, '#05d9e8', 20);
-  }
-  gameState.useItem(pending.index, 'PLAYER');
 });
 
 document.getElementById('btn-confirm-exit-ok')?.addEventListener('click', () => {

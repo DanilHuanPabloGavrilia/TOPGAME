@@ -8,24 +8,24 @@ export const ru: Dictionary = {
   'item.booster.desc': 'Урон следующего выстрела — х{mult}.',
 
   'item.MAGNIFIER.name': 'Лупа',
-  'item.MAGNIFIER.desc': 'Узнать тип следующего патрона в барабане.',
+  'item.MAGNIFIER.desc': 'Показать следующий патрон.',
   'item.SAW.name': 'Ножовка',
   'item.ENERGY_DRINK.name': 'Энергетик',
-  'item.ENERGY_DRINK.desc': 'Выбросить текущий патрон без выстрела.',
+  'item.ENERGY_DRINK.desc': 'Сбросить патрон без выстрела.',
   'item.CIGARETTE.name': 'Сигарета',
-  'item.CIGARETTE.desc': 'Восстанавливает 10% от максимального здоровья, но не меньше 10.',
+  'item.CIGARETTE.desc': 'Лечит 10% макс. HP (мин. 10).',
   'item.HACK_CHIP.name': 'Хак-чип',
-  'item.HACK_CHIP.desc': 'Инвертирует текущий патрон (Боевой ↔ Холостой).',
+  'item.HACK_CHIP.desc': 'Патрон: боевой ↔ холостой.',
   'item.MIRROR_SHIELD.name': 'Щит-Зеркало',
-  'item.MIRROR_SHIELD.desc': 'Отражает следующий выстрел обратно в стрелка.',
+  'item.MIRROR_SHIELD.desc': 'Отражает следующий выстрел.',
   'item.OVERDRIVE.name': 'Овердрайв',
   'item.MAGNET.name': 'Магнит',
-  'item.MAGNET.desc': 'Украсть случайную карту из руки босса.',
+  'item.MAGNET.desc': 'Украсть карту у босса.',
   'item.XRAY.name': 'Рентген-Сканер',
-  'item.XRAY.desc': 'Показывает типы ВСЕХ патронов в барабане.',
+  'item.XRAY.desc': 'Показать ВСЕ патроны.',
   'item.OVERDRIVE_2.name': 'Овердрайв 2.0',
   'item.NULLIFIER.name': 'Нуллификатор',
-  'item.NULLIFIER.desc': 'Сбрасывает множитель урона и сжигает карту противника.',
+  'item.NULLIFIER.desc': 'Сброс множителя, сжечь карту.',
 
   // ── Локации ────────────────────────────────────────────────────────────────
   'loc.CYBER_BAR.name': '1. Подпольный Кибер-Бар',
@@ -358,12 +358,7 @@ export const ru: Dictionary = {
   'ui.battle.showcaseBadge': '🎴 ДИЛЛЕР ИСПОЛЬЗУЕТ ПРЕДМЕТ',
   'ui.battle.intent.player': '🎯 ДИЛЛЕР ЦЕЛИТСЯ В ВАС...',
   'ui.battle.intent.self': '🛡️ ДИЛЛЕР ЦЕЛИТСЯ В СЕБЯ...',
-  'ui.card.locked.tip': 'Множитель х{mult} уже активен. Карта останется на руках — сыграйте её после выстрела.',
-
-  'ui.card.use': 'Применить',
-
-  'ui.card.cancel': 'Отмена',
-
+  'ui.card.locked.tip': 'Множитель х{mult} уже активен. Карта останется на руках — сыграйте её после выстрела.',
   // ── Досье босса ────────────────────────────────────────────────────────────
   'ui.boss.dossier': 'ДОСЬЕ СЛЕДУЮЩЕГО БОССА',
   'ui.boss.abilityLabel': '⚠️ ОСОБЕННОСТЬ:',
