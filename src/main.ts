@@ -657,8 +657,13 @@ function renderWorldMap() {
         btnStyle = 'background: linear-gradient(135deg, var(--neon-red), #b0003a); color: #fff; border: none; box-shadow: 0 0 12px rgba(255,42,109,0.5);';
       }
 
+      // Emoji behind, portrait on top of it. This was a ternary — the picture or the
+      // emoji, never both — so a portrait still in flight left an empty circle that the
+      // face then snapped into. Stacked, the circle is never empty: the emoji is there from
+      // the first frame and the photograph simply covers it when it arrives, or stays
+      // covering nothing if the file never does.
       const avatarHTML = boss.avatarUrl
-        ? `<img src="${boss.avatarUrl}" class="world-map-boss-img" alt="${boss.name}" draggable="false" />`
+        ? `<span class="world-map-boss-avatar"><span class="world-map-boss-fallback">${boss.avatar}</span><img src="${boss.avatarUrl}" class="world-map-boss-img" alt="${boss.name}" draggable="false" decoding="async" onerror="this.style.display='none';" /></span>`
         : boss.avatar;
 
       // One line per boss: portrait and name, nothing else. The HP figure and the status
