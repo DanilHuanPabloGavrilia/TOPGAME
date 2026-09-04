@@ -416,7 +416,7 @@ export const en: Dictionary = {
 
   // ── Leaving a duel ─────────────────────────────────────────────────────────
   'ui.exit.title': 'LEAVE THE CURRENT DUEL?',
-  'ui.exit.body': 'You are in a duel. If you leave for the main menu or the world map, <strong>all unsaved round data will be lost</strong>. Are you sure?',
+  'ui.exit.body': '<strong>All unsaved progress will be lost</strong>. Are you sure?',
   'ui.exit.cancel': 'Cancel (Keep Fighting)',
   'ui.exit.ok': 'Yes, Leave 🌍'
 };

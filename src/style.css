@@ -759,6 +759,13 @@ body {
 .modal-title { font-family: 'Orbitron', 'Fira Code', monospace; font-size: 2.2rem; color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); }
 #boss-intro-name { font-size: 1.8rem; }
 
+/* The dossier's type, moved out of the markup so a media query can reach it. */
+#boss-intro-title { font-size: 1rem; }
+#modal-boss-intro .boss-intro-body { font-size: 0.9rem; }
+
+/* Also out of the markup and into here, so the phone rules can drop it. */
+.btn-action-hint { font-size: 0.65rem; }
+
 .shop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 10px; }
 .shop-item-card {
   background: rgba(20, 24, 40, 0.8); border: 1px solid var(--neon-purple); border-radius: 10px;
@@ -1202,6 +1209,12 @@ body {
     max-width: 100%;
   }
 
+  /* The line under each shoot button goes. It is the tallest thing in the button and the
+     buttons are the tallest thing in the left column; dropping it gives the row back to
+     the table. What it said survives in the guide, and the payout is also on screen the
+     moment it happens, as floating text. */
+  .btn-action-hint { display: none; }
+
   /* --- Header: title shrinks to the mark, controls stay tappable --- */
   .header-bar {
     padding: 6px 8px;
@@ -1326,6 +1339,16 @@ body {
   .modal-box p,
   .modal-box div { font-size: 0.8rem; }
 
+  /* The dossier a quarter smaller again. It is the densest screen on a phone — a portrait,
+     a name, a title, two paragraphs and two buttons — and it was the one that had to scroll
+     to reach the fight. Everything here is 0.75 of what the rules above give it. */
+  #modal-boss-intro #boss-intro-name { font-size: 0.86rem; }
+  #modal-boss-intro #boss-intro-title { font-size: 0.75rem; }
+  #modal-boss-intro .boss-intro-body,
+  #modal-boss-intro .boss-intro-body p,
+  #modal-boss-intro .boss-intro-body div,
+  #modal-boss-intro .boss-intro-body span { font-size: 0.6rem; }
+
   /* The dossier's buttons sat under a description long enough to push them off a short
      screen, and the whole modal scrolled — so the way into the fight was out of sight.
      The description goes last and scrolls inside itself; everything else, the two buttons
@@ -1448,6 +1471,14 @@ body {
   .dealer-zone { grid-column: 1 / -1; grid-row: 1; }
   .table-center { grid-column: 1; grid-row: 2; }
 
+  /* The HP panel was moved under the shoot buttons here and then moved back, because the
+     reason for moving it did not survive measurement. It was meant to free room for card
+     descriptions on the card itself; the freed room is height, and what a description
+     needs is width. In this 210px column the longest one (71 characters, Kazakh) is cut
+     off at 8px type unless the cards go to two per row — and then only two of five are on
+     screen. Both states are the finding the review already raised. The description lives
+     in the tap sheet instead, and this column stays as it was.
+     Measured before the move: the hand already showed 5 of 5 here. */
   .player-zone {
     grid-column: 2;
     grid-row: 2;

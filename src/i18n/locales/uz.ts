@@ -418,7 +418,7 @@ export const uz: Dictionary = {
 
   // ── Jangdan chiqish ────────────────────────────────────────────────────────
   'ui.exit.title': 'JORIY JANGDAN CHIQASIZMI?',
-  'ui.exit.body': 'Siz jangdasiz. Bosh menyuga yoki dunyo xaritasiga chiqsangiz, <strong>raundning saqlanmagan ma’lumotlari yo‘qoladi</strong>. Ishonchingiz komilmi?',
+  'ui.exit.body': '<strong>Saqlanmagan barcha ma’lumotlar yo‘qoladi</strong>. Ishonchingiz komilmi?',
   'ui.exit.cancel': 'Bekor qilish (jangni davom ettirish)',
   'ui.exit.ok': 'Ha, chiqish 🌍'
 };

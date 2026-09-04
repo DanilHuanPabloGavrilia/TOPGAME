@@ -223,11 +223,11 @@
                  BLANK_SELF_SHOT_CHIPS, so the button cannot promise the wrong number. -->
             <button id="btn-shoot-dealer" class="btn-action btn-shoot-dealer">
               <div data-i18n="ui.battle.shootDealer">🎯 Выстрел в Диллера</div>
-              <div style="font-size: 0.65rem; opacity: 0.8; margin-top: 4px; font-family: 'Fira Code', monospace; font-weight: 400;" data-i18n="ui.battle.shootDealer.hint">(Ход передается врагу)</div>
+              <div class="btn-action-hint" style="opacity: 0.8; margin-top: 4px; font-family: 'Fira Code', monospace; font-weight: 400;" data-i18n="ui.battle.shootDealer.hint">(Ход передается врагу)</div>
             </button>
             <button id="btn-shoot-self" class="btn-action btn-shoot-self">
               <div data-i18n="ui.battle.shootSelf">🛡️ Выстрел в Себя</div>
-              <div style="font-size: 0.65rem; opacity: 0.9; margin-top: 4px; font-family: 'Fira Code', monospace; font-weight: 700; color: #ffe375;" data-i18n="ui.battle.shootSelf.hint">(Холостой = +25$ & Повторный Ход!)</div>
+              <div class="btn-action-hint" style="opacity: 0.9; margin-top: 4px; font-family: 'Fira Code', monospace; font-weight: 700; color: #ffe375;" data-i18n="ui.battle.shootSelf.hint">(Холостой = +25$ & Повторный Ход!)</div>
             </button>
           </div>
         </section>
@@ -297,9 +297,12 @@
         <!-- Sizes live in the stylesheet, not inline: an inline font-size outranks every
              media query, which is how the boss name stayed 1.8rem on a phone. -->
         <h2 id="boss-intro-name" class="modal-title" style="color: var(--neon-red);">Диллер "Марков"</h2>
-        <div id="boss-intro-title" style="color: var(--gold); font-size: 1rem; font-weight: 700; margin-top: -10px;">«Легенда Подполья»</div>
+        <!-- Sizes live in the stylesheet, not here: an inline font-size outranks every
+             media query, which is how this dossier kept its desktop type on a phone once
+             before. -->
+        <div id="boss-intro-title" style="color: var(--gold); font-weight: 700; margin-top: -10px;">«Легенда Подполья»</div>
         
-        <div class="boss-intro-body" style="background: rgba(10, 12, 22, 0.9); border: 1px solid var(--panel-border); padding: 16px; border-radius: 10px; text-align: left; font-size: 0.9rem; margin: 10px 0;">
+        <div class="boss-intro-body" style="background: rgba(10, 12, 22, 0.9); border: 1px solid var(--panel-border); padding: 16px; border-radius: 10px; text-align: left; margin: 10px 0;">
           <p id="boss-intro-desc" style="color: var(--text-main); margin-bottom: 10px;">Описание босса...</p>
           <div style="color: var(--neon-yellow); font-weight: 700; display: flex; align-items: center; gap: 8px;">
             <span data-i18n="ui.boss.abilityLabel">⚠️ ОСОБЕННОСТЬ:</span>

@@ -416,7 +416,7 @@ export const tr: Dictionary = {
 
   // ── Düellodan çıkış ────────────────────────────────────────────────────────
   'ui.exit.title': 'MEVCUT DÜELLODAN ÇIKILSIN MI?',
-  'ui.exit.body': 'Düello sürüyor. Ana menüye ya da dünya haritasına çıkarsan <strong>bu turun kaydedilmemiş verileri kaybolur</strong>. Emin misin?',
+  'ui.exit.body': '<strong>Kaydedilmemiş tüm veriler kaybolur</strong>. Emin misin?',
   'ui.exit.cancel': 'İptal (Düelloya Devam)',
   'ui.exit.ok': 'Evet, Çık 🌍'
 };
