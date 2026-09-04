@@ -1357,6 +1357,22 @@ body {
 
   /* The card tooltip has no room to float next to a card on a phone. */
   .card-tooltip { display: none !important; }
+
+  /* The dealer's card, announced. At its desktop size — 280px wide with a 64px icon — it
+     covered most of a phone and read as a blow to the face rather than a card being
+     played. Same card, scaled to the screen it is on. */
+  .dealer-card-showcase {
+    width: min(190px, 60vw);
+    padding: 8px 12px;
+    gap: 4px;
+    border-width: 1px;
+    border-radius: 12px;
+  }
+  .showcase-badge { font-size: 0.52rem; letter-spacing: 0.5px; }
+  .showcase-icon { font-size: 1.6rem; margin: 0; }
+  .showcase-icon-img { width: 32px; height: 32px; border-radius: 8px; }
+  .showcase-name { font-size: 0.72rem; }
+  .showcase-desc { font-size: 0.58rem; padding: 4px 6px; line-height: 1.25; }
 }
 
 /* Very small or landscape phones: the vertical budget is the binding constraint. */
@@ -1415,107 +1431,46 @@ body {
 /* Landscape phone: no vertical room, but plenty of width going to waste. Stacking the hand
    under the table needs ~465px of height against ~289 available, so it is put beside the
    cylinder instead and the whole turn fits on screen with nothing to scroll. */
+/* Landscape phone. The same screen the desktop shows — dealer on top, the table under it,
+   the player and the hand below — only smaller. What used to live here was a second layout:
+   a two-column grid with its own placement rules, which rearranged the game instead of
+   scaling it and turned every later change into a negotiation with itself.
+   Sizes only from here down. Nothing moves. */
 @media (max-height: 560px) and (orientation: landscape) {
-  .game-table {
-    display: grid;
-    grid-template-columns: 1fr minmax(150px, 210px);
-    /* Three rows: the dealer, the table beside the hand, and the player's own line across
-       the bottom. The player used to be a panel in the right column, where it took 74 of
-       the 188px the hand had to live in — on a real phone that left three of five cards
-       on screen. */
-    grid-template-rows: auto 1fr auto;
-    align-items: start;
-    column-gap: 10px;
-  }
+  .header-bar { padding: 3px 8px; }
+  .header-controls button { padding: 4px 8px !important; font-size: 0.58rem; min-height: 26px; }
 
-  .dealer-zone { grid-column: 1 / -1; grid-row: 1; }
-  .table-center { grid-column: 1; grid-row: 2; }
+  .game-table { padding: 2px 10px; gap: 2px; }
 
-  /* The panel dissolves so its two halves can go where they belong: the hand keeps the
-     right column to itself, and the player's own numbers become a flat line along the
-     bottom. display:contents rather than moving the markup, so the rule lives inside this
-     media query and neither the desktop nor the portrait layout is touched. */
-  .player-zone { display: contents; }
-
-  /* One line, full width, no panel around it. It carries an avatar, a name, an HP bar, the
-     figures and whose turn it is — none of which needs a box of its own on a screen this
-     size, and the box was costing the hand two of its five cards. */
-  .player-header {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
-    padding: 2px 10px;
-    background: none;
-    border: none;
-    border-top: 1px solid rgba(5, 217, 232, 0.25);
-    border-radius: 0;
-  }
-
-  /* Everything on the player line sits on one baseline so the line stays about 32px. The
-     hand needs those pixels more than the player needs a second row. */
-  .player-header { min-height: 0; }
-  .player-header { flex-wrap: nowrap; }
-  .player-header .char-info { flex: 1 1 auto; min-width: 0; gap: 8px; }
-  .player-header .char-details { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; }
-  /* "ИГРОК (ВЫ)" goes: the avatar beside it already says whose line this is, and its 58px
-     were the difference between one row and two. A second row here costs the hand a whole
-     row of cards. */
-  .player-header .char-details h3 { display: none; }
-  .player-header .hp-bar-container { flex: 0 1 80px; min-width: 40px; }
-  .player-header #player-hp-text { white-space: nowrap; font-size: 0.58rem; }
-  .player-header > div:last-child { font-size: 0.62rem; white-space: nowrap; }
-  .player-zone .avatar-box { width: 24px; height: 24px; font-size: 0.8rem; }
-
-  /* The cylinder gives up 14px so the row above the player line can hold the table. It is
-     still the largest thing on the left and still reads as a cylinder. */
-  .revolver-drum { width: 70px; height: 70px; }
-  .chamber-display { padding: 4px 10px; gap: 4px; }
-
-  /* The hand wraps into the column and scrolls inside it rather than widening the grid.
-     Cards and the player header are trimmed so a full five-card hand shows as two rows
-     without scrolling — a hand you have to scroll to read is a hand you misplay. */
-  .cards-container {
-    /* The whole right column, now that nothing shares it. */
-    grid-column: 2;
-    grid-row: 2;
-    align-self: stretch;
-    height: auto;
-    min-height: 0;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    justify-content: center;
-    gap: 5px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-
-  .table-center { min-height: 0; }
-
-  /* Cards carry their own description again, which is the whole point of the room the
-     player line gave back. Three to a row, and tall enough for icon, name and text. */
-  /* 62x70 holds three cards to a row and two rows in the column, which is the whole hand.
-     Inside it the icon and the padding give the description the pixels it needs: a
-     two-line card name leaves the text 19px otherwise, and the longest of them wants 32. */
-  .item-card { width: 62px; height: 70px; padding: 2px; }
-  .item-card-icon-img { width: 14px; height: 14px; }
-  .card-name { font-size: 0.46rem; margin-bottom: 0; }
-  .card-desc { display: -webkit-box; font-size: 0.44rem; -webkit-line-clamp: 5; }
-
-  /* Landscape has the width the dialogue needed, so it stays hidden here rather than
-     clamped: two lines still cost ~40px of a ~180px budget, and the hand needs them more
-     than the boss needs a voice. Everything it reported is on screen anyway — the damage
-     as a floating number and an HP bar, live vs blank as the screen flash and the coloured
-     chamber, whose turn it is in the indicator below. */
+  .dealer-zone { max-height: 44px; padding: 2px 10px; }
+  .dealer-zone .avatar-box { width: 24px; height: 24px; font-size: 0.8rem; }
+  .dealer-zone .char-details h3 { font-size: 0.6rem; }
+  .dealer-zone small { font-size: 0.52rem; }
+  .dealer-zone .hp-bar-container { height: 6px; }
+  /* Two lines of dialogue cost more than the boss's voice is worth at this height, and
+     everything it reported is on screen anyway: damage as a floating number and an HP bar,
+     live against blank as the screen flash and the coloured chamber. */
   .dealer-dialogue { display: none; }
 
-  .dealer-zone { max-height: 76px; }
+  .chamber-display { padding: 1px 10px; gap: 1px; }
+  .revolver-drum { width: 44px; height: 44px; }
+  .chamber-counter { font-size: 0.55rem; }
 
-  /* The turn indicator used to be stacked under the name, because the panel lived in the
-     210px column where space-between pushed it off the edge. The panel is a full-width
-     line along the bottom now, so it stays on one row — the rule that stacked it is gone
-     rather than overridden, since it sat after the new one and quietly won. */
+  .btn-action { min-height: 28px; font-size: 0.55rem; padding: 3px 8px; }
+  .action-controls { gap: 6px; }
+
+  .player-header { padding: 1px 10px; }
+  .player-zone .avatar-box { width: 20px; height: 20px; font-size: 0.7rem; }
+  .player-zone .char-details h3 { font-size: 0.55rem; }
+  .player-zone .hp-bar-container { height: 6px; }
+  .player-header #player-hp-text { font-size: 0.52rem; }
+  .player-header > div:last-child { font-size: 0.55rem; }
+
+  .cards-container { min-height: 0; gap: 4px; padding: 2px; }
+  .item-card { width: 58px; height: 66px; padding: 2px; }
+  .item-card-icon-img { width: 14px; height: 14px; }
+  .card-name { font-size: 0.44rem; margin-bottom: 0; }
+  .card-desc { display: -webkit-box; font-size: 0.42rem; -webkit-line-clamp: 4; }
 }
 
 /* Coarse pointers get no hover affordances at all — they only cause stuck states. */
