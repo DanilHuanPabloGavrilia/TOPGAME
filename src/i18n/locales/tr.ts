@@ -2,7 +2,7 @@ import type { Dictionary } from '../index';
 
 export const tr: Dictionary = {
   // ── Kartlar ────────────────────────────────────────────────────────────────
-  'item.booster.desc': 'Sonraki atış x{mult} hasar verir.',
+  'item.booster.desc': 'Sonraki atış ×{mult} hasar.',
 
   'item.MAGNIFIER.name': 'Büyüteç',
   'item.MAGNIFIER.desc': 'Sıradaki merminin türü.',

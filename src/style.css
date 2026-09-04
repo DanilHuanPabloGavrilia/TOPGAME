@@ -1278,6 +1278,7 @@ body {
     -webkit-line-clamp: 4;
   }
 
+
   .player-header { padding: 4px 10px; }
 
   /* --- Modals --- */
@@ -1437,40 +1438,51 @@ body {
    scaling it and turned every later change into a negotiation with itself.
    Sizes only from here down. Nothing moves. */
 @media (max-height: 560px) and (orientation: landscape) {
-  .header-bar { padding: 3px 8px; }
-  .header-controls button { padding: 4px 8px !important; font-size: 0.58rem; min-height: 26px; }
+  /* Every strip on this screen is trimmed to the smallest it can be and still be read,
+     and the pixels all go to one place: the cylinder, which is the thing the player is
+     actually looking at while deciding. */
+  .header-bar { padding: 1px 8px; }
+  .header-controls button { padding: 2px 8px !important; font-size: 0.55rem; min-height: 22px; }
+  .stats-group { font-size: 0.62rem; }
 
   .game-table { padding: 2px 10px; gap: 2px; }
 
-  .dealer-zone { max-height: 44px; padding: 2px 10px; }
-  .dealer-zone .avatar-box { width: 24px; height: 24px; font-size: 0.8rem; }
-  .dealer-zone .char-details h3 { font-size: 0.6rem; }
-  .dealer-zone small { font-size: 0.52rem; }
-  .dealer-zone .hp-bar-container { height: 6px; }
+  .dealer-zone { max-height: 34px; padding: 1px 8px; }
+  .dealer-zone .avatar-box { width: 20px; height: 20px; font-size: 0.7rem; }
+  .dealer-zone .char-details h3 { font-size: 0.55rem; }
+  .dealer-zone small { font-size: 0.48rem; }
+  .dealer-zone .hp-bar-container { height: 5px; }
+  .dealer-zone .char-info { gap: 6px; }
   /* Two lines of dialogue cost more than the boss's voice is worth at this height, and
      everything it reported is on screen anyway: damage as a floating number and an HP bar,
      live against blank as the screen flash and the coloured chamber. */
   .dealer-dialogue { display: none; }
 
-  .chamber-display { padding: 1px 10px; gap: 1px; }
-  .revolver-drum { width: 44px; height: 44px; }
-  .chamber-counter { font-size: 0.55rem; }
+  /* The cylinder takes everything the strips gave up. */
+  .chamber-display { padding: 2px 10px; gap: 2px; }
+  .revolver-drum { width: 72px; height: 72px; }
+  .chamber-counter { font-size: 0.6rem; }
 
-  .btn-action { min-height: 28px; font-size: 0.55rem; padding: 3px 8px; }
+  .btn-action { min-height: 26px; font-size: 0.55rem; padding: 2px 8px; }
   .action-controls { gap: 6px; }
 
-  .player-header { padding: 1px 10px; }
+  .player-header { padding: 1px 8px; }
   .player-zone .avatar-box { width: 20px; height: 20px; font-size: 0.7rem; }
   .player-zone .char-details h3 { font-size: 0.55rem; }
-  .player-zone .hp-bar-container { height: 6px; }
-  .player-header #player-hp-text { font-size: 0.52rem; }
+  .player-zone .hp-bar-container { height: 5px; }
+  .player-zone .char-info { gap: 6px; }
+  .player-header #player-hp-text { font-size: 0.5rem; }
   .player-header > div:last-child { font-size: 0.55rem; }
 
   .cards-container { min-height: 0; gap: 4px; padding: 2px; }
-  .item-card { width: 58px; height: 66px; padding: 2px; }
-  .item-card-icon-img { width: 14px; height: 14px; }
-  .card-name { font-size: 0.44rem; margin-bottom: 0; }
-  .card-desc { display: -webkit-box; font-size: 0.42rem; -webkit-line-clamp: 4; }
+  .item-card { width: 58px; height: 70px; padding: 2px 2px 3px; }
+  /* Two pixels off the icon rather than off the card: the description had no slack at all
+     and the last line of a multiplier card is the multiplier. */
+  .item-card-icon-img { width: 12px; height: 12px; }
+  .card-name { font-size: 0.44rem; margin-bottom: 0; line-height: 1.05; }
+  /* 1.15 put four lines a pixel past the box and clipped the last one — which on a
+     multiplier card is the multiplier itself, the only number that matters on it. */
+  .card-desc { display: -webkit-box; font-size: 0.42rem; line-height: 1.08; -webkit-line-clamp: 4; }
 }
 
 /* Coarse pointers get no hover affordances at all — they only cause stuck states. */
