@@ -1264,8 +1264,11 @@ body {
     /* Hover lift belongs to a mouse; on touch it just clips inside the scroller. */
     animation: none;
   }
+  /* Cards first, the player's own strip under them. The hand is what a thumb reaches for,
+     so it sits nearer the thumb; the strip is a readout and belongs at the edge. */
+  .player-zone { flex-direction: column-reverse; }
+
   .item-card:hover { transform: none; }
-  .item-card-icon-img { width: 26px; height: 26px; }
   .card-name { font-size: 0.5rem !important; line-height: 1.1 !important; }
 
   /* The description stays on the card. It used to be hidden here, and the hover tooltip
@@ -1402,7 +1405,9 @@ body {
   /* Taller than it was, to carry the description. Portrait has the room: the table ended
      268px above the bottom of a 740px screen. */
   .item-card { width: 66px; height: 104px; }
-  .item-card-icon-img { width: 26px; height: 26px; }
+  /* The art, not the frame. This card is 104px tall and the picture was a third of it —
+     the room was there and was going into the gaps around it. */
+  .item-card-icon-img { width: 38px; height: 38px; }
   .combat-log { display: none; }
   .hero-title { font-size: 1.4rem; }
   .btn-action { min-height: 42px; font-size: 0.66rem; }
@@ -1466,19 +1471,33 @@ body {
   .btn-action { min-height: 26px; font-size: 0.55rem; padding: 2px 8px; }
   .action-controls { gap: 6px; }
 
-  .player-header { padding: 1px 8px; }
+  /* The player's strip, matched to the dealer's: same cap, same padding, same type. The
+     two are the same kind of thing and were different sizes only because they grew apart. */
+  .player-header {
+    max-height: 34px;
+    overflow: hidden;
+    padding: 1px 8px;
+  }
   .player-zone .avatar-box { width: 20px; height: 20px; font-size: 0.7rem; }
   .player-zone .char-details h3 { font-size: 0.55rem; }
   .player-zone .hp-bar-container { height: 5px; }
   .player-zone .char-info { gap: 6px; }
-  .player-header #player-hp-text { font-size: 0.5rem; }
+  .player-header #player-hp-text { font-size: 0.48rem; }
   .player-header > div:last-child { font-size: 0.55rem; }
 
   .cards-container { min-height: 0; gap: 4px; padding: 2px; }
-  .item-card { width: 58px; height: 70px; padding: 2px 2px 3px; }
-  /* Two pixels off the icon rather than off the card: the description had no slack at all
-     and the last line of a multiplier card is the multiplier. */
-  .item-card-icon-img { width: 12px; height: 12px; }
+  /* Stacked from the top, with the description taking whatever is left. space-between
+     spread the card's spare height as gaps between the icon, the name and the text, and a
+     card whose name wraps to two lines — "Овердрайв 2.0" — then had 18px for a text that
+     wanted 22. The spare was always there; it was going into the gaps. */
+  .item-card {
+    width: 58px;
+    height: 70px;
+    padding: 2px 2px 3px;
+    justify-content: flex-start;
+  }
+  .item-card .card-desc { flex: 1 1 auto; min-height: 0; }
+  .item-card-icon-img { width: 22px; height: 22px; }
   .card-name { font-size: 0.44rem; margin-bottom: 0; line-height: 1.05; }
   /* 1.15 put four lines a pixel past the box and clipped the last one — which on a
      multiplier card is the multiplier itself, the only number that matters on it. */

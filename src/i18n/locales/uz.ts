@@ -4,7 +4,7 @@ import type { Dictionary } from '../index';
 // platforms send as 'uz'. normalizeLang() folds 'uz-Cyrl' onto this same dictionary.
 export const uz: Dictionary = {
   // ── Kartalar ───────────────────────────────────────────────────────────────
-  'item.booster.desc': 'Keyingi otish zarari ×{mult}.',
+  'item.booster.desc': 'Keyingi otish ×{mult}.',
 
   'item.MAGNIFIER.name': 'Lupa',
   'item.MAGNIFIER.desc': 'Keyingi o‘q turi.',

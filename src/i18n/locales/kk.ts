@@ -2,7 +2,7 @@ import type { Dictionary } from '../index';
 
 export const kk: Dictionary = {
   // ── Карталар ───────────────────────────────────────────────────────────────
-  'item.booster.desc': 'Келесі оқ зақымы ×{mult}.',
+  'item.booster.desc': 'Келесі оқ ×{mult}.',
 
   'item.MAGNIFIER.name': 'Ұлғайтқыш',
   'item.MAGNIFIER.desc': 'Келесі оқтың түрі.',

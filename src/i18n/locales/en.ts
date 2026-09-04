@@ -2,7 +2,7 @@ import type { Dictionary } from '../index';
 
 export const en: Dictionary = {
   // ── Cards ──────────────────────────────────────────────────────────────────
-  'item.booster.desc': 'Next shot ×{mult} damage.',
+  'item.booster.desc': 'Next shot ×{mult}.',
 
   'item.MAGNIFIER.name': 'Magnifier',
   'item.MAGNIFIER.desc': 'Reveals the next round.',
